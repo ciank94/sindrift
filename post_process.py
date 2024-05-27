@@ -11,11 +11,15 @@ class Analyse:
 
     def __init__(self, path, key, year):
         # Organise file data
-        self.bin_res = 0.6
+        self.lon_id = None
+        self.lat_id = None
+        self.lat_t = None
+        self.lon_t = None
+        self.bin_res = 0.5
         self.filepath = path
         self.results = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/results/'
         self.key = key
-        self.tr_file = self.filepath + self.key + '_' + str(year) +  '_trajectory.nc'
+        self.tr_file = self.filepath + self.key + '_' + str(year) + '_trajectory.nc'
         self.nc_file = nc.Dataset(self.tr_file)
         self.bath_file = self.results + 'bath.npy'
         self.bath_file_lon = self.results + 'bath_lon.npy'
@@ -27,38 +31,82 @@ class Analyse:
         # extract data from trajectory file
         self.lat = self.nc_file['lat']
         self.lon = self.nc_file['lon']
+        self.shp_p = np.shape(self.lat)[0]
+        self.shp_t = np.shape(self.lat)[1]
         #self.z = self.nc_file['z']
+
+        #Initialize matrix:
+        self.init_region(key)
+        self.domin_matrix = np.zeros([self.shp_lon_bins, self.shp_lat_bins])
+        self.d_scale = 40
+        self.max_scale = 0.5
 
         # plotting parameters
         self.bath_contours = np.linspace(0, 3000, 10)
         self.bath_cmap = plt.get_cmap('Blues')
+        self.dom_cmap = plt.get_cmap('Reds')
         self.depth_colors = np.arange(0, 4500, 200)
         return
 
     def dominant_paths(self):
-        breakpoint()
-        lat = self.lat[0, :]
-        lon = self.lon[0, :]
 
-        arr = [lon[:], lat[:]]
+        for p_i in range(0, self.shp_p, 1):
+            lon_p = self.lon[p_i, :]
+            lat_p = self.lat[p_i, :]
+            temp_points = np.ones([self.shp_t, 2])*-1
+            self.print_pstep(descriptor="Dominant path calculation", p = p_i)
+            if lat_p.mask.shape == ():
+                shp_mask = 0
+            else:
+                shp_mask = 1
 
-        unique_rows = np.unique(arr, axis=0)
+            for t in range(0, self.shp_t, 1):
+                self.lon_t = lon_p[t]
+                self.lat_t = lat_p[t]
+                self.get_closest_point()
+                if shp_mask == 1:
+                    if lat_p.mask[t]:  # check if individual is inactive
+                        break
+                    else:
+                        temp_points[t, 0] = self.lon_id
+                        temp_points[t, 1] = self.lat_id
 
-        lon_mesh, lat_mesh = np.meshgrid(self.lon_range, self.lat_range)
+            # Then, look at the unique latlong ids for particle p_i
+            unique_rows = np.unique(temp_points, axis=0).astype(int)
+            unique_rows = unique_rows[unique_rows[:, 0] > -1]
+            if np.shape(unique_rows)[0] > 0:
+                self.domin_matrix[unique_rows[:, 0], unique_rows[:, 1]] = self.domin_matrix[
+                                                                              unique_rows[:, 0], unique_rows[:, 1]] + 1
+        return
 
-        shp_lat = np.shape(self.lat)[0]
-        shp_lon_range = np.shape(self.lon_range)[0]
-        shp_lat_range = np.shape(self.lat_range)[0]
-        dens_m = np.zeros([shp_lon_range, shp_lat_range])
-        n_catches = np.zeros([shp_lon_range, shp_lat_range])
-        dens_f = np.zeros([shp_lon_range, shp_lat_range])
-        # best option: loop over first individual and save latlong bin values the individual has visited, then I can
-        # use unique rows to find the unique bin values in each case, start with low bin resolution for clarity
-        for ij in range(0, shp_lat):
-            lat_id = np.argmin(np.sqrt((lat.iloc[ij] - self.lat_range[:]) ** 2))
-            lon_id = np.argmin(np.sqrt((lon.iloc[ij] - self.lon_range[:]) ** 2))
-            dens_m[lon_id, lat_id] = dens_m[lon_id, lat_id] + 1
-            n_catches[lon_id, lat_id] = n_catches[lon_id, lat_id] + 1
+    def plot_dom_paths(self):
+        self.init_plot()
+        self.plot_background()
+        n_levels = np.arange(np.min(self.domin_matrix), self.max_scale*np.max(self.domin_matrix),
+                             np.max(self.domin_matrix) / self.d_scale)
+        self.plot1 = plt.contourf(self.lon_range, self.lat_range, self.domin_matrix.T, levels=n_levels, cmap=self.dom_cmap,
+                     transform=ccrs.PlateCarree(), extend='both')
+        self.c_max = self.max_scale*np.max(self.domin_matrix)
+        self.caxis_title = 'Probability (%)'
+        self.add_cbar()
+        plt_name = self.key + "_dom_paths"
+        self.save_plot(plt_name)
+        return
+
+    def get_closest_point(self):
+        self.lon_id = np.argmin(np.sqrt((self.lon_t - self.lon_range[:]) ** 2))
+        self.lat_id = np.argmin(np.sqrt((self.lat_t - self.lat_range[:]) ** 2))
+        return
+
+    def print_pstep(self, descriptor, p):
+        if p == 0:
+            print("First step in calculation")
+        else:
+            print(descriptor + " : " + str(p + 1) + " of " + str(self.shp_p))
+        if p == self.shp_p:
+            print("Final particle calculation")
+        return
+
 
     def plot_trajectory(self, region):
         self.init_region(region)
@@ -165,8 +213,10 @@ class Analyse:
             self.min_lat = -70
             self.max_lat = -50
 
-        self.lat_range = np.arange(self.min_lat - 10, self.max_lat + 6, self.bin_res)
-        self.lon_range = np.arange(self.min_lon - 10, self.max_lon + 6, self.bin_res)
+        self.lat_range = np.arange(self.min_lat - 20, self.max_lat + 15, self.bin_res)
+        self.lon_range = np.arange(self.min_lon - 20, self.max_lon + 15, self.bin_res)
+        self.shp_lon_bins = np.shape(self.lon_range)[0]
+        self.shp_lat_bins = np.shape(self.lat_range)[0]
 
         return
 

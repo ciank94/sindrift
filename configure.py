@@ -3,49 +3,47 @@ import numpy as np
 
 
 class Case:
-    def __init__(self, reader, path, time_step_hours, days, y_i):
-        self.trajectory_file = None
-        self.description = None
-        self.lon_init = None
-        self.lat_init = None
-        self.name = None
-        self.year = y_i
-        self.n_part = 10000
-        self.radius = 10000
-        self.z = 50
-        self.duration = timedelta(hours=24*days)
-        self.time_step = timedelta(hours=time_step_hours)
-        self.export_variables = ['lon', 'lat']
-        self.path = path
-        if time_step_hours < 0:
+    def __init__(self, infile_path, outfile_path, reader, duration_days, time_step_hours, release_step, y_i, r_i, key):
+        self.trajectory_file = None  # Trajectory file path and name
+        self.lon_init = None  # Initialization longitude(s)
+        self.lat_init = None  # Initialization latitude(s)
+        self.n_part = None  # number of particles initialized
+        self.radius = None  # radius of initialized particles in metres (zero in case of regular grid)
+        self.description = None  # Case description (todo: write to nc file)
+        self.key = key  # key used to identify initialization scenario
+        self.get_scenario()  # furnish initialization scenario with class attributes above
+        self.year = y_i  # simulation year
+        self.release_n = r_i + 1  # release number starts at one
+        self.z = 50  # release depth
+        self.duration = timedelta(hours=24 * duration_days)  # simulation duration in hours as datetime object
+        self.time_step = timedelta(hours=time_step_hours)  # simulation time step in hours as datetime object
+        self.release_step = release_step  # number of hours between releases
+        self.export_variables = ['lon', 'lat']  # choose variables to export from simulation to nc file
+        self.infile_path = infile_path  # path to server with nc files
+        self.outfile_path = outfile_path  # path to save the output file
+        if time_step_hours < 0:  # for backward simulation start with final time on nc file
             self.t_init = reader.end_time
         else:
             self.t_init = reader.start_time
+            self.t_init = self.t_init + r_i * timedelta(hours=self.release_step)
         return
 
-    def get_scenarios(self, key):
-        self.name = key
-        self.trajectory_file = self.path + key + '_' + str(self.year) + '_trajectory.nc'
-        if self.name == "APSO":
+    def get_scenario(self):
+        # Define trajectory output file
+        self.trajectory_file = self.outfile_path + self.key + '_' + str(self.year) + '_trajectory.nc'
+        if self.key == "APSO":
             lon_min = -70
             lon_max = -40
-            step_lon = (-1 * (lon_min - lon_max) / np.sqrt(self.n_part))
             lat_min = -68
             lat_max = -57
+            step_lon = (-1 * (lon_min - lon_max) / np.sqrt(self.n_part))
             step_lat = (-1 * (lat_min - lat_max) / np.sqrt(self.n_part))
             lons = np.arange(lon_min, lon_max, step_lon)
             lats = np.arange(lat_min, lat_max, step_lat)
             self.lat_init, self.lon_init = np.meshgrid(lats, lons)
             self.radius = 0
-        elif self.name == "SG_NE":
-            self.description = "Important fishing ground at NE"
-            self.lat_init = -53.8
-            self.lon_init = -36
-
-        elif self.name == "SG_NW":
-            self.description = "Important fishing ground at NW"
-            self.lat_init = -53.75
-            self.lon_init = -38.5
+            self.n_part = 10000
+            self.description = " Initialize with regular grid covering the Antarctic Peninsula and South Orkney Islands"
         else:
-            print('missing key configuration in get_config_params')
+            print('WARNING: missing key configuration in get_scenario')
         return
