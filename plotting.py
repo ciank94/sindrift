@@ -3,12 +3,54 @@ import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 import numpy as np
 
-class Plotting:
 
-    def __init__(self):
-        self.bath_file = self.outfile_path + 'bath.npy'
-        self.bath_file_lon = self.outfile_path + 'bath_lon.npy'
-        self.bath_file_lat = self.outfile_path + 'bath_lat.npy'
+class FuseData:
+    def __init__(self, outfile_path, year_ids, release_ids, key_ids):
+        self.dom_path_i = None
+        self.outfile_path = outfile_path
+        self.year_ids = year_ids
+        self.release_ids = release_ids
+        self.key_ids = key_ids
+        self.n_parts = 10000
+
+        # Fusion and statistics of datasets for plotting:
+        self.fuse_dominant_paths()
+
+    def fuse_dominant_paths(self):
+        c_i = 0
+        for key in self.key_ids:
+            for year in self.year_ids:
+                for release in self.release_ids:
+                    c_i = c_i + 1
+                    file = self.outfile_path + key + '_' + str(year) + '_R' + str(release) + '_dominant_paths.npy'
+                    if c_i == 1:
+                        self.dom_path_i = np.load(file)
+                    else:
+                        self.dom_path_i = self.dom_path_i + np.load(file)
+
+        self.dom_path_i = self.dom_path_i/(c_i*self.n_parts)
+
+class PlotData:
+
+    def __init__(self, fuse):
+        # Settings for getting bathymetry files
+        # todo: document how to get the bathymetry files as below
+        # todo: look into saving information from simulation in post_process as class/ dictionary
+        self.bath_file = fuse.outfile_path + 'bath.npy'
+        self.bath_file_lon = fuse.outfile_path + 'bath_lon.npy'
+        self.bath_file_lat = fuse.outfile_path + 'bath_lat.npy'
+        self.bath = np.load(self.bath_file)
+        self.bath_lon = np.load(self.bath_file_lon)
+        self.bath_lat = np.load(self.bath_file_lat)
+        self.min_lon = -75
+        self.max_lon = -30
+        self.min_lat = -70
+        self.max_lat = -50
+        self.bin_res = 0.5
+        self.lat_range = np.arange(self.min_lat - 20, self.max_lat + 15, self.bin_res)
+        self.lon_range = np.arange(self.min_lon - 20, self.max_lon + 15, self.bin_res)
+        self.results = fuse.outfile_path
+
 
         # Dominant pathways color scaling:
         self.d_scale = 40
@@ -20,18 +62,18 @@ class Plotting:
         self.dom_cmap = plt.get_cmap('Reds')
         self.depth_colors = np.arange(0, 4500, 200)
 
-    def plot_dom_paths(self):
+    def plot_dom_paths(self, fuse):
         self.init_plot()
         self.plot_background()
-        n_levels = np.arange(np.min(self.dom_matrix), self.max_scale * np.max(self.dom_matrix),
-                             np.max(self.dom_matrix) / self.d_scale)
-        self.plot1 = plt.contourf(self.lon_range, self.lat_range, self.domin_matrix.T, levels=n_levels,
+        n_levels = np.arange(np.min(fuse.dom_path_i), self.max_scale * np.max(fuse.dom_path_i),
+                             np.max(fuse.dom_path_i) / self.d_scale)
+        self.plot1 = plt.contourf(self.lon_range, self.lat_range, fuse.dom_path_i.T, levels=n_levels,
                                   cmap=self.dom_cmap,
                                   transform=ccrs.PlateCarree(), extend='both')
-        self.c_max = self.max_scale * np.max(self.domin_matrix)
+        self.c_max = self.max_scale * np.max(fuse.dom_path_i)
         self.caxis_title = 'Probability (%)'
         self.add_cbar()
-        plt_name = self.key + "_dom_paths"
+        plt_name = "sample" + "_dom_paths"
         self.save_plot(plt_name)
         return
 

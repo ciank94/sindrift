@@ -14,15 +14,15 @@ class Process:
         self.outfile_path = outfile_path
         self.key = key
         self.year = y_i
-        self.release_n = r_i
+        self.release_n = r_i + 1
         self.nc_file = nc.Dataset(trajectory_file)
 
         if test:
-            self.p_step = 10
-            self.t_step = 10
+            self.p_stride = 10
+            self.t_stride = 10
         else:
-            self.p_step = 1
-            self.t_step = 1
+            self.p_stride = 1
+            self.t_stride = 1
 
         # extract data from trajectory file
         self.lat = self.nc_file['lat']
@@ -47,7 +47,7 @@ class Process:
         return
 
     def dominant_paths(self):
-        for p_i in range(0, self.shp_p, self.p_step):
+        for p_i in range(0, self.shp_p, self.p_stride):
             lon_p = self.lon[p_i, :]
             lat_p = self.lat[p_i, :]
             temp_points = np.ones([self.shp_t, 2])*-1
@@ -57,7 +57,7 @@ class Process:
             else:
                 shp_mask = 1
 
-            for t in range(0, self.shp_t, 1):
+            for t in range(0, self.shp_t, self.t_stride):
                 self.lon_t = lon_p[t]
                 self.lat_t = lat_p[t]
                 self.get_closest_point()
@@ -74,8 +74,8 @@ class Process:
             if np.shape(unique_rows)[0] > 0:
                 self.dom_matrix[unique_rows[:, 0], unique_rows[:, 1]] = self.dom_matrix[
                                                                               unique_rows[:, 0], unique_rows[:, 1]] + 1
-
-        np.save(self.dom_matrix, )
+        print('Saving: ' + self.dom_file)
+        np.save(self.dom_file, self.dom_matrix)
         return
 
     def get_closest_point(self):

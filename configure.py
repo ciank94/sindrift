@@ -3,7 +3,8 @@ import numpy as np
 
 
 class Scenario:
-    def __init__(self, infile_path, outfile_path, reader, duration_days, time_step_hours, release_step, y_i, r_i, key):
+    def __init__(self, infile_path, outfile_path, reader, duration_days, time_step_hours, save_time_step_hours,
+                 release_step, y_i, r_i, key):
         self.trajectory_file = None  # Trajectory file path and name
         self.lon_init = None  # Initialization longitude(s)
         self.lat_init = None  # Initialization latitude(s)
@@ -16,6 +17,7 @@ class Scenario:
         self.z = 50  # release depth
         self.duration = timedelta(hours=24 * duration_days)  # simulation duration in hours as datetime object
         self.time_step = timedelta(hours=time_step_hours)  # simulation time step in hours as datetime object
+        self.save_time_step = timedelta(hours=save_time_step_hours)  # how often the file is saved
         self.release_step = release_step  # number of hours between releases
         self.export_variables = ['lon', 'lat']  # choose variables to export from simulation to nc file
         self.infile_path = infile_path  # path to server with nc files
