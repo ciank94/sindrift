@@ -2,16 +2,15 @@ from datetime import timedelta
 import numpy as np
 
 
-class Case:
+class Scenario:
     def __init__(self, infile_path, outfile_path, reader, duration_days, time_step_hours, release_step, y_i, r_i, key):
         self.trajectory_file = None  # Trajectory file path and name
         self.lon_init = None  # Initialization longitude(s)
         self.lat_init = None  # Initialization latitude(s)
         self.n_part = None  # number of particles initialized
         self.radius = None  # radius of initialized particles in metres (zero in case of regular grid)
-        self.description = None  # Case description (todo: write to nc file)
+        self.description = None  # Case description (todo: write to nc file as metadata)
         self.key = key  # key used to identify initialization scenario
-        self.get_scenario()  # furnish initialization scenario with class attributes above
         self.year = y_i  # simulation year
         self.release_n = r_i + 1  # release number starts at one
         self.z = 50  # release depth
@@ -26,12 +25,17 @@ class Case:
         else:
             self.t_init = reader.start_time
             self.t_init = self.t_init + r_i * timedelta(hours=self.release_step)
+        self.scenario_initialization()  # furnish initialization scenario with class attributes at beginning
         return
 
-    def get_scenario(self):
+    def scenario_initialization(self):
         # Define trajectory output file
-        self.trajectory_file = self.outfile_path + self.key + '_' + str(self.year) + '_trajectory.nc'
+        self.trajectory_file = (self.outfile_path + self.key + '_' + str(self.year) + '_R'
+                                + str(self.release_n) + '_trajectory.nc')
         if self.key == "APSO":
+            self.description = " Initialize with regular grid covering the Antarctic Peninsula and South Orkney Islands"
+            self.n_part = 10000
+            self.radius = 0
             lon_min = -70
             lon_max = -40
             lat_min = -68
@@ -41,9 +45,6 @@ class Case:
             lons = np.arange(lon_min, lon_max, step_lon)
             lats = np.arange(lat_min, lat_max, step_lat)
             self.lat_init, self.lon_init = np.meshgrid(lats, lons)
-            self.radius = 0
-            self.n_part = 10000
-            self.description = " Initialize with regular grid covering the Antarctic Peninsula and South Orkney Islands"
         else:
             print('WARNING: missing key configuration in get_scenario')
         return
