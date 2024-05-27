@@ -4,7 +4,7 @@ if node == 'local':
     import sys
     sys.path.insert(0, 'C:/Users/ciank/PycharmProjects/sinmod/opendrift')  # add opendrift local path
     infile_path = 'A:/Cian_sinmod/copernicus_client/results/'
-    outfile_path = 'C:/Users/ciank/PycharmProjects/sinmod/Krill_data/SINdrift/results/'
+    outfile_path = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/results/'
 else:  # assume job is on server
     infile_path = '/cluster/projects/nn9828k/Cian_sinmod/copernicus_client/results/'
     outfile_path = infile_path
@@ -12,6 +12,7 @@ else:  # assume job is on server
 from opendrift.models.oceandrift import OceanDrift
 from opendrift.readers import reader_netCDF_CF_generic, reader_global_landmask
 from configure import Scenario
+from post_process import Process
 
 # Simulation settings (time, releases, initialization scenario)
 file_prefix = 'CMEMS_GLPHYS_D_full_'  # File identifier
@@ -24,21 +25,24 @@ release_n_days = 5  # number of days between releases (time=start_time + i*time_
 release_step = 24*release_n_days  # number of hours between releases
 init_keys = ["APSO"]  # key names for initialization scenario: defines lat-long start points, number of particles etc.
 
+# test processing
+test = True
+
 for y_i in range(y_start, y_end):
     for r_i in range(0, release_end):
         for key in init_keys:
 
-            # Specify netcdf name and print information about simulation:
+            # Input netcdf file with physics (u, v ,T ...):
             phys_states = infile_path + file_prefix + str(y_i) + '.nc'
             print('Beginning simulation: year = ' + str(y_i) + ', release number ' + str(r_i))
 
-            # Initialize OpenDrift object
+            # Initialize OpenDrift object (model type)
             o = OceanDrift(loglevel=20)  # log_level= 0 for full diagnostics, 50 for none
             reader_samples = reader_netCDF_CF_generic.Reader(phys_states)  # read input variables
             reader_landmask = reader_global_landmask.Reader()  # high resolution coast for particle beaching etc.
             o.add_reader([reader_landmask, reader_samples])  # add readers to model instance
 
-            # builds parameterization into a scenario object
+            # Parameterization of scenario object for initialization and running
             scenario = Scenario(infile_path, outfile_path, reader_samples, duration_days,
                                 time_step_hours, release_step, y_i, r_i, key)
 
@@ -55,6 +59,11 @@ for y_i in range(y_start, y_end):
                   time_step=scenario.time_step,
                   outfile=scenario.trajectory_file,
                   export_variables=scenario.export_variables)
+
+            # Post-process simulation file, saving intermediate data (unique particle visits, transit times ...)
+            Process(scenario.trajectory_file, outfile_path, y_i, r_i, key, test)
+
+
 
 
 
