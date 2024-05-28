@@ -30,6 +30,7 @@ class FuseData:
                         self.dom_path_i = self.dom_path_i + np.load(file)
 
         #self.dom_path_i = self.dom_path_i/(c_i*self.n_parts)
+        self.dom_path_i = self.dom_path_i / np.nanmax(self.dom_path_i)
 
 class PlotData:
 
@@ -47,20 +48,36 @@ class PlotData:
         self.max_lon = -30
         self.min_lat = -70
         self.max_lat = -50
-        self.bin_res = 0.1
+
+        self.bin_res = 0.06
         self.lat_range = np.arange(self.min_lat - 20, self.max_lat + 15, self.bin_res)
         self.lon_range = np.arange(self.min_lon - 20, self.max_lon + 15, self.bin_res)
         self.results = fuse.outfile_path
 
+        self.min_lon = -40.5
+        self.max_lon = -33.8
+        self.min_lat = -57.5
+        self.max_lat = -51.5
+
+        #self.min_lon = -50
+        #self.max_lon = -41
+        #self.min_lat = -65
+        #self.max_lat = -57
+
+        #self.min_lon = -65.3
+        #self.max_lon = -51
+        #self.min_lat = -69
+        #self.max_lat = -56
 
         # Dominant pathways color scaling:
-        self.d_scale = 20
-        self.max_scale = 0.2
+        self.d_scale = 40
+        self.max_scale = 0.06
 
         # plotting parameters
         self.bath_contours = np.linspace(0, 3000, 10)
         self.bath_cmap = plt.get_cmap('Blues')
-        self.dom_cmap = plt.get_cmap('Reds')
+        #self.dom_cmap = plt.get_cmap('Reds')
+        self.dom_cmap = plt.get_cmap('OrRd')
         self.depth_colors = np.arange(0, 4500, 200)
 
     def plot_dom_paths(self, fuse):
@@ -69,8 +86,11 @@ class PlotData:
         n_levels = np.arange(np.min(fuse.dom_path_i), self.max_scale * np.max(fuse.dom_path_i),
                              np.max(fuse.dom_path_i)*self.max_scale / self.d_scale)
         self.plot1 = plt.contourf(self.lon_range, self.lat_range, fuse.dom_path_i.T, levels=n_levels,
-                                  cmap=self.dom_cmap,
-                                  transform=ccrs.PlateCarree(), extend='both')
+                                cmap=self.dom_cmap,
+                                 transform=ccrs.PlateCarree(), extend='both')
+        #self.plot1 = plt.pcolormesh(self.lon_range, self.lat_range, fuse.dom_path_i.T,
+         #                         cmap=self.dom_cmap,
+          #                        transform=ccrs.PlateCarree())
         self.c_max = self.max_scale * np.max(fuse.dom_path_i)
         self.caxis_title = 'Probability (%)'
         self.add_cbar()

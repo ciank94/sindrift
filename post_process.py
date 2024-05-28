@@ -10,7 +10,7 @@ class Process:
         self.lat_id = None
         self.lat_t = None
         self.lon_t = None
-        self.bin_res = 0.1
+        self.bin_res = 0.06
         self.outfile_path = outfile_path
         self.key = key
         self.year = y_i
@@ -49,11 +49,11 @@ class Process:
         return
 
     def dominant_paths(self):
-        self.init_ncfile()
+        #self.init_ncfile()
         for p_i in range(0, self.shp_p, self.p_stride):
             lon_p = self.lon[p_i, :]
             lat_p = self.lat[p_i, :]
-            self.write_ncfile(lon_p, lat_p, p_i)
+            #self.write_ncfile(lon_p, lat_p, p_i)
             temp_points = np.ones([self.shp_t, 2])*-1
             self.print_pstep(descriptor="Dominant path calculation", p=p_i)
 
@@ -70,24 +70,11 @@ class Process:
             if np.shape(unique_rows)[0] > 0:
                 self.dom_matrix[unique_rows[:, 0], unique_rows[:, 1]] = self.dom_matrix[
                                                                               unique_rows[:, 0], unique_rows[:, 1]] + 1
-        print('Closing transposed file')
-        self.outfile.close()
+        #print('Closing transposed file')
+        #self.outfile.close()
 
         print('Saving: ' + self.dom_file)
         np.save(self.dom_file, self.dom_matrix)
-        return
-
-    def get_closest_point(self):
-        self.lon_id = np.argmin(np.sqrt((self.lon_t - self.lon_range[:]) ** 2))
-        self.lat_id = np.argmin(np.sqrt((self.lat_t - self.lat_range[:]) ** 2))
-        return
-
-    def init_ncfile(self):
-        self.outfile = nc.Dataset(self.tp_file, 'w')
-        self.outfile.createDimension('time', self.shp_t)
-        self.outfile.createDimension('particles', self.shp_p)
-        self.outfile.createVariable('lat', 'f4', ('time', 'particles'))
-        self.outfile.createVariable('lon', 'f4', ('time', 'particles'))
         return
 
     def write_ncfile(self, lon_p, lat_p, p_i):
@@ -102,6 +89,19 @@ class Process:
             print(descriptor + " : " + str(p + 1) + " of " + str(self.shp_p))
         if p == self.shp_p:
             print("Final particle calculation")
+        return
+
+    def get_closest_point(self):
+        self.lon_id = np.argmin(np.sqrt((self.lon_t - self.lon_range[:]) ** 2))
+        self.lat_id = np.argmin(np.sqrt((self.lat_t - self.lat_range[:]) ** 2))
+        return
+
+    def init_ncfile(self):
+        self.outfile = nc.Dataset(self.tp_file, 'w')
+        self.outfile.createDimension('time', self.shp_t)
+        self.outfile.createDimension('particles', self.shp_p)
+        self.outfile.createVariable('lat', 'f4', ('time', 'particles'))
+        self.outfile.createVariable('lon', 'f4', ('time', 'particles'))
         return
 
 

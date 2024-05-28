@@ -15,11 +15,11 @@ outfile_path = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/results/'
 
 # Parameters for analysis
 key_ids = ["APSO"]
-year_f = 2000
+year_f = 2001
 year_e = 2001
 year_ids = np.arange(year_f, year_e+1, 1)
 release_f = 1
-release_e = 3
+release_e = 6
 release_ids = np.arange(release_f, release_e+1, 1)
 
 # Fuse datasets and get statistics
