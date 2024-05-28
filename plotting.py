@@ -5,9 +5,10 @@ import numpy as np
 
 
 class FuseData:
-    def __init__(self, outfile_path, year_ids, release_ids, key_ids):
+    def __init__(self, infile_path, outfile_path, year_ids, release_ids, key_ids):
         self.dom_path_i = None
         self.outfile_path = outfile_path
+        self.infile_path = infile_path
         self.year_ids = year_ids
         self.release_ids = release_ids
         self.key_ids = key_ids
@@ -22,13 +23,13 @@ class FuseData:
             for year in self.year_ids:
                 for release in self.release_ids:
                     c_i = c_i + 1
-                    file = self.outfile_path + key + '_' + str(year) + '_R' + str(release) + '_dominant_paths.npy'
+                    file = self.infile_path + key + '_' + str(year) + '_R' + str(release) + '_dominant_paths.npy'
                     if c_i == 1:
                         self.dom_path_i = np.load(file)
                     else:
                         self.dom_path_i = self.dom_path_i + np.load(file)
 
-        self.dom_path_i = self.dom_path_i/(c_i*self.n_parts)
+        #self.dom_path_i = self.dom_path_i/(c_i*self.n_parts)
 
 class PlotData:
 
@@ -46,15 +47,15 @@ class PlotData:
         self.max_lon = -30
         self.min_lat = -70
         self.max_lat = -50
-        self.bin_res = 0.5
+        self.bin_res = 0.1
         self.lat_range = np.arange(self.min_lat - 20, self.max_lat + 15, self.bin_res)
         self.lon_range = np.arange(self.min_lon - 20, self.max_lon + 15, self.bin_res)
         self.results = fuse.outfile_path
 
 
         # Dominant pathways color scaling:
-        self.d_scale = 40
-        self.max_scale = 0.5
+        self.d_scale = 20
+        self.max_scale = 0.2
 
         # plotting parameters
         self.bath_contours = np.linspace(0, 3000, 10)
@@ -66,7 +67,7 @@ class PlotData:
         self.init_plot()
         self.plot_background()
         n_levels = np.arange(np.min(fuse.dom_path_i), self.max_scale * np.max(fuse.dom_path_i),
-                             np.max(fuse.dom_path_i) / self.d_scale)
+                             np.max(fuse.dom_path_i)*self.max_scale / self.d_scale)
         self.plot1 = plt.contourf(self.lon_range, self.lat_range, fuse.dom_path_i.T, levels=n_levels,
                                   cmap=self.dom_cmap,
                                   transform=ccrs.PlateCarree(), extend='both')

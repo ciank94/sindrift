@@ -10,7 +10,7 @@ class Process:
         self.lat_id = None
         self.lat_t = None
         self.lon_t = None
-        self.bin_res = 0.5
+        self.bin_res = 0.1
         self.outfile_path = outfile_path
         self.key = key
         self.year = y_i
@@ -61,12 +61,10 @@ class Process:
                 self.lon_t = lon_p[t]
                 self.lat_t = lat_p[t]
                 self.get_closest_point()
-                if shp_mask == 1:
-                    if lat_p.mask[t]:  # check if individual is inactive
-                        break
-                    else:
-                        temp_points[t, 0] = self.lon_id
-                        temp_points[t, 1] = self.lat_id
+                #if shp_mask == 1:
+                    #if not lat_p.mask[t]:  # check if individual is still active
+                temp_points[t, 0] = self.lon_id
+                temp_points[t, 1] = self.lat_id
 
             # Then, look at the unique lat-long ids for particle p_i
             unique_rows = np.unique(temp_points, axis=0).astype(int)
