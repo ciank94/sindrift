@@ -43,26 +43,24 @@ class Process:
         self.dom_matrix = np.zeros([self.shp_lon_bins, self.shp_lat_bins])
         self.dom_file = (self.outfile_path + self.key + '_' + str(self.year) + '_R'
                          + str(self.release_n) + '_dominant_paths.npy')
+        self.tp_file = (self.outfile_path + self.key + '_' + str(self.year) + '_R'
+                         + str(self.release_n) + '_trajectory_tp.nc')
         self.dominant_paths()
         return
 
     def dominant_paths(self):
+        self.init_ncfile()
         for p_i in range(0, self.shp_p, self.p_stride):
             lon_p = self.lon[p_i, :]
             lat_p = self.lat[p_i, :]
+            self.write_ncfile(lon_p, lat_p, p_i)
             temp_points = np.ones([self.shp_t, 2])*-1
             self.print_pstep(descriptor="Dominant path calculation", p=p_i)
-            if lat_p.mask.shape == ():
-                shp_mask = 0
-            else:
-                shp_mask = 1
 
             for t in range(0, self.shp_t, self.t_stride):
                 self.lon_t = lon_p[t]
                 self.lat_t = lat_p[t]
                 self.get_closest_point()
-                #if shp_mask == 1:
-                    #if not lat_p.mask[t]:  # check if individual is still active
                 temp_points[t, 0] = self.lon_id
                 temp_points[t, 1] = self.lat_id
 
@@ -72,6 +70,9 @@ class Process:
             if np.shape(unique_rows)[0] > 0:
                 self.dom_matrix[unique_rows[:, 0], unique_rows[:, 1]] = self.dom_matrix[
                                                                               unique_rows[:, 0], unique_rows[:, 1]] + 1
+        print('Closing transposed file')
+        self.outfile.close()
+
         print('Saving: ' + self.dom_file)
         np.save(self.dom_file, self.dom_matrix)
         return
@@ -79,6 +80,19 @@ class Process:
     def get_closest_point(self):
         self.lon_id = np.argmin(np.sqrt((self.lon_t - self.lon_range[:]) ** 2))
         self.lat_id = np.argmin(np.sqrt((self.lat_t - self.lat_range[:]) ** 2))
+        return
+
+    def init_ncfile(self):
+        self.outfile = nc.Dataset(self.tp_file, 'w')
+        self.outfile.createDimension('time', self.shp_t)
+        self.outfile.createDimension('particles', self.shp_p)
+        self.outfile.createVariable('lat', 'f4', ('time', 'particles'))
+        self.outfile.createVariable('lon', 'f4', ('time', 'particles'))
+        return
+
+    def write_ncfile(self, lon_p, lat_p, p_i):
+        self.outfile.variables['lat'][:, p_i] = lat_p.T
+        self.outfile.variables['lon'][:, p_i] = lon_p.T
         return
 
     def print_pstep(self, descriptor, p):

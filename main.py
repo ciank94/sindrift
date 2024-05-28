@@ -17,10 +17,10 @@ from post_process import Process
 # Simulation settings (time, releases, initialization scenario)
 file_prefix = 'CMEMS_GLPHYS_D_full_'  # File identifier
 y_start = 2000  # first year of simulation
-y_end = 2004  # final year of simulation (note: only used if release in [y_end - 1] extends into [y_end])
-time_step_hours = 1/4  # simulation time step (negative time is backwards stepping of model)
-save_time_step_hours = 1  # save time step
-duration_days = 200  # simulation duration in days;
+y_end = 2001  # final year of simulation (note: only used if release in [y_end - 1] extends into [y_end])
+time_step_hours = 1  # simulation time step (negative time is backwards stepping of model)
+save_time_step_hours = 6  # save time step
+duration_days = 2  # simulation duration in days;
 release_end = 20   # total number of releases for simulation
 release_n_days = 5  # number of days between releases (time=start_time + i*time_step)
 release_step = 24*release_n_days  # number of hours between releases
