@@ -64,6 +64,7 @@ for y_i in range(y_start, y_end):
 
             # Post-process simulation file, saving intermediate data (unique particle visits, transit times ...)
             Process(scenario.trajectory_file, outfile_path, y_i, r_i, key, test)
+            #todo: make an intstance of the process object that accepts kwargs- keyword list carrying a key value;
 
 
 

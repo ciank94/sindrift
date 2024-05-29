@@ -9,9 +9,9 @@ class FuseData:
         self.dom_path_i = None
         self.outfile_path = outfile_path
         self.infile_path = infile_path
-        self.year_ids = year_ids
+        self.year_id = year_ids
         self.release_ids = release_ids
-        self.key_ids = key_ids
+        self.key_id = key_ids
         self.n_parts = 10000
 
         # Fusion and statistics of datasets for plotting:
@@ -19,18 +19,24 @@ class FuseData:
 
     def fuse_dominant_paths(self):
         c_i = 0
-        for key in self.key_ids:
-            for year in self.year_ids:
-                for release in self.release_ids:
-                    c_i = c_i + 1
-                    file = self.infile_path + key + '_' + str(year) + '_R' + str(release) + '_dominant_paths.npy'
-                    if c_i == 1:
-                        self.dom_path_i = np.load(file)
-                    else:
-                        self.dom_path_i = self.dom_path_i + np.load(file)
+        year = self.year_id
+        key = self.key_id
+        for release in self.release_ids:
+            c_i = c_i + 1
+            file = self.infile_path + key + '_' + str(year) + '_R' + str(release) + '_dominant_paths.npy'
+            if c_i == 1:
+                self.dom_path_i = np.load(file)
+            else:
+                self.dom_path_i = self.dom_path_i + np.load(file)
 
         #self.dom_path_i = self.dom_path_i/(c_i*self.n_parts)
+        #breakpoint()
         self.dom_path_i = self.dom_path_i / np.nanmax(self.dom_path_i)
+        if self.dom_path_i[0,0] > 3*np.mean(np.unique(self.dom_path_i)):
+            self.dom_path_i[0, 0] = 0
+
+        self.dom_path_i = self.dom_path_i / np.nanmax(self.dom_path_i)
+
 
 class PlotData:
 
@@ -59,6 +65,9 @@ class PlotData:
         self.min_lat = -57.5
         self.max_lat = -51.5
 
+
+        self.save_prefix = fuse.key_id + '_' + str(fuse.year_id)
+
         #self.min_lon = -50
         #self.max_lon = -41
         #self.min_lat = -65
@@ -71,7 +80,7 @@ class PlotData:
 
         # Dominant pathways color scaling:
         self.d_scale = 40
-        self.max_scale = 0.06
+        self.max_scale = 0.8
 
         # plotting parameters
         self.bath_contours = np.linspace(0, 3000, 10)
@@ -94,7 +103,7 @@ class PlotData:
         self.c_max = self.max_scale * np.max(fuse.dom_path_i)
         self.caxis_title = 'Probability (%)'
         self.add_cbar()
-        plt_name = "sample" + "_dom_paths"
+        plt_name = self.save_prefix + "_dom_paths"
         self.save_plot(plt_name)
         return
 
