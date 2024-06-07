@@ -17,7 +17,7 @@ duration_days = 10  # simulation duration in days;
 release_end = 1   # total number of releases for simulation
 release_n_days = 5  # number of days between releases (time=start_time + i*time_step)
 release_step = 24*release_n_days  # number of hours between releases
-init_keys = ["APSO"]  # key names for initialization scenario: defines lat-long start points, number of particles etc.
+init_keys = ["SG800"]  # key names for initialization scenario: defines lat-long start points, number of particles etc.
 
 # test processing
 test = True

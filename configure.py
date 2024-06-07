@@ -47,6 +47,19 @@ class Scenario:
             lons = np.arange(lon_min, lon_max, step_lon)
             lats = np.arange(lat_min, lat_max, step_lat)
             self.lat_init, self.lon_init = np.meshgrid(lats, lons)
+        elif self.key == "SG800":
+            self.description = " Initialize with regular grid in South Georgia 800m domain"
+            self.n_part = 10000
+            self.radius = 0
+            lon_min = -42
+            lon_max = -30
+            lat_min = -57
+            lat_max = -51
+            step_lon = (-1 * (lon_min - lon_max) / np.sqrt(self.n_part))
+            step_lat = (-1 * (lat_min - lat_max) / np.sqrt(self.n_part))
+            lons = np.arange(lon_min, lon_max, step_lon)
+            lats = np.arange(lat_min, lat_max, step_lat)
+            self.lat_init, self.lon_init = np.meshgrid(lats, lons)
         else:
             print('WARNING: missing key configuration in get_scenario')
         return
