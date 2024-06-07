@@ -105,4 +105,20 @@ class Process:
         return
 
 
+def locate_files(node, model_name):
+    if node == 'local':
+        import sys
+        sys.path.insert(0, 'C:/Users/ciank/PycharmProjects/sinmod/opendrift')  # add opendrift local path
+        infile_path = 'A:/Cian_sinmod/copernicus_client/results/'
+        outfile_path = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/results/'
+    else:  # assume job is on server
+        infile_path = '/cluster/projects/nn9828k/Cian_sinmod/copernicus_client/results/'
+        outfile_path = infile_path
+
+    if model_name == "sinmod":
+        file_prefix = "samplesNSEW_"
+    else:
+        file_prefix = 'CMEMS_GLPHYS_D_full_'  # File identifier
+    return infile_path, outfile_path, file_prefix
+
 

@@ -1,11 +1,13 @@
 # Firstly, specify location of netcdf input files
 import sys
-from post_process import Process
+from post_process import Process, locate_files
 from plotting import FuseData, PlotData
 import numpy as np
 
 # sys.path.insert(0, 'C:/Users/ciank/PycharmProjects/sinmod/opendrift')  # add opendrift local path
-infile_path = 'A:/Cian_sinmod/copernicus_client/results/'
+node = 'local'
+model_name = 'sinmod'
+infile_path = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/results/'
 outfile_path = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/results/'
 #infile_path = outfile_path
 
@@ -17,9 +19,9 @@ outfile_path = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/results/'
 key_id = "APSO"
 
 release_f = 1
-release_e = 25
+release_e = 1
 release_ids = np.arange(release_f, release_e+1, 1)
-years = np.arange(2000, 2004, 1)
+years = np.arange(2020, 2021, 1)
 
 for year_id in years:
 
