@@ -6,6 +6,7 @@ infile_path, outfile_path, file_prefix = locate_files(node, model_name)
 from opendrift.models.oceandrift import OceanDrift
 from opendrift.readers import reader_netCDF_CF_generic, reader_global_landmask
 from configure import Scenario
+# todo: switch locate files to configure.py
 
 
 # Simulation settings (time, releases, initialization scenario)
@@ -31,12 +32,12 @@ for y_i in range(y_start, y_end):
 
             # Initialize OpenDrift object (model type)
             o = OceanDrift(loglevel=20)  # log_level= 0 for full diagnostics, 50 for none
-            reader_samples = reader_netCDF_CF_generic.Reader(phys_states)  # read input variables
+            reader_phys_states = reader_netCDF_CF_generic.Reader(phys_states)  # read input variables
             reader_landmask = reader_global_landmask.Reader()  # high resolution coast for particle beaching etc.
-            o.add_reader([reader_landmask, reader_samples])  # add readers to model instance
+            o.add_reader([reader_landmask, reader_phys_states])  # add readers to model instance
 
             # Parameterization of scenario object for initialization and running
-            scenario = Scenario(infile_path, outfile_path, reader_samples, duration_days,
+            scenario = Scenario(infile_path, outfile_path, reader_phys_states, duration_days,
                                 time_step_hours, save_time_step_hours, release_step, y_i, r_i, key)
 
             # Initialization of simulation

@@ -74,7 +74,7 @@ class Process:
 
 
     def init_ncfile(self):
-        self.outfile = nc.Dataset(self.analysis_file, 'w')
+        self.outfile = nc.Dataset(self.analysis_file, 'r+')
         self.outfile.createDimension('time', self.shp_t)
         self.outfile.createDimension('particles', self.shp_p)
         self.outfile.createDimension('lon_bins', self.shp_lon_bins)
