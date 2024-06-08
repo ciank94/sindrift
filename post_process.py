@@ -1,28 +1,17 @@
 import numpy as np
 import netCDF4 as nc
+import matplotlib.pyplot as plt
 
 
 class Process:
 
-    def __init__(self, trajectory_file, outfile_path,  y_i, r_i, key, test):
+    def __init__(self, trajectory_file, outfile_path,  y_i, r_i, key):
         # Organise file data
-        self.lon_id = None
-        self.lat_id = None
-        self.lat_t = None
-        self.lon_t = None
-        self.bin_res = 0.06
         self.outfile_path = outfile_path
         self.key = key
         self.year = y_i
         self.release_n = r_i + 1
         self.nc_file = nc.Dataset(trajectory_file)
-
-        if test:
-            self.p_stride = 10
-            self.t_stride = 10
-        else:
-            self.p_stride = 1
-            self.t_stride = 1
 
         # extract data from trajectory file
         self.lat = self.nc_file['lat']
@@ -32,21 +21,110 @@ class Process:
         #self.z = self.nc_file['z']
 
         # Initialize settings for dominant pathway calculation:
-        self.min_lon = -75
-        self.max_lon = -30
-        self.min_lat = -70
-        self.max_lat = -50
-        self.lat_range = np.arange(self.min_lat - 20, self.max_lat + 15, self.bin_res)
-        self.lon_range = np.arange(self.min_lon - 20, self.max_lon + 15, self.bin_res)
-        self.shp_lon_bins = np.shape(self.lon_range)[0]
-        self.shp_lat_bins = np.shape(self.lat_range)[0]
-        self.dom_matrix = np.zeros([self.shp_lon_bins, self.shp_lat_bins])
-        self.dom_file = (self.outfile_path + self.key + '_' + str(self.year) + '_R'
-                         + str(self.release_n) + '_dominant_paths.npy')
-        self.tp_file = (self.outfile_path + self.key + '_' + str(self.year) + '_R'
-                         + str(self.release_n) + '_trajectory_tp.nc')
-        self.dominant_paths()
+        self.init_region(key)
+
+        # output file with data from simulation
+        self.analysis_file = (self.outfile_path + self.key + '_' + str(self.year) + '_R'
+                         + str(self.release_n) + '_trajectory_analysis.nc')
         return
+
+    def trajectory_analysis(self, test):
+        # First, check if we are running a test analysis or full analysis:
+        if test:
+            self.p_stride = 10
+            self.t_stride = 10
+        else:
+            self.p_stride = 1
+            self.t_stride = 1
+
+        # Set up a netcdf file for storing output from the analysis:
+        self.init_ncfile()
+
+        # master loop for all analysis calculations
+        # loop over each particle p_i
+        for p_i in range(0, self.shp_p, self.p_stride):
+            # general steps for each analysis
+            self.print_pstep(descriptor="Particle analysis", p=p_i)  # print particle id number in analysis
+            lon_p = self.lon[p_i, :]
+            lat_p = self.lat[p_i, :]
+
+            # specific variables stored
+            temp_points = np.ones([self.shp_t, 2]) * -1 # dominant paths, use -1 for inactive individuals
+
+            # loop over each time step t_i
+            for t_i in range(0, self.shp_t, self.t_stride):
+                self.lon_t = lon_p[t_i]
+                self.lat_t = lat_p[t_i]
+                self.get_closest_point()
+                temp_points[t_i, 0] = self.lon_id
+                temp_points[t_i, 1] = self.lat_id
+
+            # Then, look at the unique lat-long ids for particle p_i
+            unique_rows = np.unique(temp_points, axis=0).astype(int)
+            unique_rows = unique_rows[unique_rows[:, 0] > -1]
+            id1 = unique_rows[:, 0]
+            id2 = unique_rows[:, 1]
+            self.write_dom_paths(id1, id2)  # write to file
+
+            #todo: analysis- generic recruitment, generic retention, z dom_paths, transit_times
+
+        print('Closing: ' + self.analysis_file)
+        self.outfile.close()
+        return
+
+
+    def init_ncfile(self):
+        self.outfile = nc.Dataset(self.analysis_file, 'w')
+        self.outfile.createDimension('time', self.shp_t)
+        self.outfile.createDimension('particles', self.shp_p)
+        self.outfile.createDimension('lon_bins', self.shp_lon_bins)
+        self.outfile.createDimension('lat_bins', self.shp_lat_bins)
+        self.outfile.createVariable('dom_paths', 'i4', ('lon_bins', 'lat_bins'))
+        self.outfile.variables['dom_paths'][:] = 0
+        return
+
+    def write_dom_paths(self, id1, id2):
+        self.outfile.variables['dom_paths'][id1, id2] = self.outfile.variables['dom_paths'][id1, id2] + 1
+        return
+
+    def diagnostics(self):
+        self.init_plot()
+        import cartopy.feature as cfeature
+        land_10m = cfeature.NaturalEarthFeature('physical', 'land', '10m',
+                                                edgecolor='face',
+                                                facecolor='lightgrey')
+        self.ax.add_feature(land_10m)
+        self.ax.coastlines(resolution='10m', linewidth=0.7)
+        step_p = np.floor(np.shape(self.lon)[0] / 1000).astype(int)
+        lon_1 = self.lon[0:-1:step_p, :]
+        lat_1 = self.lat[0:-1:step_p, :]
+        c_vals = np.arange(0, np.shape(lat_1)[1])
+        c_vals = c_vals * np.ones([np.shape(lat_1)[0], np.shape(lat_1)[1]])
+        plt.scatter(lon_1, lat_1, c=c_vals, s=1.3, cmap='YlOrRd', alpha=1, linewidth=1.3, linestyle='-', marker='_')
+        plt.scatter(lon_1[:, 0], lat_1[:, 0], s=18, facecolor='yellow', edgecolors='k', alpha=0.9, linewidth=0.6)
+        plt.scatter(lon_1[:, -1], lat_1[:, -1], s=18, facecolor='red', edgecolors='k', alpha=0.9, linewidth=0.6)
+        self.init_region("SG")
+        self.ax.set_extent([self.min_lon, self.max_lon, self.min_lat, self.max_lat])
+        plt_name = 'SG_diagnose_test'
+        self.save_plot(plt_name)
+
+        #breakpoint()
+
+        #self.ax.set_extent([min_lon, max_lon, min_lat, max_lat])
+
+    def init_plot(self):
+        import cartopy.crs as ccrs
+        self.fig = plt.figure()
+        self.ax = self.fig.add_subplot(projection=ccrs.PlateCarree())
+        return
+
+    def save_plot(self, plt_name):
+        savefile = self.outfile_path + plt_name + '.png'
+        print('Saving file: ' + savefile)
+        plt.savefig(savefile, dpi=400)
+        plt.close()
+        return
+
 
     def dominant_paths(self):
         #self.init_ncfile()
@@ -77,10 +155,7 @@ class Process:
         np.save(self.dom_file, self.dom_matrix)
         return
 
-    def write_ncfile(self, lon_p, lat_p, p_i):
-        self.outfile.variables['lat'][:, p_i] = lat_p.T
-        self.outfile.variables['lon'][:, p_i] = lon_p.T
-        return
+
 
     def print_pstep(self, descriptor, p):
         if p == 0:
@@ -96,14 +171,48 @@ class Process:
         self.lat_id = np.argmin(np.sqrt((self.lat_t - self.lat_range[:]) ** 2))
         return
 
-    def init_ncfile(self):
-        self.outfile = nc.Dataset(self.tp_file, 'w')
-        self.outfile.createDimension('time', self.shp_t)
-        self.outfile.createDimension('particles', self.shp_p)
-        self.outfile.createVariable('lat', 'f4', ('time', 'particles'))
-        self.outfile.createVariable('lon', 'f4', ('time', 'particles'))
-        return
+    def init_region(self, region):
 
+        if region == "SG800":
+            self.min_lon = -40.5
+            self.max_lon = -33.8
+            self.min_lat = -57.5
+            self.max_lat = -51.5
+            self.bin_res = 0.02
+
+        if region == "AP":
+            self.min_lon = -65.3
+            self.max_lon = -51
+            self.min_lat = -69
+            self.max_lat = -56
+            self.bin_res = 0.02
+
+        if region == "SO":
+            self.min_lon = -50
+            self.max_lon = -41
+            self.min_lat = -65
+            self.max_lat = -57
+            self.bin_res = 0.02
+
+        if region == "full":
+            self.min_lon = -65
+            self.max_lon = -31
+            self.min_lat = -70
+            self.max_lat = -50
+            self.bin_res = 0.02
+
+        if region == "APSO":
+            self.min_lon = -75
+            self.max_lon = -30
+            self.min_lat = -70
+            self.max_lat = -50
+            self.bin_res = 0.02
+
+        self.lat_range = np.arange(self.min_lat - 20, self.max_lat + 15, self.bin_res)
+        self.lon_range = np.arange(self.min_lon - 20, self.max_lon + 15, self.bin_res)
+        self.shp_lon_bins = np.shape(self.lon_range)[0]
+        self.shp_lat_bins = np.shape(self.lat_range)[0]
+        return
 
 def locate_files(node, model_name):
     if node == 'local':

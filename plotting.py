@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 import numpy as np
+import netCDF4 as nc
 
 
 class FuseData:
@@ -23,11 +24,14 @@ class FuseData:
         key = self.key_id
         for release in self.release_ids:
             c_i = c_i + 1
-            file = self.infile_path + key + '_' + str(year) + '_R' + str(release) + '_dominant_paths.npy'
+            file = self.infile_path + key + '_' + str(year) + '_R' + str(release) + '_trajectory_analysis.nc'
+            f1 = nc.Dataset(file)
             if c_i == 1:
-                self.dom_path_i = np.load(file)
+                self.dom_path_i = f1['dom_paths'][:]
+                f1.close()
             else:
-                self.dom_path_i = self.dom_path_i + np.load(file)
+                self.dom_path_i = self.dom_path_i + f1['dom_paths'][:]
+                f1.close()
 
         #self.dom_path_i = self.dom_path_i/(c_i*self.n_parts)
         #breakpoint()
@@ -55,15 +59,18 @@ class PlotData:
         self.min_lat = -70
         self.max_lat = -50
 
-        self.bin_res = 0.06
-        self.lat_range = np.arange(self.min_lat - 20, self.max_lat + 15, self.bin_res)
-        self.lon_range = np.arange(self.min_lon - 20, self.max_lon + 15, self.bin_res)
-        self.results = fuse.outfile_path
-
+        #SG
         self.min_lon = -40.5
         self.max_lon = -33.8
         self.min_lat = -57.5
         self.max_lat = -51.5
+
+        self.bin_res = 0.02
+        self.lat_range = np.arange(self.min_lat - 20, self.max_lat + 15, self.bin_res)
+        self.lon_range = np.arange(self.min_lon - 20, self.max_lon + 15, self.bin_res)
+        self.results = fuse.outfile_path
+
+
 
 
         self.save_prefix = fuse.key_id + '_' + str(fuse.year_id)
@@ -93,7 +100,8 @@ class PlotData:
         self.init_plot()
         self.plot_background()
         n_levels = np.arange(np.min(fuse.dom_path_i), self.max_scale * np.max(fuse.dom_path_i),
-                             np.max(fuse.dom_path_i)*self.max_scale / self.d_scale)
+                            np.max(fuse.dom_path_i)*self.max_scale / self.d_scale)
+        #breakpoint()
         self.plot1 = plt.contourf(self.lon_range, self.lat_range, fuse.dom_path_i.T, levels=n_levels,
                                 cmap=self.dom_cmap,
                                  transform=ccrs.PlateCarree(), extend='both')

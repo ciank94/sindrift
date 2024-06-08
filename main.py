@@ -12,15 +12,12 @@ from configure import Scenario
 y_start = 2020  # first year of simulation
 y_end = 2021  # final year of simulation (note: only used if release in [y_end - 1] extends into [y_end])
 time_step_hours = 1  # simulation time step (negative time is backwards stepping of model)
-save_time_step_hours = 6  # save time step
-duration_days = 10  # simulation duration in days;
+save_time_step_hours = 4  # save time step
+duration_days = 27  # simulation duration in days;
 release_end = 1   # total number of releases for simulation
-release_n_days = 5  # number of days between releases (time=start_time + i*time_step)
+release_n_days = 1  # number of days between releases (time=start_time + i*time_step)
 release_step = 24*release_n_days  # number of hours between releases
 init_keys = ["SG800"]  # key names for initialization scenario: defines lat-long start points, number of particles etc.
-
-# test processing
-test = True
 
 for y_i in range(y_start, y_end):
     for r_i in range(0, release_end):
@@ -30,7 +27,7 @@ for y_i in range(y_start, y_end):
                 phys_states = infile_path + file_prefix + str(y_i) + '01' + '.nc' #todo: generalise to multiple months
             else:
                 phys_states = infile_path + file_prefix + str(y_i) + '.nc'
-            print('Beginning simulation: year = ' + str(y_i) + ', release number ' + str(r_i))
+            print('Beginning simulation: year = ' + str(y_i) + ', release number ' + str(r_i+1))
 
             # Initialize OpenDrift object (model type)
             o = OceanDrift(loglevel=20)  # log_level= 0 for full diagnostics, 50 for none
@@ -44,8 +41,8 @@ for y_i in range(y_start, y_end):
 
             # Initialization of simulation
             o.disable_vertical_motion()
-            o.seed_elements(lon=scenario.lon_init,
-                            lat=scenario.lat_init,
+            o.seed_elements(lon=scenario.site_lon_init,
+                            lat=scenario.site_lat_init,
                             time=scenario.t_init,
                             number=scenario.n_part,
                             radius=scenario.radius)
@@ -58,7 +55,8 @@ for y_i in range(y_start, y_end):
                   export_variables=scenario.export_variables)
 
             # Post-process simulation file, saving intermediate data (unique particle visits, transit times ...)
-            Process(scenario.trajectory_file, outfile_path, y_i, r_i, key, test)
+            pp = Process(scenario.trajectory_file, outfile_path, y_i, r_i, key)
+            pp.trajectory_analysis(test=True)
 
             #todo: make an intstance of the process object that accepts kwargs- keyword list carrying a key value;
 

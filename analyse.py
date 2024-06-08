@@ -16,10 +16,9 @@ outfile_path = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/results/'
 
 
 # Parameters for analysis
-key_id = "APSO"
-
+key_id = "SG800"
 release_f = 1
-release_e = 1
+release_e = 4
 release_ids = np.arange(release_f, release_e+1, 1)
 years = np.arange(2020, 2021, 1)
 
