@@ -7,9 +7,9 @@ from opendrift.readers import reader_netCDF_CF_generic, reader_global_landmask
 # Simulation settings (time, releases, initialization scenario)
 y_start = 2020  # first year of simulation
 y_end = 2021  # final year of simulation (note: only used if release in [y_end - 1] extends into [y_end])
-time_step_hours = 4  # simulation time step (negative time is backwards stepping of model)
-save_time_step_hours = 4  # save time step
-duration_days = 5  # simulation duration in days;
+time_step_hours = 6  # simulation time step (negative time is backwards stepping of model)
+save_time_step_hours = 6  # save time step
+duration_days = 28  # simulation duration in days;
 release_end = 1   # total number of releases for simulation
 release_n_days = 1  # number of days between releases (time=start_time + i*time_step)
 release_step = 24*release_n_days  # number of hours between releases
@@ -50,11 +50,9 @@ for y_i in range(y_start, y_end):
                   outfile=scenario.trajectory_file,
                   export_variables=scenario.export_variables)
 
-            # Post-process simulation file, saving intermediate data (unique particle visits, transit times ...)
-            #pp = Process(scenario.trajectory_file, outfile_path, y_i, r_i, key)
-            #pp.trajectory_analysis(test=True)
 
-            #todo: make an instance of the process object that accepts kwargs- keyword list carrying a key value;
+
+
 
 
 

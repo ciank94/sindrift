@@ -143,7 +143,7 @@ class Scenario:
 
     def scenario_initialization(self):
         # Parameterization for sites in regular grid
-        self.n_part = 3600   # number of particles & sites initialized
+        self.n_part = 10000   # number of particles & sites initialized
         self.radius = 0  # radius of initialized particles in metres (zero in case of regular grid)
         self.bin_res = 0.06  # resolution of bins (lat and lon) for analysis
         if self.key == "SG8H":
@@ -169,9 +169,9 @@ class Scenario:
 
     def get_SG_bounds(self):
         self.description = " Initialize with regular grid in South Georgia 800m domain"
-        self.site_lon_min = -37
-        self.site_lon_max = -36
-        self.site_lat_min = -56
+        self.site_lon_min = -38
+        self.site_lon_max = -35
+        self.site_lat_min = -57
         self.site_lat_max = -55.2
         self.domain_lon_min = -42.48
         self.domain_lon_max = -30.64

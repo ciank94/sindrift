@@ -4,44 +4,6 @@ import cartopy.feature as cfeature
 import numpy as np
 import netCDF4 as nc
 
-
-class FuseData:
-    def __init__(self, infile_path, outfile_path, year_ids, release_ids, key_ids):
-        self.dom_path_i = None
-        self.outfile_path = outfile_path
-        self.infile_path = infile_path
-        self.year_id = year_ids
-        self.release_ids = release_ids
-        self.key_id = key_ids
-        self.n_parts = 10000
-
-        # Fusion and statistics of datasets for plotting:
-        self.fuse_dominant_paths()
-
-    def fuse_dominant_paths(self):
-        c_i = 0
-        year = self.year_id
-        key = self.key_id
-        for release in self.release_ids:
-            c_i = c_i + 1
-            file = self.infile_path + key + '_' + str(year) + '_R' + str(release) + '_trajectory_analysis.nc'
-            f1 = nc.Dataset(file)
-            if c_i == 1:
-                self.dom_path_i = f1['dom_paths'][:]
-                f1.close()
-            else:
-                self.dom_path_i = self.dom_path_i + f1['dom_paths'][:]
-                f1.close()
-
-        #self.dom_path_i = self.dom_path_i/(c_i*self.n_parts)
-        #breakpoint()
-        self.dom_path_i = self.dom_path_i / np.nanmax(self.dom_path_i)
-        if self.dom_path_i[0,0] > 3*np.mean(np.unique(self.dom_path_i)):
-            self.dom_path_i[0, 0] = 0
-
-        self.dom_path_i = self.dom_path_i / np.nanmax(self.dom_path_i)
-
-
 class PlotData:
 
     def __init__(self, fuse):
@@ -223,5 +185,43 @@ class PlotData:
         plt.close()
         return
 
+
+
+
+class FuseData:
+    def __init__(self, infile_path, outfile_path, year_ids, release_ids, key_ids):
+        self.dom_path_i = None
+        self.outfile_path = outfile_path
+        self.infile_path = infile_path
+        self.year_id = year_ids
+        self.release_ids = release_ids
+        self.key_id = key_ids
+        self.n_parts = 10000
+
+        # Fusion and statistics of datasets for plotting:
+        self.fuse_dominant_paths()
+
+    def fuse_dominant_paths(self):
+        c_i = 0
+        year = self.year_id
+        key = self.key_id
+        for release in self.release_ids:
+            c_i = c_i + 1
+            file = self.infile_path + key + '_' + str(year) + '_R' + str(release) + '_trajectory_analysis.nc'
+            f1 = nc.Dataset(file)
+            if c_i == 1:
+                self.dom_path_i = f1['dom_paths'][:]
+                f1.close()
+            else:
+                self.dom_path_i = self.dom_path_i + f1['dom_paths'][:]
+                f1.close()
+
+        #self.dom_path_i = self.dom_path_i/(c_i*self.n_parts)
+        #breakpoint()
+        self.dom_path_i = self.dom_path_i / np.nanmax(self.dom_path_i)
+        if self.dom_path_i[0,0] > 3*np.mean(np.unique(self.dom_path_i)):
+            self.dom_path_i[0, 0] = 0
+
+        self.dom_path_i = self.dom_path_i / np.nanmax(self.dom_path_i)
 
 
