@@ -1,33 +1,30 @@
 # Firstly, specify location of netcdf input files
-from post_process import Process, locate_files
+from configure import Scenario, FileExplorer
+model_name ='sinmod'
 node = 'local'
-model_name = 'sinmod'
-infile_path, outfile_path, file_prefix = locate_files(node, model_name)
+fpath = FileExplorer(node, model_name)
 from opendrift.models.oceandrift import OceanDrift
 from opendrift.readers import reader_netCDF_CF_generic, reader_global_landmask
-from configure import Scenario
-# todo: switch locate files to configure.py
-
 
 # Simulation settings (time, releases, initialization scenario)
 y_start = 2020  # first year of simulation
 y_end = 2021  # final year of simulation (note: only used if release in [y_end - 1] extends into [y_end])
-time_step_hours = 1  # simulation time step (negative time is backwards stepping of model)
+time_step_hours = 4  # simulation time step (negative time is backwards stepping of model)
 save_time_step_hours = 4  # save time step
-duration_days = 27  # simulation duration in days;
+duration_days = 5  # simulation duration in days;
 release_end = 1   # total number of releases for simulation
 release_n_days = 1  # number of days between releases (time=start_time + i*time_step)
 release_step = 24*release_n_days  # number of hours between releases
-init_keys = ["SG800"]  # key names for initialization scenario: defines lat-long start points, number of particles etc.
+init_keys = ["SG8H"]  # key names for initialization scenario: defines lat-long start points, number of particles etc.
 
 for y_i in range(y_start, y_end):
     for r_i in range(0, release_end):
         for key in init_keys:
             # Input netcdf file with physics (u, v ,T ...):
             if model_name == "sinmod":
-                phys_states = infile_path + file_prefix + str(y_i) + '01' + '.nc' #todo: generalise to multiple months
+                phys_states = fpath.phys_states_path + fpath.phys_states_file_prefix + str(y_i) + '01' + '.nc' #todo: generalise to multiple months
             else:
-                phys_states = infile_path + file_prefix + str(y_i) + '.nc'
+                phys_states = fpath.phys_states_path + fpath.phys_states_file_prefix + str(y_i) + '.nc'
             print('Beginning simulation: year = ' + str(y_i) + ', release number ' + str(r_i+1))
 
             # Initialize OpenDrift object (model type)
@@ -37,7 +34,7 @@ for y_i in range(y_start, y_end):
             o.add_reader([reader_landmask, reader_phys_states])  # add readers to model instance
 
             # Parameterization of scenario object for initialization and running
-            scenario = Scenario(infile_path, outfile_path, reader_phys_states, duration_days,
+            scenario = Scenario(fpath, reader_phys_states, duration_days,
                                 time_step_hours, save_time_step_hours, release_step, y_i, r_i, key)
 
             # Initialization of simulation
@@ -56,10 +53,10 @@ for y_i in range(y_start, y_end):
                   export_variables=scenario.export_variables)
 
             # Post-process simulation file, saving intermediate data (unique particle visits, transit times ...)
-            pp = Process(scenario.trajectory_file, outfile_path, y_i, r_i, key)
-            pp.trajectory_analysis(test=True)
+            #pp = Process(scenario.trajectory_file, outfile_path, y_i, r_i, key)
+            #pp.trajectory_analysis(test=True)
 
-            #todo: make an intstance of the process object that accepts kwargs- keyword list carrying a key value;
+            #todo: make an instance of the process object that accepts kwargs- keyword list carrying a key value;
 
 
 

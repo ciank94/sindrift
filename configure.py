@@ -4,22 +4,21 @@ import netCDF4 as nc
 
 
 class Scenario:
-    def __init__(self, infile_path, outfile_path, reader_phys_states, duration_days, time_step_hours,
+    def __init__(self, fpath, reader_phys_states, duration_days, time_step_hours,
                  save_time_step_hours, release_step, y_i, r_i, key):
         # Simulation settings for scenario
         self.key = key  # key used to identify initialization scenario
         self.year = y_i  # simulation year
         self.release_n = r_i + 1  # release number starts at one
-        self.z = 50  # release depth
+        self.z = 15  # release depth
         self.duration = timedelta(hours=24 * duration_days)  # simulation duration in hours as datetime object
         self.time_step = timedelta(hours=time_step_hours)  # simulation time step in hours as datetime object
         self.save_time_step = timedelta(hours=save_time_step_hours)  # how often the file is saved
         self.release_step = release_step  # number of hours between releases
         self.export_variables = ['lon', 'lat']  # choose variables to export from simulation to nc file
-        self.infile_path = infile_path  # path to server with nc files
-        self.outfile_path = outfile_path  # path to save the output file
 
         # Information from the phys_states_file:
+        self.phys_states_file = reader_phys_states.name
         self.phys_states_timestep = reader_phys_states.time_step.seconds
         self.reader_t_init = reader_phys_states.start_time
         self.t_init = self.reader_t_init + r_i * timedelta(hours=self.release_step)
@@ -27,19 +26,25 @@ class Scenario:
 
         # Initialize scenario parameters and save them as attributes to scenario file
         self.scenario_initialization()  # furnish initialization scenario with class attributes at beginning
-        self.scenario_file = (self.outfile_path + self.key + '_' + str(self.year) + '_R'
-                         + str(self.release_n) + '_trajectory_scenario.nc')
-        self.init_scenario_netcdf()
+        self.trajectory_file = (fpath.trajectory_path + self.key + '_' + str(self.year) + '_R'
+                                + str(self.release_n) + '_trajectory.nc')  # Trajectory output file name
+        self.analysis_file = (fpath.analysis_path + self.key + '_' + str(self.year) + '_R'
+                         + str(self.release_n) + '_trajectory_analysis.nc')  # Analysis output file path name
+        self.init_scenario_netcdf(fpath)
         return
 
-    def init_scenario_netcdf(self):
-        self.outfile = nc.Dataset(self.scenario_file, 'w')
+    def init_scenario_netcdf(self, fpath):
+        self.outfile = nc.Dataset(self.analysis_file, 'w')
 
         # main simulation settings as attributes:
         self.outfile.title = 'OpenDrift trajectory analysis'
-        self.outfile.infile_path = self.infile_path  # path to server with nc files
-        self.outfile.outfile_path = self.outfile_path  # path to save the output file
+        self.outfile.phys_states_path = fpath.phys_states_path
+        self.outfile.phys_states_file = self.phys_states_file
+        self.outfile.trajectory_path = fpath.trajectory_path
         self.outfile.trajectory_file = self.trajectory_file
+        self.outfile.analysis_path = fpath.analysis_path
+        self.outfile.analysis_file = self.analysis_file
+        self.outfile.figures_path = fpath.figures_path
         self.outfile.scenario_key = self.key  # key name given to scenario
         self.outfile.scenario_description = self.description  # description of scenario
 
@@ -49,7 +54,6 @@ class Scenario:
         self.outfile.release_number = self.release_n  # release number starts at one
         self.outfile.release_depth = self.z  # release depth
         self.outfile.release_step_hours = self.release_step  # number of hours between releases
-
 
         # simulation time information
         self.outfile.sim_start_day = self.t_init.day # simulation start time
@@ -86,22 +90,20 @@ class Scenario:
         self.outfile['lon_bin_vals'][:] = self.lon_bin_vals
         self.outfile['lat_bin_vals'][:] = self.lat_bin_vals
 
-        print('Closing: ' + self.scenario_file)
+        print('Closing: ' + self.analysis_file)
         self.outfile.close()
+        return
 
     def scenario_initialization(self):
         # Parameterization for sites in regular grid
         self.n_part = 3600   # number of particles & sites initialized
         self.radius = 0  # radius of initialized particles in metres (zero in case of regular grid)
         self.bin_res = 0.06  # resolution of bins (lat and lon) for analysis
-        if self.key == "SG800":
+        if self.key == "SG8H":
             self.get_SG_bounds()
         else:
             print('WARNING: missing key configuration in get_scenario')
-
-        # Define trajectory output file
-        self.trajectory_file = (self.outfile_path + self.key + '_' + str(self.year) + '_R'
-                                    + str(self.release_n) + '_trajectory.nc')  # Trajectory file path and name
+            exit()
 
         # Parameterize a grid for analysis:
         self.lat_bin_vals = np.arange(self.domain_lat_min, self.domain_lat_max, self.bin_res)
@@ -129,3 +131,43 @@ class Scenario:
         self.domain_lat_min = -57.19
         self.domain_lat_max = -50.92
         return
+
+
+class FileExplorer:
+    def __init__(self, node, model_name):
+        self.local_drift_path = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/'
+        self.mounted_remote_drift_path = 'A:/Cian_sinmod/opendrift/'
+        self.remote_drift_path = '/cluster/projects/nn9828k/Cian_sinmod/opendrift/'
+        self.init_paths(node, model_name)
+        return
+
+    def init_paths(self, node, model_name):
+        if node == 'local':
+            import sys
+            sys.path.insert(0, 'C:/Users/ciank/PycharmProjects/sinmod/opendrift')  # add opendrift local path
+            self.phys_states_path = self.mounted_remote_drift_path + 'phys_states/'
+            self.trajectory_path = self.local_drift_path + 'trajectory/'
+            self.analysis_path = self.local_drift_path + 'analysis/'
+            self.figures_path = self.local_drift_path + 'figures/'
+        else:
+            self.phys_states_path = self.remote_drift_path + 'phys_states/'
+            self.trajectory_path = self.remote_drift_path + 'trajectory/'
+            self.analysis_path = self.remote_drift_path + 'analysis/'
+            self.figures_path = self.remote_drift_path + 'figures/'
+
+        if model_name == "sinmod":
+            self.phys_states_file_prefix = "samplesNSEW_"
+        else:
+            self.phys_states_file_prefix = 'CMEMS_GLPHYS_D_full_'  # File identifier
+        return
+
+    def search_path(self):
+        import os
+        path_list = os.listdir(self.analysis_path)
+        self.file_list = []
+        for file_name in path_list:
+            if file_name[0:4] == "SG8H":
+                self.file_list.append(file_name)
+        return
+
+

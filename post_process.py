@@ -133,7 +133,7 @@ class Process:
             lat_p = self.lat[p_i, :]
             #self.write_ncfile(lon_p, lat_p, p_i)
             temp_points = np.ones([self.shp_t, 2])*-1
-            self.print_pstep(descriptor="Dominant path calculation", p=p_i)
+            self.print_pstep(descriptor="Particle number: ", p=p_i)
 
             for t in range(0, self.shp_t, self.t_stride):
                 self.lon_t = lon_p[t]
@@ -171,63 +171,7 @@ class Process:
         self.lat_id = np.argmin(np.sqrt((self.lat_t - self.lat_range[:]) ** 2))
         return
 
-    def init_region(self, region):
 
-        if region == "SG800":
-            self.min_lon = -40.5
-            self.max_lon = -33.8
-            self.min_lat = -57.5
-            self.max_lat = -51.5
-            self.bin_res = 0.02
 
-        if region == "AP":
-            self.min_lon = -65.3
-            self.max_lon = -51
-            self.min_lat = -69
-            self.max_lat = -56
-            self.bin_res = 0.02
-
-        if region == "SO":
-            self.min_lon = -50
-            self.max_lon = -41
-            self.min_lat = -65
-            self.max_lat = -57
-            self.bin_res = 0.02
-
-        if region == "full":
-            self.min_lon = -65
-            self.max_lon = -31
-            self.min_lat = -70
-            self.max_lat = -50
-            self.bin_res = 0.02
-
-        if region == "APSO":
-            self.min_lon = -75
-            self.max_lon = -30
-            self.min_lat = -70
-            self.max_lat = -50
-            self.bin_res = 0.02
-
-        self.lat_range = np.arange(self.min_lat - 20, self.max_lat + 15, self.bin_res)
-        self.lon_range = np.arange(self.min_lon - 20, self.max_lon + 15, self.bin_res)
-        self.shp_lon_bins = np.shape(self.lon_range)[0]
-        self.shp_lat_bins = np.shape(self.lat_range)[0]
-        return
-
-def locate_files(node, model_name):
-    if node == 'local':
-        import sys
-        sys.path.insert(0, 'C:/Users/ciank/PycharmProjects/sinmod/opendrift')  # add opendrift local path
-        infile_path = 'A:/Cian_sinmod/copernicus_client/results/'
-        outfile_path = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/results/'
-    else:  # assume job is on server
-        infile_path = '/cluster/projects/nn9828k/Cian_sinmod/copernicus_client/results/'
-        outfile_path = infile_path
-
-    if model_name == "sinmod":
-        file_prefix = "samplesNSEW_"
-    else:
-        file_prefix = 'CMEMS_GLPHYS_D_full_'  # File identifier
-    return infile_path, outfile_path, file_prefix
 
 

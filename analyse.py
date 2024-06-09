@@ -1,6 +1,24 @@
 # Firstly, specify location of netcdf input files
+from configure import FileExplorer
+from post_process import Process
+
+# Ready the file paths for analysis
+model_name = 'sinmod'
+node = 'local'
+fpath = FileExplorer(node, model_name)
+fpath.search_path()
+
+for analysis_file in fpath.file_list:
+    print('Analysing file: ' + analysis_file)
+    breakpoint()
+
+
+
+
+
+
 import sys
-from post_process import Process, locate_files
+#from post_process import Process, locate_files
 from plotting import FuseData, PlotData
 import numpy as np
 
@@ -33,4 +51,4 @@ for year_id in years:
 
 
 
-breakpoint()
+
