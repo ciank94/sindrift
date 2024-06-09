@@ -1,6 +1,50 @@
 from datetime import timedelta
 import numpy as np
 import netCDF4 as nc
+import sys
+
+class FileExplorer:
+    def __init__(self, node, model_name):
+        self.node = node
+        self.model_name = model_name
+        self.local_drift_path = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/'
+        self.mounted_remote_drift_path = 'A:/Cian_sinmod/opendrift/'
+        self.remote_drift_path = '/cluster/projects/nn9828k/Cian_sinmod/opendrift/'
+        self.init_paths()
+        return
+
+    def init_paths(self):
+        if self.node == 'local':
+            sys.path.insert(0, 'C:/Users/ciank/PycharmProjects/sinmod/opendrift')  # add opendrift local path
+            self.phys_states_path = self.mounted_remote_drift_path + 'phys_states/'
+            self.trajectory_path = self.local_drift_path + 'trajectory/'
+            self.analysis_path = self.local_drift_path + 'analysis/'
+            self.figures_path = self.local_drift_path + 'figures/'
+        elif self.node == 'remote':
+            self.phys_states_path = self.remote_drift_path + 'phys_states/'
+            self.trajectory_path = self.remote_drift_path + 'trajectory/'
+            self.analysis_path = self.remote_drift_path + 'analysis/'
+            self.figures_path = self.remote_drift_path + 'figures/'
+        else:
+            sys.exit('Specify the correct node in FileExplorer, node = ' + self.node + ' is not an option')
+
+        if self.model_name == "sinmod":
+            self.phys_states_file_prefix = "samplesNSEW_" # File identifier
+        elif self.model_name == "cmems":
+            self.phys_states_file_prefix = 'CMEMS_GLPHYS_D_full_'
+        else:
+            sys.exit('Specify the correct model_name in FileExplorer, model_name = ' + self.model_name + ' is not an option')
+
+        return
+
+    def search_path(self):
+        import os
+        path_list = os.listdir(self.analysis_path)
+        self.file_list = []
+        for file_name in path_list:
+            if file_name[0:4] == "SG8H":
+                self.file_list.append(file_name)
+        return
 
 
 class Scenario:
@@ -38,6 +82,9 @@ class Scenario:
 
         # main simulation settings as attributes:
         self.outfile.title = 'OpenDrift trajectory analysis'
+        self.outfile.ocean_model = fpath.model_name
+        self.outfile.server = fpath.node
+        self.outfile.phys_states_file_prefix = fpath.phys_states_file_prefix
         self.outfile.phys_states_path = fpath.phys_states_path
         self.outfile.phys_states_file = self.phys_states_file
         self.outfile.trajectory_path = fpath.trajectory_path
@@ -133,41 +180,5 @@ class Scenario:
         return
 
 
-class FileExplorer:
-    def __init__(self, node, model_name):
-        self.local_drift_path = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/'
-        self.mounted_remote_drift_path = 'A:/Cian_sinmod/opendrift/'
-        self.remote_drift_path = '/cluster/projects/nn9828k/Cian_sinmod/opendrift/'
-        self.init_paths(node, model_name)
-        return
-
-    def init_paths(self, node, model_name):
-        if node == 'local':
-            import sys
-            sys.path.insert(0, 'C:/Users/ciank/PycharmProjects/sinmod/opendrift')  # add opendrift local path
-            self.phys_states_path = self.mounted_remote_drift_path + 'phys_states/'
-            self.trajectory_path = self.local_drift_path + 'trajectory/'
-            self.analysis_path = self.local_drift_path + 'analysis/'
-            self.figures_path = self.local_drift_path + 'figures/'
-        else:
-            self.phys_states_path = self.remote_drift_path + 'phys_states/'
-            self.trajectory_path = self.remote_drift_path + 'trajectory/'
-            self.analysis_path = self.remote_drift_path + 'analysis/'
-            self.figures_path = self.remote_drift_path + 'figures/'
-
-        if model_name == "sinmod":
-            self.phys_states_file_prefix = "samplesNSEW_"
-        else:
-            self.phys_states_file_prefix = 'CMEMS_GLPHYS_D_full_'  # File identifier
-        return
-
-    def search_path(self):
-        import os
-        path_list = os.listdir(self.analysis_path)
-        self.file_list = []
-        for file_name in path_list:
-            if file_name[0:4] == "SG8H":
-                self.file_list.append(file_name)
-        return
 
 

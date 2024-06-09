@@ -1,15 +1,15 @@
 # Firstly, specify location of netcdf input files
 from configure import FileExplorer
-from post_process import Process
+from post_process import PostProcess
 
 # Ready the file paths for analysis
-model_name = 'sinmod'
-node = 'local'
-fpath = FileExplorer(node, model_name)
-fpath.search_path()
+fpath = FileExplorer(node='local', model_name='sinmod')
+fpath.search_path()  # select files which should be analysed
 
 for analysis_file in fpath.file_list:
     print('Analysing file: ' + analysis_file)
+    pp = PostProcess(fpath.analysis_path + analysis_file)
+
     breakpoint()
 
 

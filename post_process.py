@@ -3,15 +3,18 @@ import netCDF4 as nc
 import matplotlib.pyplot as plt
 
 
-class Process:
+class PostProcess:
 
-    def __init__(self, trajectory_file, outfile_path,  y_i, r_i, key):
+    def __init__(self, analysis_file):
+        self.analysis_df = nc.Dataset(analysis_file, mode='r+')
+        self.trajectory_df = nc.Dataset(self.analysis_df.trajectory_file, mode='r')
+        breakpoint()
         # Organise file data
-        self.outfile_path = outfile_path
-        self.key = key
-        self.year = y_i
-        self.release_n = r_i + 1
-        self.nc_file = nc.Dataset(trajectory_file)
+        #self.outfile_path = outfile_path
+        #self.key = key
+        #self.year = y_i
+        #self.release_n = r_i + 1
+        #self.nc_file = nc.Dataset(trajectory_file)
 
         # extract data from trajectory file
         self.lat = self.nc_file['lat']

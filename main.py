@@ -1,8 +1,6 @@
 # Firstly, specify location of netcdf input files
 from configure import Scenario, FileExplorer
-model_name ='sinmod'
-node = 'local'
-fpath = FileExplorer(node, model_name)
+fpath = FileExplorer(node='local', model_name='sinmod')
 from opendrift.models.oceandrift import OceanDrift
 from opendrift.readers import reader_netCDF_CF_generic, reader_global_landmask
 
@@ -21,7 +19,7 @@ for y_i in range(y_start, y_end):
     for r_i in range(0, release_end):
         for key in init_keys:
             # Input netcdf file with physics (u, v ,T ...):
-            if model_name == "sinmod":
+            if fpath.model_name == "sinmod":
                 phys_states = fpath.phys_states_path + fpath.phys_states_file_prefix + str(y_i) + '01' + '.nc' #todo: generalise to multiple months
             else:
                 phys_states = fpath.phys_states_path + fpath.phys_states_file_prefix + str(y_i) + '.nc'
