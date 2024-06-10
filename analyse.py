@@ -11,7 +11,7 @@ fpath.search_path()  # select files which should be analysed
 for file_v in fpath.file_list:
     analysis_file = fpath.analysis_path + file_v
     print('Analysing file: ' + analysis_file)
-    pp = PostProcess(analysis_file)
+    pp = PostProcess(analysis_file, fpath)
     pp.trajectory_analysis(test=True)
 
 

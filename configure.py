@@ -84,6 +84,7 @@ class Scenario:
         self.outfile.title = 'OpenDrift trajectory analysis'
         self.outfile.ocean_model = fpath.model_name
         self.outfile.server = fpath.node
+        self.outfile.trajectory_file_prefix = self.key + '_' + str(self.year) + '_R' + str(self.release_n) + '_'
         self.outfile.phys_states_file_prefix = fpath.phys_states_file_prefix
         self.outfile.phys_states_path = fpath.phys_states_path
         self.outfile.phys_states_file = self.phys_states_file

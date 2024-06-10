@@ -6,8 +6,9 @@ import matplotlib.pyplot as plt
 
 class PostProcess:
 
-    def __init__(self, analysis_file):
+    def __init__(self, analysis_file, fpath):
         # files for analysis
+        self.fpath = fpath
         self.analysis_file = analysis_file
         self.analysis_df = nc.Dataset(analysis_file, mode='r+')
         self.trajectory_df = nc.Dataset(self.analysis_df.trajectory_file, mode='r')
@@ -40,12 +41,18 @@ class PostProcess:
         self.init_ncfile()
         self.analysis_df.variables['dom_paths'][:] = 0  # Initialize dom_path matrix
         self.analysis_df.variables['recruit'][:] = 0
+        self.analysis_df.variables['CG'][:, :] = 0
+
+        for t_i in range(0, self.shp_t, 1):
+            print('Time analysis : ' + str(t_i + 1) + " of " + str(self.shp_t))
+            self.analysis_df.variables['CG'][t_i, 0] = np.median(self.lon[:, t_i])
+            self.analysis_df.variables['CG'][t_i, 1] = np.median(self.lat[:, t_i])
 
         # master loop for all analysis calculations
         for p_i in range(0, self.shp_p, self.p_stride):
             # general steps for each analysis
             self.p_i = p_i
-            self.print_pstep(descriptor="Particle analysis")  # print particle id number in analysis
+            print("Particle analysis : " + str(self.p_i + 1) + " of " + str(self.shp_p))  # print particle id number in analysis
             self.lon_p = self.lon[p_i, :]
             self.lat_p = self.lat[p_i, :]
 
@@ -63,6 +70,7 @@ class PostProcess:
 
             # Then, look at the unique lat-long ids for particle p_i
             self.unique_visits(dom_points)
+
             if p_i == 0:
                 lat_1 = -56
                 lat_2 = -54
@@ -74,6 +82,7 @@ class PostProcess:
         #todo: analysis- generic retention, z dom_paths, transit_times
 
         print('Closing: ' + self.analysis_file)
+        self.summarise_file()
         self.analysis_df.close()
         return
 
@@ -128,6 +137,10 @@ class PostProcess:
         except:
             self.analysis_df.createDimension('particles', self.shp_p)
         try:
+            self.analysis_df.dimensions['lon_lat']
+        except:
+            self.analysis_df.createDimension('lon_lat', 2)
+        try:
             self.analysis_df.variables['dom_paths']
         except:
             self.analysis_df.createVariable('dom_paths', 'i4', ('n_lon_bins', 'n_lat_bins'))
@@ -135,6 +148,10 @@ class PostProcess:
             self.analysis_df.variables['recruit']
         except:
             self.analysis_df.createVariable('recruit', 'i4', ('particles', ))
+        try:
+            self.analysis_df.variables['CG']
+        except:
+            self.analysis_df.createVariable('CG', 'f4', ('time', 'lon_lat'))
         return
 
     def get_closest_point(self):
@@ -147,9 +164,15 @@ class PostProcess:
             print("First step in calculation")
         else:
             print(descriptor + " : " + str(self.p_i + 1) + " of " + str(self.shp_p))
-        if self.p_i == self.shp_p:
-            print("Final particle calculation")
         return
+
+    def summarise_file(self):
+        savefile = self.fpath.trajectory_path + self.analysis_df.trajectory_file_prefix + 'summary' + '.txt'
+        with open(savefile, "w") as text_file:
+            print('Writing data to file: ' + savefile)
+            text_file.writelines(str(self.analysis_df))
+
+
 
 
 
