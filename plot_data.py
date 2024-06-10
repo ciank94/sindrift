@@ -3,49 +3,33 @@ import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 import numpy as np
 import netCDF4 as nc
+import os
 
 class PlotData:
 
-    def __init__(self, fuse):
-        # Settings for getting bathymetry files
-        # todo: document how to get the bathymetry files as below
-        # todo: look into saving information from simulation in post_process as class/ dictionary
-        self.bath_file = fuse.outfile_path + 'bath.npy'
-        self.bath_file_lon = fuse.outfile_path + 'bath_lon.npy'
-        self.bath_file_lat = fuse.outfile_path + 'bath_lat.npy'
-        self.bath = np.load(self.bath_file)
-        self.bath_lon = np.load(self.bath_file_lon)
-        self.bath_lat = np.load(self.bath_file_lat)
-        self.min_lon = -75
-        self.max_lon = -30
-        self.min_lat = -70
-        self.max_lat = -50
+    def __init__(self, fpath, analysis_file):
+        # files for analysis
+        self.analysis_file = analysis_file
+        self.analysis_df = nc.Dataset(analysis_file, mode='r')
+        self.trajectory_df = nc.Dataset(self.analysis_df.trajectory_file, mode='r')
+        self.fpath = fpath
 
-        #SG
-        self.min_lon = -40.5
-        self.max_lon = -33.8
-        self.min_lat = -57.5
-        self.max_lat = -51.5
+        # extract data from trajectory file
+        self.load_trajectory_df()
 
-        self.bin_res = 0.02
-        self.lat_range = np.arange(self.min_lat - 20, self.max_lat + 15, self.bin_res)
-        self.lon_range = np.arange(self.min_lon - 20, self.max_lon + 15, self.bin_res)
-        self.results = fuse.outfile_path
+        # extract data from analysis file
+        self.load_analysis_df()
+        self.save_prefix = (self.analysis_df.scenario_key + '_' + str(self.analysis_df.sim_start_year) + '_R'
+                            + str(self.analysis_df.release_number) + '_')
 
+        # For creating the bathymetry file
+        self.load_bathymetry()
 
+        # parameters for plotting:
+        self.load_plot_params()
+        return
 
-
-        self.save_prefix = fuse.key_id + '_' + str(fuse.year_id)
-
-        #self.min_lon = -50
-        #self.max_lon = -41
-        #self.min_lat = -65
-        #self.max_lat = -57
-
-        #self.min_lon = -65.3
-        #self.max_lon = -51
-        #self.min_lat = -69
-        #self.max_lat = -56
+    def load_plot_params(self):
 
         # Dominant pathways color scaling:
         self.d_scale = 40
@@ -58,73 +42,92 @@ class PlotData:
         self.dom_cmap = plt.get_cmap('OrRd')
         self.depth_colors = np.arange(0, 4500, 200)
 
-    def plot_dom_paths(self, fuse):
+        # offsets for figure boundaries:
+        self.lon_offset = 1
+        self.lat_offset = 3
+        return
+
+    def load_analysis_df(self):
+        self.lon_bin_vals = self.analysis_df.variables['lon_bin_vals'][:]
+        self.lat_bin_vals = self.analysis_df.variables['lat_bin_vals'][:]
+        self.bin_res = self.analysis_df.bin_resolution
+        self.n_lat_bins = np.shape(self.lat_bin_vals)[0]
+        self.n_lon_bins = np.shape(self.lat_bin_vals)[0]
+        self.key = self.analysis_df.scenario_key
+        self.min_lon = self.analysis_df.domain_lon_min
+        self.min_lat = self.analysis_df.domain_lat_min
+        self.max_lon = self.analysis_df.domain_lon_max
+        self.max_lat = self.analysis_df.domain_lat_max
+        return
+
+    def load_trajectory_df(self):
+        self.lat = self.trajectory_df['lat']
+        self.lon = self.trajectory_df['lon']
+        self.shp_p = np.shape(self.lat)[0]
+        self.shp_t = np.shape(self.lat)[1]
+        # self.z = self.nc_file['z']
+        return
+
+    def load_bathymetry(self):
+        self.bath_res = 0.04  # bathymetry resolution
+        self.bath_file = self.fpath.figures_path + 'bath.npy'
+        self.bath_file_lon = self.fpath.figures_path + 'bath_lon.npy'
+        self.bath_file_lat = self.fpath.figures_path + 'bath_lat.npy'
+        if not os.path.exists(self.bath_file):
+            self.get_bathfile()
+            print('Creating ' + self.bath_file)
+        self.bath = np.load(self.bath_file)
+        self.bath_lon = np.load(self.bath_file_lon)
+        self.bath_lat = np.load(self.bath_file_lat)
+        return
+
+    def get_bathfile(self):
+        bathfile_gebco = self.fpath.figures_path + 'gebco_2023.nc'
+
+        # take in the gebco bathymetry file
+        bath_f = nc.Dataset(bathfile_gebco)
+        e = np.array(bath_f['elevation'][:]).astype(float)
+        lat_e = np.array(bath_f['lat'][:])
+        lon_e = np.array(bath_f['lon'][:])
+
+        e[e > 0] = np.nan
+        e *= -1
+
+        new_lat = np.arange(np.min(lat_e), np.max(lat_e), self.bath_res)
+        new_lon = np.arange(np.min(lon_e), np.max(lon_e), self.bath_res)
+
+        shp_lat = np.shape(new_lat)[0]
+        shp_lon = np.shape(new_lon)[0]
+        e_new = np.zeros([shp_lat, shp_lon])
+        for i in range(0, shp_lat):
+            for j in range(0, shp_lon):
+                lat_id = np.argmin(np.sqrt((lat_e[:] - new_lat[i]) ** 2))
+                lon_id = np.argmin(np.sqrt((lon_e[:] - new_lon[j]) ** 2))
+                e_new[i, j] = e[lat_id, lon_id]
+
+        np.save(self.bath_file, e_new)
+        np.save(self.bath_file_lat, new_lat)
+        np.save(self.bath_file_lon, new_lon)
+        bath_f.close()
+        return
+
+
+    def plot_dom_paths(self, dom_paths):
         self.init_plot()
         self.plot_background()
-        n_levels = np.arange(np.min(fuse.dom_path_i), self.max_scale * np.max(fuse.dom_path_i),
-                            np.max(fuse.dom_path_i)*self.max_scale / self.d_scale)
-        #breakpoint()
-        self.plot1 = plt.contourf(self.lon_range, self.lat_range, fuse.dom_path_i.T, levels=n_levels,
-                                cmap=self.dom_cmap,
-                                 transform=ccrs.PlateCarree(), extend='both')
-        #self.plot1 = plt.pcolormesh(self.lon_range, self.lat_range, fuse.dom_path_i.T,
-         #                         cmap=self.dom_cmap,
-          #                        transform=ccrs.PlateCarree())
-        self.c_max = self.max_scale * np.max(fuse.dom_path_i)
-        self.caxis_title = 'Probability (%)'
-        self.add_cbar()
+        n_levels = np.arange(np.min(dom_paths), np.max(dom_paths), np.max(dom_paths)/20)
+        self.plot1 = plt.contourf(self.lon_bin_vals, self.lat_bin_vals, dom_paths.T, levels=n_levels, cmap=self.dom_cmap, transform=ccrs.PlateCarree(), extend='both')
+        self.c_max = self.max_scale * np.max(dom_paths)
+        self.add_cbar(c_max= np.max(dom_paths), caxis_title='unique_particles')
         plt_name = self.save_prefix + "_dom_paths"
         self.save_plot(plt_name)
         return
 
-    def init_region(self, region):
-
-        if region == "SG":
-            self.min_lon = -40.5
-            self.max_lon = -33.8
-            self.min_lat = -57.5
-            self.max_lat = -51.5
-
-        if region == "AP":
-            self.min_lon = -65.3
-            self.max_lon = -51
-            self.min_lat = -69
-            self.max_lat = -56
-
-        if region == "SO":
-            self.min_lon = -50
-            self.max_lon = -41
-            self.min_lat = -65
-            self.max_lat = -57
-
-        if region == "full":
-            self.min_lon = -65
-            self.max_lon = -31
-            self.min_lat = -70
-            self.max_lat = -50
-
-        if region == "APSO":
-            self.min_lon = -75
-            self.max_lon = -30
-            self.min_lat = -70
-            self.max_lat = -50
-
-        self.lat_range = np.arange(self.min_lat - 20, self.max_lat + 15, self.bin_res)
-        self.lon_range = np.arange(self.min_lon - 20, self.max_lon + 15, self.bin_res)
-        self.shp_lon_bins = np.shape(self.lon_range)[0]
-        self.shp_lat_bins = np.shape(self.lat_range)[0]
-
-        return
-
-    def plot_trajectory(self, region):
-        self.init_region(region)
+    def plot_trajectory(self):
         self.init_plot()
         self.plot_background()
-
         self.plot_depth()
-        self.c_max = 4500
-        self.caxis_title = 'Depth (m)'
-        self.add_cbar()
+        self.add_cbar(caxis_title='depth (m)', c_max=4500)
 
         step_v = np.floor(np.shape(self.lon)[0] / 1000).astype(int)
         step_v2 = np.floor(np.shape(self.lon)[1] / (np.shape(self.lon)[1] * 0.99)).astype(int)
@@ -139,7 +142,7 @@ class PlotData:
         plt.scatter(lon_1[:, 0], lat_1[:, 0], s=18, facecolor='yellow', edgecolors='k', alpha=0.9, linewidth=0.6)
         plt.scatter(lon_1[:, -1], lat_1[:, -1], s=18, facecolor='red', edgecolors='k', alpha=0.9, linewidth=0.6)
 
-        plt_name = self.key + "_worms"
+        plt_name = self.save_prefix + "worms"
         self.save_plot(plt_name)
         return
 
@@ -156,7 +159,8 @@ class PlotData:
         gl = self.ax.gridlines(draw_labels=True, alpha=0.4)
         gl.top_labels = False
         gl.right_labels = False
-        self.ax.set_extent([self.min_lon, self.max_lon, self.min_lat, self.max_lat])
+        self.ax.set_extent([self.min_lon-self.lon_offset, self.max_lon+self.lon_offset, self.min_lat-self.lat_offset,
+                            self.max_lat+self.lat_offset])
         return
 
     def plot_depth(self):
@@ -171,15 +175,15 @@ class PlotData:
         self.ax = self.fig.add_subplot(projection=ccrs.PlateCarree())
         return
 
-    def add_cbar(self):
+    def add_cbar(self, c_max, caxis_title):
         cbar = plt.colorbar(self.plot1, extend='both')
-        cbar.ax.set_ylabel(self.caxis_title, loc='center', size=9, weight='bold')
+        cbar.ax.set_ylabel(caxis_title, loc='center', size=9, weight='bold')
         cbar.ax.tick_params(labelsize=10, rotation=0)
-        plt.clim(0, self.c_max)
+        plt.clim(0, c_max)
         return
 
     def save_plot(self, plt_name):
-        savefile = self.results + plt_name + '.png'
+        savefile = self.fpath.figures_path + plt_name + '.png'
         print('Saving file: ' + savefile)
         plt.savefig(savefile, dpi=400)
         plt.close()
@@ -223,5 +227,8 @@ class FuseData:
             self.dom_path_i[0, 0] = 0
 
         self.dom_path_i = self.dom_path_i / np.nanmax(self.dom_path_i)
+
+
+
 
 
