@@ -9,7 +9,7 @@ y_start = 2020  # first year of simulation
 y_end = 2021  # final year of simulation (note: only used if release in [y_end - 1] extends into [y_end])
 time_step_hours = 6  # simulation time step (negative time is backwards stepping of model)
 save_time_step_hours = 6  # save time step
-duration_days = 28  # simulation duration in days;
+duration_days = 1  # simulation duration in days;
 release_end = 1   # total number of releases for simulation
 release_n_days = 1  # number of days between releases (time=start_time + i*time_step)
 release_step = 24*release_n_days  # number of hours between releases

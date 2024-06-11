@@ -22,7 +22,7 @@ class PostProcess:
         self.shp_t = np.shape(self.lat)[1]
         # self.z = self.nc_file['z']
 
-        #add from analysis file
+        # add from analysis file
         self.lon_bin_vals = self.analysis_df.variables['lon_bin_vals']
         self.lat_bin_vals = self.analysis_df.variables['lat_bin_vals']
 
@@ -45,8 +45,8 @@ class PostProcess:
 
         for t_i in range(0, self.shp_t, 1):
             print('Time analysis : ' + str(t_i + 1) + " of " + str(self.shp_t))
-            self.analysis_df.variables['CG'][t_i, 0] = np.median(self.lon[:, t_i])
-            self.analysis_df.variables['CG'][t_i, 1] = np.median(self.lat[:, t_i])
+            self.analysis_df.variables['CG'][t_i, 0] = np.nanmedian(self.lon[:, t_i])
+            self.analysis_df.variables['CG'][t_i, 1] = np.nanmedian(self.lat[:, t_i])
 
         # master loop for all analysis calculations
         for p_i in range(0, self.shp_p, self.p_stride):
@@ -72,11 +72,7 @@ class PostProcess:
             self.unique_visits(dom_points)
 
             if p_i == 0:
-                lat_1 = -56
-                lat_2 = -54
-                lon_1 = -34
-                lon_2 = -32
-                self.create_polygon(lat_1, lat_2, lon_1, lon_2)
+                self.init_square_polygon()
             self.recruit()
 
         #todo: analysis- generic retention, z dom_paths, transit_times
@@ -103,18 +99,20 @@ class PostProcess:
             self.analysis_df.variables['recruit'][self.p_i] = transit_hours
         return
 
-
-
-    def create_polygon(self, lat_1, lat_2, lon_1, lon_2):
+    def init_square_polygon(self):
         from shapely.geometry import Polygon
         import geopandas as gpd
         import matplotlib.pyplot as plt
-        coords = ((lon_1, lat_1), (lon_1, lat_2), (lon_2, lat_2), (lon_2, lat_1), (lon_1, lat_1)) # tuple item;
+        # lon_1, lat_1 are bottom left coordinates
+        self.lon_1 = self.analysis_df.variables['square_polygons'][0, 0]
+        self.lon_2 = self.analysis_df.variables['square_polygons'][0, 1]
+        self.lat_1 = self.analysis_df.variables['square_polygons'][0, 2]
+        self.lat_2 = self.analysis_df.variables['square_polygons'][0, 3]
+        coords = ((self.lon_1, self.lat_1), (self.lon_1, self.lat_2), (self.lon_2, self.lat_2),
+                  (self.lon_2, self.lat_1), (self.lon_1, self.lat_1))  # tuple item;
         polygon1 = Polygon(coords)
         self.polygon = gpd.GeoSeries(polygon1)
         return
-
-
 
     def unique_visits(self, dom_points):
         unique_rows = np.unique(dom_points, axis=0).astype(int)

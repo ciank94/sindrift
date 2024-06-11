@@ -138,6 +138,19 @@ class Scenario:
         self.outfile['lon_bin_vals'][:] = self.lon_bin_vals
         self.outfile['lat_bin_vals'][:] = self.lat_bin_vals
 
+        if self.n_polys > 0:
+            self.outfile.createDimension('n_polygons', self.n_polys)  # n_polys is defined for the key
+            self.outfile.createDimension('points', 4)
+            self.outfile.createVariable('square_polygons', 'f4', ('n_polygons', 'points'))
+            self.outfile['square_polygons'].coords_order = ('order of coords [0:4]: (lon_1, lon_2, lat_1, lat_2), '
+                                                            'use coords = ((lon_1, lat_1), '
+                                                            '(lon_1, lat_2), (lon_2, lat_2),'
+                                                            '(lon_2, lat_1), (lon_1, lat_1))')
+            for n_poly in range(0, self.n_polys):
+                self.outfile['square_polygons'][n_poly, 0:2] = self.lon_lims_poly[n_poly, :]
+                self.outfile['square_polygons'][n_poly, 2:4] = self.lat_lims_poly[n_poly, :]
+                self.outfile['square_polygons'].polygon_descriptions = self.poly_desc
+
         print('Closing: ' + self.analysis_file)
         self.outfile.close()
         return
@@ -178,7 +191,35 @@ class Scenario:
         self.domain_lon_max = -30.64
         self.domain_lat_min = -57.19
         self.domain_lat_max = -50.92
+        self.SG_square_polygons()
         return
+
+    def SG_square_polygons(self):
+        import matplotlib.pyplot as plt
+        self.n_polys = 2
+        self.lon_lims_poly = np.zeros([self.n_polys, 2])
+        self.lat_lims_poly = np.zeros([self.n_polys, 2])
+        nline_indent = '\n\t\t\t\t\t\t  '
+
+        # define first
+        self.lon_lims_poly[0, 0:2] = [-39.25, -37.85]
+        self.lat_lims_poly[0, 0:2] = [-53.85, -53.55]
+        self.poly_desc = 'polygon number 1: SG hotspot on the north western part of the island'
+
+        # define second
+        self.lon_lims_poly[1, 0:2] = [-36.1, -35.1]
+        self.lat_lims_poly[1, 0:2] = [-54.85, -53.4]
+        self.poly_desc = self.poly_desc + nline_indent + 'polygon number 2: SG hotspot on the north eastern part of the island'
+
+        # consider test case:
+        # lat_1 = -56
+        # lat_2 = -54
+        # lon_1 = -34
+        # lon_2 = -32
+        return
+
+
+
 
 
 
