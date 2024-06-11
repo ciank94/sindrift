@@ -1,3 +1,4 @@
+import datetime
 from datetime import timedelta
 import numpy as np
 import netCDF4 as nc
@@ -46,10 +47,21 @@ class FileExplorer:
                 self.file_list.append(file_name)
         return
 
+    def get_phys_states(self, sim_year, sim_month):
+        if sim_month < 10:
+            month_prefix = '0' + str(sim_month)
+        else:
+            month_prefix = str(sim_month)
+        if self.model_name == "sinmod":
+            phys_states = self.phys_states_path + self.phys_states_file_prefix + str(sim_year) + month_prefix + '.nc'
+        else:
+            phys_states = self.phys_states_path + self.phys_states_file_prefix + str(sim_year) + '.nc'
+        return phys_states
+
 
 class Scenario:
     def __init__(self, fpath, reader_phys_states, duration_days, time_step_hours,
-                 save_time_step_hours, release_step, y_i, r_i, key):
+                 save_time_step_hours, release_step, y_i, r_i, key, d_start, m_start):
         # Simulation settings for scenario
         self.key = key  # key used to identify initialization scenario
         self.year = y_i  # simulation year
@@ -65,7 +77,9 @@ class Scenario:
         self.phys_states_file = reader_phys_states.name
         self.phys_states_timestep = reader_phys_states.time_step.seconds
         self.reader_t_init = reader_phys_states.start_time
-        self.t_init = self.reader_t_init + r_i * timedelta(hours=self.release_step)
+        #self.t_init = self.reader_t_init + r_i * timedelta(hours=self.release_step)
+        self.t_init = (datetime.datetime(self.year, m_start, d_start, 0, 0) +
+                       r_i * timedelta(hours=self.release_step))
         self.reader_end_time = reader_phys_states.end_time
 
         # Initialize scenario parameters and save them as attributes to scenario file
@@ -196,26 +210,43 @@ class Scenario:
 
     def SG_square_polygons(self):
         import matplotlib.pyplot as plt
-        self.n_polys = 2
+        self.n_polys = 3
         self.lon_lims_poly = np.zeros([self.n_polys, 2])
         self.lat_lims_poly = np.zeros([self.n_polys, 2])
+
+        # Define area:
+        lon_lims_1 = [-39.25, -37.85]
+        lat_lims_1 = [-53.85, -53.55]
+        poly_desc_1 = 'polygon number 1: SG hotspot on the north western part of the island'
+
+        # area 2
+        lon_lims_2 = [-36.1, -35.1]
+        lat_lims_2 = [-54.85, -53.4]
+        poly_desc_2 = 'polygon number 2: SG hotspot on the north eastern part of the island'
+
+        # test case
+        lon_lims_3 = [-34, -32]
+        lat_lims_3 = [-56, -54]
+        poly_desc_3 = 'polygon number 3: test case for SG recruitment and retention'
+
         nline_indent = '\n\t\t\t\t\t\t  '
+        for i in range(0, self.n_polys):
 
-        # define first
-        self.lon_lims_poly[0, 0:2] = [-39.25, -37.85]
-        self.lat_lims_poly[0, 0:2] = [-53.85, -53.55]
-        self.poly_desc = 'polygon number 1: SG hotspot on the north western part of the island'
-
-        # define second
-        self.lon_lims_poly[1, 0:2] = [-36.1, -35.1]
-        self.lat_lims_poly[1, 0:2] = [-54.85, -53.4]
-        self.poly_desc = self.poly_desc + nline_indent + 'polygon number 2: SG hotspot on the north eastern part of the island'
-
-        # consider test case:
-        # lat_1 = -56
-        # lat_2 = -54
-        # lon_1 = -34
-        # lon_2 = -32
+            # define first
+            if i == 0:
+                self.lon_lims_poly[i, 0:2] = lon_lims_1
+                self.lat_lims_poly[i, 0:2] = lat_lims_1
+                self.poly_desc = poly_desc_1
+            elif i == 1:
+                self.lon_lims_poly[i, 0:2] = lon_lims_2
+                self.lat_lims_poly[i, 0:2] = lat_lims_2
+                self.poly_desc = self.poly_desc + nline_indent + poly_desc_2
+            elif i == 2:
+                self.lon_lims_poly[i, 0:2] = lon_lims_3
+                self.lat_lims_poly[i, 0:2] = lat_lims_3
+                self.poly_desc = self.poly_desc + nline_indent + poly_desc_3
+            else:
+                print('WARNING: SG square polygon number ' + str(i) + ' does not exist')
         return
 
 
