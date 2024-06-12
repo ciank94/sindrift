@@ -10,6 +10,7 @@ for file_v in fpath.file_list:
     analysis_file = fpath.analysis_path + file_v
     print('Analysing file: ' + analysis_file)
     pld = PlotData(fpath, analysis_file)
+    pld.plot_recruits()
     pld.plot_trajectory()
     dom_paths = pld.analysis_df.variables['dom_paths'][:]
     pld.plot_dom_paths(dom_paths)

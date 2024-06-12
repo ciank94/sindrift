@@ -43,10 +43,10 @@ class PostProcess:
         self.analysis_df.variables['recruit'][:] = 0
         self.analysis_df.variables['CG'][:, :] = 0
 
-        for t_i in range(0, self.shp_t, 1):
-            print('Time analysis : ' + str(t_i + 1) + " of " + str(self.shp_t))
-            self.analysis_df.variables['CG'][t_i, 0] = np.nanmedian(self.lon[:, t_i])
-            self.analysis_df.variables['CG'][t_i, 1] = np.nanmedian(self.lat[:, t_i])
+        #for t_i in range(0, self.shp_t, 1):
+         #   print('Time analysis : ' + str(t_i + 1) + " of " + str(self.shp_t))
+          #  self.analysis_df.variables['CG'][t_i, 0] = np.nanmedian(self.lon[:, t_i])
+           # self.analysis_df.variables['CG'][t_i, 1] = np.nanmedian(self.lat[:, t_i])
 
         # master loop for all analysis calculations
         for p_i in range(0, self.shp_p, self.p_stride):
@@ -94,9 +94,11 @@ class PostProcess:
         p_id[in_idx[0]] = 1  # Store as ones
         if np.sum(p_id) > 0:
             visits = np.where(p_id == 1)
+            visit_index = visits[0][0]
             t_to_poly = self.dates[visits[0][0]] - self.dates[0]
             transit_hours = (t_to_poly.days * 24) + np.floor(t_to_poly.seconds * 1 / (60 * 60)).astype(int)
-            self.analysis_df.variables['recruit'][self.p_i] = transit_hours
+            self.analysis_df.variables['recruit'][self.p_i, 0, 0] = transit_hours
+            self.analysis_df.variables['recruit'][self.p_i, 1, 0] = visit_index
         return
 
     def init_square_polygon(self):
@@ -131,6 +133,10 @@ class PostProcess:
         except:
             self.analysis_df.createDimension('time', self.shp_t)
         try:
+            self.analysis_df.dimensions['transit_info']
+        except:
+            self.analysis_df.createDimension('transit_info', 2) # transit time and index of visit
+        try:
             self.analysis_df.dimensions['particles']
         except:
             self.analysis_df.createDimension('particles', self.shp_p)
@@ -145,7 +151,8 @@ class PostProcess:
         try:
             self.analysis_df.variables['recruit']
         except:
-            self.analysis_df.createVariable('recruit', 'i4', ('particles', ))
+            self.analysis_df.createVariable('recruit', 'i4', ('particles','transit_info', 'n_polygons'))
+            self.analysis_df['recruit'].description = 'Transit hours to polygon'
         try:
             self.analysis_df.variables['CG']
         except:

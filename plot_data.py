@@ -1,4 +1,7 @@
+import matplotlib
 import matplotlib.pyplot as plt
+#from matplotlib.patches import Polygon
+from shapely.geometry.polygon import LinearRing, Polygon
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 import numpy as np
@@ -58,6 +61,9 @@ class PlotData:
         self.min_lat = self.analysis_df.domain_lat_min
         self.max_lon = self.analysis_df.domain_lon_max
         self.max_lat = self.analysis_df.domain_lat_max
+        self.polygons = self.analysis_df['square_polygons']
+        self.recruit = self.analysis_df['recruit'][:]
+        self.CG = self.analysis_df['CG'][:]
         return
 
     def load_trajectory_df(self):
@@ -122,6 +128,42 @@ class PlotData:
         plt_name = self.save_prefix + "_dom_paths"
         self.save_plot(plt_name)
         return
+
+    def plot_recruits(self):
+        n_poly = 0
+        recruit = self.recruit[:,:,n_poly]
+        recruit_t = recruit[:,0]
+        recruit_i = recruit[:,1]
+        id1 = np.where(recruit_t>0)
+        self.init_plot()
+        self.plot_background()
+        i_vals = recruit_i[id1[0][:]].astype(int)
+        particle_n = id1[0][:].astype(int)
+        x = np.array(self.lon[particle_n, :])
+        y = np.array(self.lat[particle_n, :])
+        self.ax.scatter(x[:, 0], y[:, 0], alpha=0.7, c='r')
+        [self.ax.plot(x[i, 0:i_vals[i]+3], y[i, 0:i_vals[i]+3], alpha=0.1, linewidth=1, c='k') for i in range(0, np.shape(id1)[1])]
+        poly = self.get_polygon(0)
+        x,y = poly.exterior.xy
+        self.ax.plot(x, y, color='#6699cc', alpha=0.7,
+                linewidth=3, solid_capstyle='round', zorder=2)
+
+        #self.ax.plot(polygon1)
+        #self.ax.add_patch(polygon1, facecolor='r', alpha=0.4)
+        plt.show()
+        breakpoint()
+
+
+
+    def get_polygon(self, poly_n):
+        self.lon_1 = self.analysis_df.variables['square_polygons'][poly_n, 0]
+        self.lon_2 = self.analysis_df.variables['square_polygons'][poly_n, 1]
+        self.lat_1 = self.analysis_df.variables['square_polygons'][poly_n, 2]
+        self.lat_2 = self.analysis_df.variables['square_polygons'][poly_n, 3]
+        coords = ((self.lon_1, self.lat_1), (self.lon_1, self.lat_2), (self.lon_2, self.lat_2),
+                  (self.lon_2, self.lat_1), (self.lon_1, self.lat_1))  # tuple item;
+        poly = Polygon(coords)
+        return poly
 
     def plot_trajectory(self):
         self.init_plot()

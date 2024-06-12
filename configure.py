@@ -47,15 +47,68 @@ class FileExplorer:
                 self.file_list.append(file_name)
         return
 
-    def get_phys_states(self, sim_year, sim_month):
-        if sim_month < 10:
-            month_prefix = '0' + str(sim_month)
+    def check_phys_states(self, y_start, m_start, m_end):
+        phys_states_1 = self.phys_states_path + self.phys_states_file_prefix + str(y_start) + '0' + str(m_start) + '.nc'
+        phys_states_2 = self.phys_states_path + self.phys_states_file_prefix + str(y_start) + '0' + str(m_end) + '.nc'
+        phys_states_3 = self.trajectory_path + self.phys_states_file_prefix + 'newpstatesfile_test' + '.nc'
+        f_1 = nc.Dataset(phys_states_1)
+        f_2 = nc.Dataset(phys_states_2)
+        f_3 = nc.Dataset(phys_states_3, mode='w')
+
+        t_dimension = f_1.dimensions['time'].size + f_2.dimensions['time'].size
+        toExtend = ['time']
+        toModify = ['u_east', 'v_north', 'w_east','w_north']
+        toExclude = ['ExcludeVar1', 'ExcludeVar2']
+        toCopy = ['grid_mapping', 'LayerDepths', 'xc', 'yc', 'zc']
+        with f_1 as src, f_3 as dst:
+            # copy global attributes all at once via dictionary
+            dst.setncatts(src.__dict__)
+            for name, dimension in src.dimensions.items():
+                if name == 'time':
+                    print('setting new time dimension')
+                    dst.createDimension(name, ((t_dimension)))
+                else:
+                    dst.createDimension(name, len(dimension))
+
+            for name, variable in src.variables.items():
+                if name not in toExclude:
+                    dst.createVariable(name, variable.datatype, variable.dimensions)
+                if name in toExtend:
+                    dst[name][:] = np.concatenate([src[name][:], f_2[name][:]])
+                if name in toModify:
+                    shp_t = np.shape(src[name])[0]
+                    dst[name][0:shp_t, :, :, :] = src[name][:]
+                    dst[name][shp_t-1:-1, :, :, :] = src[name][:]
+                elif name in toCopy:
+                    dst[name][:] = src[name][:]
+
+                if name not in toExclude:
+                    # copy variable attributes all at once via dictionary
+                    dst[name].setncatts(src[name].__dict__)
+        return
+
+
+
+    def get_phys_states(self, y_start, m_start, m_end):
+        if m_start < 10:
+            m_start_prefix = '0' + str(m_start)
         else:
-            month_prefix = str(sim_month)
+            m_start_prefix = str(m_start)
+
+        if m_start < 10:
+            m_end_prefix = '0' + str(m_end)
+        else:
+            m_end_prefix = str(m_start)
+
         if self.model_name == "sinmod":
-            phys_states = self.phys_states_path + self.phys_states_file_prefix + str(sim_year) + month_prefix + '.nc'
+            if m_start == m_end:
+                phys_states = (self.phys_states_path + self.phys_states_file_prefix + str(y_start) +
+                               m_start_prefix + '.nc')
+            else:
+                phys_states = (self.phys_states_path + self.phys_states_file_prefix + str(y_start) + '_' +
+                               m_start_prefix + '_' + m_end_prefix + '.nc')
         else:
-            phys_states = self.phys_states_path + self.phys_states_file_prefix + str(sim_year) + '.nc'
+            phys_states = self.phys_states_path + self.phys_states_file_prefix + str(y_start) + '.nc'
         return phys_states
 
 
@@ -177,8 +230,7 @@ class Scenario:
         if self.key == "SG8H":
             self.get_SG_bounds()
         else:
-            print('WARNING: missing key configuration in get_scenario')
-            exit()
+            sys.exit('WARNING: missing key configuration in get_scenario')
 
         # Parameterize a grid for analysis:
         self.lat_bin_vals = np.arange(self.domain_lat_min, self.domain_lat_max, self.bin_res)
@@ -197,10 +249,14 @@ class Scenario:
 
     def get_SG_bounds(self):
         self.description = " Initialize with regular grid in South Georgia 800m domain"
-        self.site_lon_min = -38
-        self.site_lon_max = -35
+        #self.site_lon_min = -38
+        #self.site_lon_max = -35
+        #self.site_lat_min = -57
+        #self.site_lat_max = -55.2
+        self.site_lon_min = -42
+        self.site_lon_max = -37.5
         self.site_lat_min = -57
-        self.site_lat_max = -55.2
+        self.site_lat_max = -54
         self.domain_lon_min = -42.48
         self.domain_lon_max = -30.64
         self.domain_lat_min = -57.19
