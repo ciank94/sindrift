@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import netCDF4 as nc
 from netCDF4 import num2date
@@ -11,8 +13,9 @@ class PostProcess:
         self.fpath = fpath
         self.analysis_file = analysis_file
         self.analysis_df = nc.Dataset(analysis_file, mode='r+')
-        tr_file = fpath.trajectory_path + self.analysis_df.trajectory_file_name
+        tr_file = fpath.trajectory_path + self.analysis_df.trajectory_file
         self.trajectory_df = nc.Dataset(tr_file, mode='r')
+
         times = self.trajectory_df.variables['time']
         self.dates = num2date(times, times.units)
 
@@ -33,10 +36,10 @@ class PostProcess:
         # First, check if we are running a test analysis or full analysis:
         if test:
             self.p_stride = 10
-            self.t_stride = 10
+            self.t_stride = 6
         else:
             self.p_stride = 1
-            self.t_stride = 1
+            self.t_stride = 6
 
         # Set up a netcdf file for storing output from the analysis:
         self.init_ncfile()
@@ -54,6 +57,11 @@ class PostProcess:
             # general steps for each analysis
             self.p_i = p_i
             print("Particle analysis : " + str(self.p_i + 1) + " of " + str(self.shp_p))  # print particle id number in analysis
+            if p_i == 0:
+                if self.fpath.node == 'server':
+                    cmd = "echo first particle in analysis"
+                    os.system(cmd)
+
             self.lon_p = self.lon[p_i, :]
             self.lat_p = self.lat[p_i, :]
 
@@ -79,6 +87,7 @@ class PostProcess:
         #todo: analysis- generic retention, z dom_paths, transit_times
 
         print('Closing: ' + self.analysis_file)
+        os.system("echo closing analysis file")
         self.summarise_file()
         self.analysis_df.close()
         return

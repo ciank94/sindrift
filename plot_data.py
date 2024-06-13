@@ -13,12 +13,9 @@ class PlotData:
     def __init__(self, fpath, analysis_file):
         # files for analysis
         self.analysis_file = analysis_file
-        self.analysis_df = nc.Dataset(analysis_file, mode='r')
-        self.trajectory_df = nc.Dataset(self.analysis_df.trajectory_file, mode='r')
+        self.analysis_df = nc.Dataset(analysis_file, 'r')
+        self.tr_file = fpath.trajectory_path + self.analysis_df.trajectory_file
         self.fpath = fpath
-
-        # extract data from trajectory file
-        self.load_trajectory_df()
 
         # extract data from analysis file
         self.load_analysis_df()
@@ -30,6 +27,12 @@ class PlotData:
 
         # parameters for plotting:
         self.load_plot_params()
+        return
+
+    def read_trajectory_df(self):
+        self.trajectory_df = nc.Dataset(self.tr_file, 'r')
+        # extract data from trajectory file
+        #self.load_trajectory_df()
         return
 
     def load_plot_params(self):
@@ -121,7 +124,7 @@ class PlotData:
     def plot_dom_paths(self, dom_paths):
         self.init_plot()
         self.plot_background()
-        n_levels = np.arange(np.min(dom_paths), np.max(dom_paths), np.max(dom_paths)/20)
+        n_levels = np.arange(np.min(dom_paths), np.max(dom_paths), np.max(dom_paths)/40)
         self.plot1 = plt.contourf(self.lon_bin_vals, self.lat_bin_vals, dom_paths.T, levels=n_levels, cmap=self.dom_cmap, transform=ccrs.PlateCarree(), extend='both')
         self.c_max = self.max_scale * np.max(dom_paths)
         self.add_cbar(c_max= np.max(dom_paths), caxis_title='unique_particles')
@@ -150,8 +153,8 @@ class PlotData:
 
         #self.ax.plot(polygon1)
         #self.ax.add_patch(polygon1, facecolor='r', alpha=0.4)
-        plt.show()
-        breakpoint()
+        #plt.show()
+        #breakpoint()
 
 
 
@@ -181,8 +184,8 @@ class PlotData:
         #
 
         plt.scatter(lon_1, lat_1, c=c_vals, s=1.3, cmap='YlOrRd', alpha=1, linewidth=1.3, linestyle='-', marker='_')
-        plt.scatter(lon_1[:, 0], lat_1[:, 0], s=18, facecolor='yellow', edgecolors='k', alpha=0.9, linewidth=0.6)
         plt.scatter(lon_1[:, -1], lat_1[:, -1], s=18, facecolor='red', edgecolors='k', alpha=0.9, linewidth=0.6)
+        plt.scatter(lon_1[:, 0], lat_1[:, 0], s=5, facecolor='yellow', edgecolors='g', alpha=0.3, linewidth=0.5)
 
         plt_name = self.save_prefix + "worms"
         self.save_plot(plt_name)
@@ -230,8 +233,6 @@ class PlotData:
         plt.savefig(savefile, dpi=400)
         plt.close()
         return
-
-
 
 
 class FuseData:

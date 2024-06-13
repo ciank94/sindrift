@@ -63,31 +63,11 @@ class FileExplorer:
                                "{:02d}".format(kMonth) + '.nc')
                 phys_states_list.append(phys_states_i)
 
-            phys_states = (self.phys_states_path + self.phys_states_file_prefix + str(y_start) +
-                           "{:02d}".format(m_start) + '_to_' + "{:02d}".format(m_end) + '.nc')
-
-            # check that it exists:
-            if self.node == 'remote':
-                if not os.path.exists(phys_states):
-                    cmd = "echo Creating new merged phys_states file"
-                    os.system(cmd)
-                    #  ready multiple files (and combine/sort them at the same time !)
-                    df = xr.open_mfdataset(phys_states_list, combine='nested', concat_dim='time')
-                    # write them to a new netCDF file
-                    df.to_netcdf(phys_states)
-                    cmd = "echo Closing new merged phys_states file"
-                    os.system(cmd)
-                    sys.exit('Exiting simulation')
-                else:
-                    cmd = "echo Merged phys_states file exists"
-                    os.system(cmd)
-
-
+            phys_states = xr.open_mfdataset(phys_states_list)
         else:
             phys_states = (self.phys_states_path + self.phys_states_file_prefix + str(y_start) +
                            "{:02d}".format(m_start) + '.nc')
         return phys_states
-
 
 class Scenario:
     def __init__(self, fpath, reader_phys_states, duration_days, time_step_hours,
@@ -131,7 +111,7 @@ class Scenario:
         self.outfile.server = fpath.node
         self.outfile.trajectory_file_prefix = self.key + '_' + str(self.year) + '_R' + str(self.release_n) + '_'
         self.outfile.phys_states_file_prefix = fpath.phys_states_file_prefix
-        self.outfile.phys_states_file = self.phys_states_file
+        #self.outfile.phys_states_file = self.phys_states_file
         self.outfile.trajectory_path = fpath.trajectory_path
         self.outfile.trajectory_file = self.trajectory_file_name
         self.outfile.analysis_path = fpath.analysis_path
@@ -197,7 +177,6 @@ class Scenario:
                 self.outfile['square_polygons'].polygon_descriptions = self.poly_desc
 
         print('Closing: ' + self.analysis_file)
-        breakpoint()
         self.outfile.close()
         return
 
