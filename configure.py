@@ -40,6 +40,11 @@ class FileExplorer:
 
         return
 
+    def mounted_paths(self):
+        self.analysis_path = self.mounted_remote_drift_path + 'analysis/'
+        self.trajectory_path = self.mounted_remote_drift_path + 'trajectory/'
+        return
+
     def search_path(self):
         import os
         path_list = os.listdir(self.analysis_path)
@@ -58,8 +63,8 @@ class FileExplorer:
                                "{:02d}".format(kMonth) + '.nc')
                 phys_states_list.append(phys_states_i)
 
-            phys_states = (self.phys_states_path + self.phys_states_file_prefix + "{:02d}".format(m_start) + '_to_' +
-                               "{:02d}".format(m_end) + '.nc')
+            phys_states = (self.phys_states_path + self.phys_states_file_prefix + str(y_start) +
+                           "{:02d}".format(m_start) + '_to_' + "{:02d}".format(m_end) + '.nc')
 
             # check that it exists:
             if self.node == 'remote':
@@ -72,6 +77,11 @@ class FileExplorer:
                     df.to_netcdf(phys_states)
                     cmd = "echo Closing new merged phys_states file"
                     os.system(cmd)
+                    sys.exit('Exiting simulation')
+                else:
+                    cmd = "echo Merged phys_states file exists"
+                    os.system(cmd)
+
 
         else:
             phys_states = (self.phys_states_path + self.phys_states_file_prefix + str(y_start) +
@@ -81,7 +91,7 @@ class FileExplorer:
 
 class Scenario:
     def __init__(self, fpath, reader_phys_states, duration_days, time_step_hours,
-                 save_time_step_hours, release_step, y_i, r_i, key, d_start, m_start):
+                 save_time_step_hours, release_step, y_i, r_i, key, d_start, m_start, m_end):
         # Simulation settings for scenario
         self.key = key  # key used to identify initialization scenario
         self.year = y_i  # simulation year
@@ -100,14 +110,15 @@ class Scenario:
         #self.t_init = self.reader_t_init + r_i * timedelta(hours=self.release_step)
         self.t_init = (datetime.datetime(self.year, m_start, d_start, 0, 0) +
                        r_i * timedelta(hours=self.release_step))
+        self.m_end = m_end
         self.reader_end_time = reader_phys_states.end_time
 
         # Initialize scenario parameters and save them as attributes to scenario file
         self.scenario_initialization()  # furnish initialization scenario with class attributes at beginning
-        self.trajectory_file = (fpath.trajectory_path + self.key + '_' + str(self.year) + '_R'
-                                + str(self.release_n) + '_trajectory.nc')  # Trajectory output file name
-        self.analysis_file = (fpath.analysis_path + self.key + '_' + str(self.year) + '_R'
-                         + str(self.release_n) + '_trajectory_analysis.nc')  # Analysis output file path name
+        self.trajectory_file_name = self.key + '_' + str(self.year) + '_R' + str(self.release_n) + '_trajectory.nc'
+        self.trajectory_file = (fpath.trajectory_path + self.trajectory_file_name)  # Trajectory output file name
+        self.analysis_file_name = self.key + '_' + str(self.year) + '_R' + str(self.release_n) + '_trajectory_analysis.nc'
+        self.analysis_file = (fpath.analysis_path + self.analysis_file_name)  # Analysis output file path name
         self.init_scenario_netcdf(fpath)
         return
 
@@ -120,12 +131,11 @@ class Scenario:
         self.outfile.server = fpath.node
         self.outfile.trajectory_file_prefix = self.key + '_' + str(self.year) + '_R' + str(self.release_n) + '_'
         self.outfile.phys_states_file_prefix = fpath.phys_states_file_prefix
-        self.outfile.phys_states_path = fpath.phys_states_path
         self.outfile.phys_states_file = self.phys_states_file
         self.outfile.trajectory_path = fpath.trajectory_path
-        self.outfile.trajectory_file = self.trajectory_file
+        self.outfile.trajectory_file = self.trajectory_file_name
         self.outfile.analysis_path = fpath.analysis_path
-        self.outfile.analysis_file = self.analysis_file
+        self.outfile.analysis_file = self.analysis_file_name
         self.outfile.figures_path = fpath.figures_path
         self.outfile.scenario_key = self.key  # key name given to scenario
         self.outfile.scenario_description = self.description  # description of scenario
@@ -141,6 +151,7 @@ class Scenario:
         self.outfile.sim_start_day = self.t_init.day # simulation start time
         self.outfile.sim_start_month = self.t_init.month  # simulation start time
         self.outfile.sim_start_month = self.t_init.month  # simulation start time
+        self.outfile.sim_end_month = self.m_end  # simulation start time
         self.outfile.sim_start_year = self.year  # simulation year
         self.outfile.sim_duration_days = self.duration.days # simulation duration
         self.outfile.sim_time_step_seconds = self.time_step.seconds # simulation time step
@@ -186,6 +197,7 @@ class Scenario:
                 self.outfile['square_polygons'].polygon_descriptions = self.poly_desc
 
         print('Closing: ' + self.analysis_file)
+        breakpoint()
         self.outfile.close()
         return
 

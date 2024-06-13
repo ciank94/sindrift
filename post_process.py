@@ -11,7 +11,8 @@ class PostProcess:
         self.fpath = fpath
         self.analysis_file = analysis_file
         self.analysis_df = nc.Dataset(analysis_file, mode='r+')
-        self.trajectory_df = nc.Dataset(self.analysis_df.trajectory_file, mode='r')
+        tr_file = fpath.trajectory_path + self.analysis_df.trajectory_file_name
+        self.trajectory_df = nc.Dataset(tr_file, mode='r')
         times = self.trajectory_df.variables['time']
         self.dates = num2date(times, times.units)
 

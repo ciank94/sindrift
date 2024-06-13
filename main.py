@@ -8,7 +8,7 @@ from opendrift.readers import reader_netCDF_CF_generic, reader_global_landmask
 y_start = 2020  # first year of simulation #todo: define start and end year instead of loop as below
 m_start = 1  # start month
 d_start = 1  # start day of month- otherwise
-m_end = 1  # end month
+m_end = 2  # end month
 time_step_hours = 1  # simulation time step (negative time is backwards stepping of model)
 save_time_step_hours = 4  # save time step
 duration_days = 40  # simulation duration in days;
@@ -33,7 +33,7 @@ for r_i in range(0, release_end):
         # Parameterization of scenario object for initialization and running
         scenario = Scenario(fpath, reader_phys_states, duration_days,
                             time_step_hours, save_time_step_hours, release_step,
-                            y_start, r_i, key, d_start, m_start)
+                            y_start, r_i, key, d_start, m_start, m_end)
 
         # Initialization of simulation
         o.disable_vertical_motion()
