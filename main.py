@@ -6,26 +6,22 @@ from opendrift.readers import reader_netCDF_CF_generic, reader_global_landmask
 
 # Simulation settings (time, releases, initialization scenario)
 y_start = 2020  # first year of simulation #todo: define start and end year instead of loop as below
-y_end = 2021  # final year of simulation (note: only used if release in [y_end - 1] extends into [y_end])
 m_start = 1  # start month
-m_end = 2  # end month
 d_start = 1  # start day of month- otherwise
-time_step_hours = 24  # simulation time step (negative time is backwards stepping of model)
-save_time_step_hours = 24  # save time step
-duration_days = 60  # simulation duration in days;
-release_end = 1   # total number of releases for simulation
-release_n_days = 1  # number of days between releases (time=start_time + i*time_step)
+m_end = 1  # end month
+time_step_hours = 1  # simulation time step (negative time is backwards stepping of model)
+save_time_step_hours = 4  # save time step
+duration_days = 40  # simulation duration in days;
+release_end = 10   # total number of releases for simulation
+release_n_days = 2  # number of days between releases (time=start_time + i*time_step)
 release_step = 24*release_n_days  # number of hours between releases
 init_keys = ["SG8H"]  # key names for initialization scenario: defines lat-long start points, number of particles etc.
-
-#fpath.check_phys_states(y_start, m_start, m_end)
+phys_states = fpath.check_phys_states(y_start, m_start, m_end)  # input netcdf file with physics (u, v ,T ...)
 
 
 for r_i in range(0, release_end):
     for key in init_keys:
         print('Beginning simulation: year = ' + str(y_start) + ', release number ' + str(r_i + 1))
-        # for m_i in range(m_start,m_end + 1, 1):
-        phys_states = fpath.get_phys_states(y_start, m_start, m_end)  # input netcdf file with physics (u, v ,T ...)
         reader_phys_states = reader_netCDF_CF_generic.Reader(phys_states)  # read input variables
         print(reader_phys_states)
 

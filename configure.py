@@ -1,7 +1,9 @@
 import datetime
+import os.path
 from datetime import timedelta
 import numpy as np
 import netCDF4 as nc
+import xarray as xr
 import sys
 
 class FileExplorer:
@@ -45,70 +47,35 @@ class FileExplorer:
         for file_name in path_list:
             if file_name[0:4] == "SG8H":
                 self.file_list.append(file_name)
+        print(self.file_list)
         return
 
     def check_phys_states(self, y_start, m_start, m_end):
-        phys_states_1 = self.phys_states_path + self.phys_states_file_prefix + str(y_start) + '0' + str(m_start) + '.nc'
-        phys_states_2 = self.phys_states_path + self.phys_states_file_prefix + str(y_start) + '0' + str(m_end) + '.nc'
-        phys_states_3 = self.trajectory_path + self.phys_states_file_prefix + 'newpstatesfile_test' + '.nc'
-        f_1 = nc.Dataset(phys_states_1)
-        f_2 = nc.Dataset(phys_states_2)
-        f_3 = nc.Dataset(phys_states_3, mode='w')
+        if not m_start == m_end:
+            phys_states_list = []
+            for kMonth in range(m_start, m_end+1):
+                phys_states_i = (self.phys_states_path + self.phys_states_file_prefix + str(y_start) +
+                               "{:02d}".format(kMonth) + '.nc')
+                phys_states_list.append(phys_states_i)
 
-        t_dimension = f_1.dimensions['time'].size + f_2.dimensions['time'].size
-        toExtend = ['time']
-        toModify = ['u_east', 'v_north', 'w_east','w_north']
-        toExclude = ['ExcludeVar1', 'ExcludeVar2']
-        toCopy = ['grid_mapping', 'LayerDepths', 'xc', 'yc', 'zc']
-        with f_1 as src, f_3 as dst:
-            # copy global attributes all at once via dictionary
-            dst.setncatts(src.__dict__)
-            for name, dimension in src.dimensions.items():
-                if name == 'time':
-                    print('setting new time dimension')
-                    dst.createDimension(name, ((t_dimension)))
-                else:
-                    dst.createDimension(name, len(dimension))
+            phys_states = (self.phys_states_path + self.phys_states_file_prefix + "{:02d}".format(m_start) + '_to_' +
+                               "{:02d}".format(m_end) + '.nc')
 
-            for name, variable in src.variables.items():
-                if name not in toExclude:
-                    dst.createVariable(name, variable.datatype, variable.dimensions)
-                if name in toExtend:
-                    dst[name][:] = np.concatenate([src[name][:], f_2[name][:]])
-                if name in toModify:
-                    shp_t = np.shape(src[name])[0]
-                    dst[name][0:shp_t, :, :, :] = src[name][:]
-                    dst[name][shp_t-1:-1, :, :, :] = src[name][:]
-                elif name in toCopy:
-                    dst[name][:] = src[name][:]
+            # check that it exists:
+            if self.node == 'remote':
+                if not os.path.exists(phys_states):
+                    cmd = "echo Creating new merged phys_states file"
+                    os.system(cmd)
+                    #  ready multiple files (and combine/sort them at the same time !)
+                    df = xr.open_mfdataset(phys_states_list, combine='nested', concat_dim='time')
+                    # write them to a new netCDF file
+                    df.to_netcdf(phys_states)
+                    cmd = "echo Closing new merged phys_states file"
+                    os.system(cmd)
 
-                if name not in toExclude:
-                    # copy variable attributes all at once via dictionary
-                    dst[name].setncatts(src[name].__dict__)
-        return
-
-
-
-    def get_phys_states(self, y_start, m_start, m_end):
-        if m_start < 10:
-            m_start_prefix = '0' + str(m_start)
         else:
-            m_start_prefix = str(m_start)
-
-        if m_start < 10:
-            m_end_prefix = '0' + str(m_end)
-        else:
-            m_end_prefix = str(m_start)
-
-        if self.model_name == "sinmod":
-            if m_start == m_end:
-                phys_states = (self.phys_states_path + self.phys_states_file_prefix + str(y_start) +
-                               m_start_prefix + '.nc')
-            else:
-                phys_states = (self.phys_states_path + self.phys_states_file_prefix + str(y_start) + '_' +
-                               m_start_prefix + '_' + m_end_prefix + '.nc')
-        else:
-            phys_states = self.phys_states_path + self.phys_states_file_prefix + str(y_start) + '.nc'
+            phys_states = (self.phys_states_path + self.phys_states_file_prefix + str(y_start) +
+                           "{:02d}".format(m_start) + '.nc')
         return phys_states
 
 
