@@ -22,6 +22,14 @@ class PlotData:
         self.save_prefix = (self.analysis_df.scenario_key + '_' + str(self.analysis_df.sim_start_year) + '_R'
                             + str(self.analysis_df.release_number) + '_')
 
+
+        # polygon for analysis
+        self.n_poly = 0
+        self.poly = self.get_polygon(self.n_poly)
+
+        # load dom_paths
+        self.dom_paths = self.analysis_df.variables['dom_paths'][:]
+
         # For creating the bathymetry file
         self.load_bathymetry()
 
@@ -32,7 +40,7 @@ class PlotData:
     def read_trajectory_df(self):
         self.trajectory_df = nc.Dataset(self.tr_file, 'r')
         # extract data from trajectory file
-        #self.load_trajectory_df()
+        self.load_trajectory_df()
         return
 
     def load_plot_params(self):
@@ -64,14 +72,15 @@ class PlotData:
         self.min_lat = self.analysis_df.domain_lat_min
         self.max_lon = self.analysis_df.domain_lon_max
         self.max_lat = self.analysis_df.domain_lat_max
-        self.polygons = self.analysis_df['square_polygons']
+        self.polygons = self.analysis_df['square_polygons'][:]
         self.recruit = self.analysis_df['recruit'][:]
         self.CG = self.analysis_df['CG'][:]
+        self.sim_start_day = self.analysis_df.sim_start_day
         return
 
     def load_trajectory_df(self):
-        self.lat = self.trajectory_df['lat']
-        self.lon = self.trajectory_df['lon']
+        self.lat = self.trajectory_df.variables['lat']
+        self.lon = self.trajectory_df.variables['lon']
         self.shp_p = np.shape(self.lat)[0]
         self.shp_t = np.shape(self.lat)[1]
         # self.z = self.nc_file['z']
@@ -121,20 +130,21 @@ class PlotData:
         return
 
 
-    def plot_dom_paths(self, dom_paths):
+    def plot_dom_paths(self):
         self.init_plot()
         self.plot_background()
-        n_levels = np.arange(np.min(dom_paths), np.max(dom_paths), np.max(dom_paths)/40)
-        self.plot1 = plt.contourf(self.lon_bin_vals, self.lat_bin_vals, dom_paths.T, levels=n_levels, cmap=self.dom_cmap, transform=ccrs.PlateCarree(), extend='both')
-        self.c_max = self.max_scale * np.max(dom_paths)
-        self.add_cbar(c_max= np.max(dom_paths), caxis_title='unique_particles')
-        plt_name = self.save_prefix + "_dom_paths"
+        self.dom_paths = self.dom_paths.astype(float)
+        self.dom_paths[self.dom_paths==0] = np.nan
+        n_levels = np.arange(np.nanmin(self.dom_paths), np.nanmax(self.dom_paths), np.nanmax(self.dom_paths)/40)
+        self.plot1 = plt.contourf(self.lon_bin_vals, self.lat_bin_vals, self.dom_paths.T, levels=n_levels, cmap=self.dom_cmap, transform=ccrs.PlateCarree(), extend='both')
+        self.c_max = self.max_scale * np.nanmax(self.dom_paths)
+        self.add_cbar(c_max= np.nanmax(self.dom_paths), caxis_title='unique_particles')
+        plt_name = self.save_prefix + "dom_paths"
         self.save_plot(plt_name)
         return
 
     def plot_recruits(self):
-        n_poly = 0
-        recruit = self.recruit[:,:,n_poly]
+        recruit = self.recruit[:,:,self.n_poly]
         recruit_t = recruit[:,0]
         recruit_i = recruit[:,1]
         id1 = np.where(recruit_t>0)
@@ -144,17 +154,22 @@ class PlotData:
         particle_n = id1[0][:].astype(int)
         x = np.array(self.lon[particle_n, :])
         y = np.array(self.lat[particle_n, :])
-        self.ax.scatter(x[:, 0], y[:, 0], alpha=0.7, c='r')
-        [self.ax.plot(x[i, 0:i_vals[i]+3], y[i, 0:i_vals[i]+3], alpha=0.1, linewidth=1, c='k') for i in range(0, np.shape(id1)[1])]
-        poly = self.get_polygon(0)
-        x,y = poly.exterior.xy
-        self.ax.plot(x, y, color='#6699cc', alpha=0.7,
-                linewidth=3, solid_capstyle='round', zorder=2)
+        [self.ax.plot(x[i, 0:i_vals[i]], y[i, 0:i_vals[i]], alpha=0.1, linewidth=0.5, c='r') for i in range(0, np.shape(id1)[1])]
+        self.ax.scatter(x[:, 0], y[:, 0], alpha=0.7, c='r', s=1)
+        x,y = self.poly.exterior.xy
+        self.ax.plot(x, y, color='y', alpha=0.9,
+                linewidth=2, solid_capstyle='round', zorder=2)
+        plt_name = self.save_prefix + "recruit"
+        self.save_plot(plt_name)
+
+        n_recruits = np.shape(id1)[1]
+
 
         #self.ax.plot(polygon1)
         #self.ax.add_patch(polygon1, facecolor='r', alpha=0.4)
-        #plt.show()
+        #
         #breakpoint()
+        return n_recruits
 
 
 
@@ -204,8 +219,10 @@ class PlotData:
         gl = self.ax.gridlines(draw_labels=True, alpha=0.4)
         gl.top_labels = False
         gl.right_labels = False
-        self.ax.set_extent([self.min_lon-self.lon_offset, self.max_lon+self.lon_offset, self.min_lat-self.lat_offset,
-                            self.max_lat+self.lat_offset])
+        self.ax.set_extent(
+            [self.min_lon, self.max_lon, self.min_lat, self.max_lat])
+        #self.ax.set_extent([self.min_lon-self.lon_offset, self.max_lon+self.lon_offset, self.min_lat-self.lat_offset,
+                            #self.max_lat+self.lat_offset])
         return
 
     def plot_depth(self):
