@@ -34,19 +34,21 @@ class PostProcess:
 
         if test:
             self.p_stride = 10
+            self.t_stride = 10
         else:
             self.p_stride = 1
+            self.t_stride = 1
         return
 
     def trajectory_analysis(self):
         # Set up a netcdf file for storing output from the analysis:
-        self.init_ncfile()
         self.analysis_df.variables['dom_paths'][:] = 0  # Initialize dom_path matrix
-        self.analysis_df.variables['recruit'][:] = 0
+        self.analysis_df.variables['recruits'][:] = 0
 
         # find bins for each particle
-        id_lat = np.digitize(self.lat, self.lat_bin_vals)
-        id_lon = np.digitize(self.lon, self.lon_bin_vals)
+        id_lat = np.digitize(self.lat[:,::self.t_stride], self.lat_bin_vals)
+        id_lon = np.digitize(self.lon[:,::self.t_stride], self.lon_bin_vals)
+
         dom_paths = np.zeros([np.shape(self.lon_bin_vals)[0], np.shape(self.lat_bin_vals)[0]])
         self.transit_hours = np.zeros(self.shp_p)
         self.visit_index = np.zeros(self.shp_p)
@@ -62,8 +64,8 @@ class PostProcess:
             self.recruit(self.lon[p_i, :], self.lat[p_i, :])
 
         self.analysis_df.variables['dom_paths'][:] = dom_paths
-        self.analysis_df.variables['recruit'][:, 0, 0] = self.transit_hours
-        self.analysis_df.variables['recruit'][:, 1, 0] = self.visit_index
+        self.analysis_df.variables['recruits'][:, 0, 0] = self.transit_hours
+        self.analysis_df.variables['recruits'][:, 1, 0] = self.visit_index
         #todo: analysis- generic retention, z dom_paths, transit_times;
         #todo: find way to initialise polygons within analysis and handle them more efficiently;
 
@@ -102,7 +104,7 @@ class PostProcess:
 
     def init_ncfile(self):
         # As I am appending to a file, I should check if dimensions or variables already exist
-        dimension_key_dict = {'transit_info':2, 'n_parts':self.shp_p}
+        dimension_key_dict = {'transit_info': 2, 'n_parts': self.shp_p}
         for dimension in dimension_key_dict:
             if dimension not in self.analysis_df.dimensions.keys():
                 self.analysis_df.createDimension(dimension, dimension_key_dict[dimension])

@@ -293,7 +293,6 @@ class Scenario:
         self.outfile.domain_lat_max = self.domain_lat_max
         self.outfile.bin_resolution = self.bin_res
 
-
         # set_dimensions of file:
         self.outfile.createDimension('n_lon_bins', self.shp_lon_bins)
         self.outfile.createDimension('n_lat_bins', self.shp_lat_bins)
