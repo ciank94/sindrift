@@ -1,11 +1,10 @@
-import datetime
 import os
 import os.path
-from datetime import timedelta
 import numpy as np
 import netCDF4 as nc
 import xarray as xr
 import sys
+
 
 class FileExplorer:
     def __init__(self, node, model_name, key):
@@ -50,14 +49,6 @@ class FileExplorer:
         self.figures_path = self.local_drift_path + 'figures/'
         return
 
-    def search_path(self):
-        path_list = os.listdir(self.analysis_path)
-        self.file_list = []
-        for file_name in path_list:
-            if file_name[0:4] == self.key:
-                self.file_list.append(file_name)
-        print(self.file_list)
-        return
 
     def get_phys_states(self, date_init, date_limit):
         if self.model_name == "sinmod":
@@ -84,6 +75,20 @@ class FileExplorer:
         else:
             sys.exit('incorrect model name in check_phys_states')
         return phys_states
+
+    def search_path(self, year):
+        path_list = os.listdir(self.analysis_path)
+        self.file_list = []
+        print('===========================')
+        print('File list for analysis: ')
+        print('---------------------------')
+        for file_name in path_list:
+            if file_name[0:4] == self.key:
+                if file_name[5:9] == str(year):
+                    self.file_list.append(file_name)
+                    print(file_name)
+        print('===========================')
+        return
 
 class Scenario:
     def __init__(self, fpath, date_release, duration_days, time_step, save_step, release_step, release_i,
@@ -158,6 +163,12 @@ class Scenario:
         self.domain_lat_max = -48
         self.z = 50  # release depth
         self.APSO_square_polyons()
+        return
+
+    def SSMUs(self, fpath):
+        import geopandas as gpd
+        shape_p = gpd.read_file(fpath.figures_path + "ssmusPolygon.shp")
+        g1 = shape_p[0].geometry
         return
 
 

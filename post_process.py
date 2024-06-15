@@ -10,11 +10,11 @@ import matplotlib.pyplot as plt
 
 class PostProcess:
 
-    def __init__(self, analysis_file, fpath):
+    def __init__(self, fpath, file_i, test):
         # files for analysis
         self.fpath = fpath
-        self.analysis_file = analysis_file
-        self.analysis_df = nc.Dataset(analysis_file, mode='r+')
+        self.analysis_file = self.fpath.analysis_path + file_i
+        self.analysis_df = nc.Dataset(self.analysis_file, mode='r+')
         tr_file = fpath.trajectory_path + self.analysis_df.trajectory_file
         self.trajectory_df = nc.Dataset(tr_file, mode='r')
 
@@ -32,29 +32,26 @@ class PostProcess:
         self.lon_bin_vals = self.analysis_df.variables['lon_bin_vals']
         self.lat_bin_vals = self.analysis_df.variables['lat_bin_vals']
 
-        return
-
-    def trajectory_analysis(self, test):
-        # First, check if we are running a test analysis or full analysis:
         if test:
             self.p_stride = 10
-            self.t_stride = 10
         else:
             self.p_stride = 1
-            self.t_stride = 1
+        return
 
+    def trajectory_analysis(self):
         # Set up a netcdf file for storing output from the analysis:
         self.init_ncfile()
         self.analysis_df.variables['dom_paths'][:] = 0  # Initialize dom_path matrix
         self.analysis_df.variables['recruit'][:] = 0
-        self.analysis_df.variables['CG'][:, :] = 0
 
+        # find bins for each particle
         id_lat = np.digitize(self.lat, self.lat_bin_vals)
         id_lon = np.digitize(self.lon, self.lon_bin_vals)
         dom_paths = np.zeros([np.shape(self.lon_bin_vals)[0], np.shape(self.lat_bin_vals)[0]])
         self.transit_hours = np.zeros(self.shp_p)
         self.visit_index = np.zeros(self.shp_p)
 
+        # loop through particles and check their positions
         for p_i in range(0, self.shp_p, self.p_stride):
             self.p_i = p_i
             print("Particle analysis : " + str(self.p_i + 1) + " of " + str(self.shp_p))  # print particle id number in analysis
@@ -67,7 +64,8 @@ class PostProcess:
         self.analysis_df.variables['dom_paths'][:] = dom_paths
         self.analysis_df.variables['recruit'][:, 0, 0] = self.transit_hours
         self.analysis_df.variables['recruit'][:, 1, 0] = self.visit_index
-        #todo: analysis- generic retention, z dom_paths, transit_times
+        #todo: analysis- generic retention, z dom_paths, transit_times;
+        #todo: find way to initialise polygons within analysis and handle them more efficiently;
 
         print('Closing: ' + self.analysis_file)
         os.system("echo closing analysis file")
@@ -101,55 +99,25 @@ class PostProcess:
         self.polygon = gpd.GeoSeries(polygon1)
         return
 
-    def unique_visits(self, dom_points):
-        unique_rows = np.unique(dom_points, axis=0).astype(int)
-        unique_rows = unique_rows[unique_rows[:, 0] > -1]
-        id1 = unique_rows[:, 0]
-        id2 = unique_rows[:, 1]
-
-        return
-
 
     def init_ncfile(self):
         # As I am appending to a file, I should check if dimensions or variables already exist
-        try:
-            self.analysis_df.dimensions['time']
-        except:
-            self.analysis_df.createDimension('time', self.shp_t)
-        try:
-            self.analysis_df.dimensions['transit_info']
-        except:
-            self.analysis_df.createDimension('transit_info', 2) # transit time and index of visit
-        try:
-            self.analysis_df.dimensions['particles']
-        except:
-            self.analysis_df.createDimension('particles', self.shp_p)
-        try:
-            self.analysis_df.dimensions['lon_lat']
-        except:
-            self.analysis_df.createDimension('lon_lat', 2)
-        try:
-            self.analysis_df.variables['dom_paths']
-        except:
-            self.analysis_df.createVariable('dom_paths', 'i4', ('n_lon_bins', 'n_lat_bins'))
-        try:
-            self.analysis_df.variables['recruit']
-        except:
-            self.analysis_df.createVariable('recruit', 'i4', ('particles','transit_info', 'n_polygons'))
-            self.analysis_df['recruit'].description = 'Transit hours to polygon'
-        try:
-            self.analysis_df.variables['CG']
-        except:
-            self.analysis_df.createVariable('CG', 'f4', ('time', 'lon_lat'))
+        dimension_key_dict = {'transit_info':2, 'n_parts':self.shp_p}
+        for dimension in dimension_key_dict:
+            if dimension not in self.analysis_df.dimensions.keys():
+                self.analysis_df.createDimension(dimension, dimension_key_dict[dimension])
+
+        variable_key_dict = {'dom_paths': {'datatype':'i4','dimensions':('n_lon_bins', 'n_lat_bins'), 'description': 'unique particle visits' },
+                             'recruits': {'datatype':'i4','dimensions':('n_parts', 'transit_info'), 'description': 'transit hours to polygon' }}
+        for variable in variable_key_dict:
+            if variable not in self.analysis_df.variables.keys():
+                self.analysis_df.createVariable(variable, variable_key_dict[variable]['datatype'], variable_key_dict[variable]['dimensions'])
+                self.analysis_df[variable].description = variable_key_dict[variable]['description']
+
         return
 
 
-    def print_pstep(self, descriptor):
-        if self.p_i == 0:
-            print("First step in calculation")
-        else:
-            print(descriptor + " : " + str(self.p_i + 1) + " of " + str(self.shp_p))
-        return
+
 
 
 

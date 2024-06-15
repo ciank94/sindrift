@@ -37,7 +37,7 @@ for release_i in range(0, release_n):
 
     # Parameterization of scenario object for initialization and running
     scenario = Scenario(fpath, date_release, duration_days, time_step, save_step, release_step, release_i
-                        ,reader_phys_states)
+                        , reader_phys_states)
 
     # Initialization of simulation
     o.disable_vertical_motion()
