@@ -7,42 +7,43 @@ import datetime
 
 # Simulation settings (time, releases, initialization scenario)
 date_init = datetime.datetime(2017, 1, 1, 0, 0)  # beginning of first simulation;
-duration_days = datetime.timedelta(days=60)  # simulation duration in days;
-release_step = datetime.timedelta(days=2)  # days between releases of particles;
-release_n = 3   # total number of releases for simulation
+duration_days = datetime.timedelta(days=10)  # simulation duration in days;
+release_step = datetime.timedelta(days=1)  # days between releases of particles;
+time_step = datetime.timedelta(hours=6)  # simulation time step (negative time is backwards stepping of model)
+save_step = datetime.timedelta(hours=6)  # save time step
+release_n = 1   # total number of releases for simulation
 date_limit = date_init + (release_step*(release_n-1)) + duration_days  # final date that will be accessed
-time_step_hours = datetime.timedelta(hours=6)  # simulation time step (negative time is backwards stepping of model)
-save_time_step_hours = datetime.timedelta(hours=6)  # save time step
 phys_states = fpath.get_phys_states(date_init, date_limit)  # input netcdf file with physics (u, v ,T ...)
 
 # load readers before the main loop of the simulation:
 reader_phys_states = reader_netCDF_CF_generic.Reader(phys_states)  # read input variables
+print(reader_phys_states)
 reader_landmask = reader_global_landmask.Reader()  # high resolution coast for particle beaching etc.
+print(reader_landmask)
+
 
 # loop over releases:
-for r_i in range(0, release_n):
-    date_release = date_init + (release_step*r_i)
-    breakpoint()
-    print('Beginning simulation: year = ' + str() + ', release number ' + str(r_i + 1))
-
-    print(reader_phys_states)
-
+for release_i in range(0, release_n):
+    date_release = date_init + (release_step*release_i)
+    print('===========================')
+    print('Beginning simulation for year: ' + str(date_release) + ', release number ' + str(release_i + 1))
+    print('Simulation duration: ' + str(duration_days.days) + 'days')
+    print('Simulation end: ' + str(date_release + duration_days))
+    print('===========================')
 
     # initialize OpenDrift object (model type);
     o = OceanDrift(loglevel=20)  # log_level= 0 for full diagnostics, 50 for none
-    o.add_reader([reader_landmask, reader_phys_states])
+    o.add_reader([reader_landmask, reader_phys_states]) # add readers for input
 
     # Parameterization of scenario object for initialization and running
-    scenario = Scenario(fpath, reader_phys_states, duration_days,
-                        time_step_hours, save_time_step_hours, release_step,
-                        y_start, r_i, d_start, m_start, m_end)
-    #todo: need to change arguments to scenario;
+    scenario = Scenario(fpath, date_release, duration_days, time_step, save_step, release_step, release_i
+                        ,reader_phys_states)
 
     # Initialization of simulation
     o.disable_vertical_motion()
     o.seed_elements(lon=scenario.site_lon_init,
                     lat=scenario.site_lat_init,
-                    time=scenario.t_init,
+                    time=scenario.date_init,
                     number=scenario.n_part,
                     radius=scenario.radius)
 

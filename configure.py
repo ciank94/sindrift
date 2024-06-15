@@ -86,27 +86,25 @@ class FileExplorer:
         return phys_states
 
 class Scenario:
-    def __init__(self, fpath, reader_phys_states, duration_days, time_step_hours,
-                 save_time_step_hours, release_step, y_i, r_i, d_start, m_start, m_end):
+    def __init__(self, fpath, date_release, duration_days, time_step, save_step, release_step, release_i,
+                 reader_phys_states):
         # Simulation settings for scenario
         self.key = fpath.key  # key used to identify initialization scenario
-        self.year = y_i  # simulation year
-        self.release_n = r_i + 1  # release number starts at one
-        self.duration = timedelta(hours=24 * duration_days)  # simulation duration in hours as datetime object
-        self.time_step = timedelta(hours=time_step_hours)  # simulation time step in hours as datetime object
-        self.save_time_step = timedelta(hours=save_time_step_hours)  # how often the file is saved
+        self.year = date_release.year  # simulation year
+        self.release_n = release_i + 1  # release number starts at one
+        self.duration = duration_days  # simulation duration in hours as datetime object
+        self.time_step = time_step  # simulation time step in hours as datetime object
+        self.save_time_step = save_step  # how often the file is saved
         self.release_step = release_step  # number of hours between releases
         self.export_variables = ['lon', 'lat']  # choose variables to export from simulation to nc file
 
         # Information from the phys_states_file:
         self.phys_states_file = reader_phys_states.name
         self.phys_states_timestep = reader_phys_states.time_step.seconds
-        self.reader_t_init = reader_phys_states.start_time
-        #self.t_init = self.reader_t_init + r_i * timedelta(hours=self.release_step)
-        self.t_init = (datetime.datetime(self.year, m_start, d_start, 0, 0) +
-                       r_i * timedelta(hours=self.release_step))
-        self.m_end = m_end
-        self.reader_end_time = reader_phys_states.end_time
+        self.reader_date_init = reader_phys_states.start_time
+        self.reader_date_end = reader_phys_states.end_time
+        self.date_init = date_release
+        self.date_end = date_release + duration_days
 
         # Initialize scenario parameters and save them as attributes to scenario file
         self.scenario_initialization()  # furnish initialization scenario with class attributes at beginning
@@ -242,7 +240,6 @@ class Scenario:
         self.outfile.server = fpath.node
         self.outfile.trajectory_file_prefix = self.key + '_' + str(self.year) + '_R' + str(self.release_n) + '_'
         self.outfile.phys_states_file_prefix = fpath.phys_states_file_prefix
-        #self.outfile.phys_states_file = self.phys_states_file
         self.outfile.trajectory_path = fpath.trajectory_path
         self.outfile.trajectory_file = self.trajectory_file_name
         self.outfile.analysis_path = fpath.analysis_path
@@ -256,22 +253,22 @@ class Scenario:
         self.outfile.radius = self.radius
         self.outfile.release_number = self.release_n  # release number starts at one
         self.outfile.release_depth = self.z  # release depth
-        self.outfile.release_step_hours = self.release_step  # number of hours between releases
+        self.outfile.release_step_days = self.release_step.days  # number of hours between releases
 
         # simulation time information
-        self.outfile.sim_start_day = self.t_init.day # simulation start time
-        self.outfile.sim_start_month = self.t_init.month  # simulation start time
-        self.outfile.sim_start_month = self.t_init.month  # simulation start time
-        self.outfile.sim_end_month = self.m_end  # simulation start time
-        self.outfile.sim_start_year = self.year  # simulation year
+        self.outfile.sim_start_day = self.date_init.day # simulation start time
+        self.outfile.sim_start_month = self.date_init.month  # simulation start time
+        self.outfile.sim_start_year = self.date_init.year  # simulation year
+        self.outfile.sim_end_day = self.date_end.day
+        self.outfile.sim_end_month = self.date_end.month  # simulation end time
+        self.outfile.sim_end_year = self.date_end.year
+
         self.outfile.sim_duration_days = self.duration.days # simulation duration
         self.outfile.sim_time_step_seconds = self.time_step.seconds # simulation time step
         self.outfile.sim_save_time_step_seconds = self.save_time_step.seconds # simulation save time step
 
         # phys_states reader information
         self.outfile.reader_time_step_seconds = self.phys_states_timestep  # phys_states time step
-        #self.outfile.reader_start_time = self.reader_t_init  # reader start time
-        #self.outfile.reader_end_time = self.reader_end_time  # reader end time
         self.outfile.export_variables = self.export_variables  # variables exported from simulation
 
         # domain and site limits:
