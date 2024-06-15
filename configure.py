@@ -59,28 +59,28 @@ class FileExplorer:
         print(self.file_list)
         return
 
-    def check_phys_states(self, y_start, m_start, m_end):
+    def get_phys_states(self, date_init, date_limit):
         if self.model_name == "sinmod":
-            if not m_start == m_end:
+            if not date_init.month == date_limit.month:
                 phys_states_list = []
-                for kMonth in range(m_start, m_end+1):
-                    phys_states_i = (self.phys_states_path + self.phys_states_file_prefix + str(y_start) +
+                for kMonth in range(date_init.month, date_limit.month+1):
+                    phys_states_i = (self.phys_states_path + self.phys_states_file_prefix + str(date_init.year) +
                                    "{:02d}".format(kMonth) + '.nc')
                     phys_states_list.append(phys_states_i)
 
                 phys_states = xr.open_mfdataset(phys_states_list)
             else:
-                phys_states = (self.phys_states_path + self.phys_states_file_prefix + str(y_start) +
-                               "{:02d}".format(m_start) + '.nc')
+                phys_states = (self.phys_states_path + self.phys_states_file_prefix + str(date_init.year) +
+                               "{:02d}".format(date_init.month) + '.nc')
         elif self.model_name == "cmems":
-            if not m_start == m_end:
+            if not date_init.year == date_limit.year:
                 phys_states_list = []
-                for y in range(y_start, y_start + 1):
-                    phys_states_i = (self.phys_states_path + self.phys_states_file_prefix + str(y_start) + '.nc')
+                for y in range(date_init.year, date_limit.year + 1):
+                    phys_states_i = (self.phys_states_path + self.phys_states_file_prefix + str(y) + '.nc')
                     phys_states_list.append(phys_states_i)
                 phys_states = xr.open_mfdataset(phys_states_list)
             else:
-                phys_states = self.phys_states_path + self.phys_states_file_prefix + str(y_start) + '.nc'
+                phys_states = self.phys_states_path + self.phys_states_file_prefix + str(date_init.year) + '.nc'
         else:
             sys.exit('incorrect model name in check_phys_states')
         return phys_states
