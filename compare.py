@@ -7,20 +7,46 @@ import cartopy.feature as cfeature
 import numpy as np
 import netCDF4 as nc
 import os
+from netCDF4 import num2date
+
+
+class CompareData:
+    def __init__(self, y1, y2, r1, r2):
+        self.years = np.arange(y1, y2+1, 1)
+        self.releases = np.arange(r1, r2 + 1, 1)
+        self.n_years = np.shape(self.years)[0]
+        self.n_releases = np.shape(self.releases)[0]
+        self.recruit_number = np.zeros([self.n_releases, self.n_years])
+        self.recruit_time = np.zeros([self.n_releases, self.n_years])
+        self.start_time = np.zeros([self.n_releases, self.n_years, 3]).astype(int)
+        self.end_time = np.zeros([self.n_releases, self.n_years, 3]).astype(int)
+
+    def recruit_values(self, recruit_number, recruit_time, r, y):
+        self.recruit_number[r, y] = recruit_number
+        self.recruit_time[r, y] = recruit_time
+        return
+
+    def time_bounds(self, pld, r, y):
+        self.start_time[r, y, :] = [pld.time[0].day, pld.time[0].month, pld.time[0].year]
+        self.end_time[r, y, :] = [pld.time[-1].day, pld.time[-1].month, pld.time[-1].year]
+        self.duration_days = pld.duration
+        return
+
 
 class PlotData:
 
     def __init__(self, fpath, analysis_file):
         # files for analysis
-        self.analysis_file = analysis_file
-        self.analysis_df = nc.Dataset(analysis_file, 'r')
+        self.analysis_file = fpath.analysis_path + analysis_file
+        self.analysis_df = nc.Dataset(self.analysis_file, 'r')
         self.tr_file = fpath.trajectory_path + self.analysis_df.trajectory_file
         self.fpath = fpath
 
         # extract data from analysis file
         self.load_analysis_df()
-        self.save_prefix = (self.analysis_df.scenario_key + '_' + str(self.analysis_df.sim_start_year) + '_R'
-                            + str(self.analysis_df.release_number) + '_')
+        self.save_prefix = (self.analysis_df.scenario_key + '_' + str(self.analysis_df.sim_start_year) + '_')
+                            #+ '_R'
+                            #+ str(self.analysis_df.release_number) + '_')
 
 
         # polygon for analysis
@@ -47,7 +73,7 @@ class PlotData:
 
         # Dominant pathways color scaling:
         self.d_scale = 40
-        self.max_scale = 0.8
+        self.max_scale = 0.7
 
         # plotting parameters
         self.bath_contours = np.linspace(0, 3000, 10)
@@ -73,9 +99,10 @@ class PlotData:
         self.max_lon = self.analysis_df.domain_lon_max
         self.max_lat = self.analysis_df.domain_lat_max
         self.polygons = self.analysis_df['square_polygons'][:]
-        self.recruit = self.analysis_df['recruit'][:]
-        self.CG = self.analysis_df['CG'][:]
+        self.recruit = self.analysis_df['recruits'][:]
+        #self.CG = self.analysis_df['CG'][:]
         self.sim_start_day = self.analysis_df.sim_start_day
+        self.duration = self.analysis_df.sim_duration_days
         return
 
     def load_trajectory_df(self):
@@ -83,6 +110,8 @@ class PlotData:
         self.lon = self.trajectory_df.variables['lon']
         self.shp_p = np.shape(self.lat)[0]
         self.shp_t = np.shape(self.lat)[1]
+        time = self.trajectory_df.variables['time']
+        self.time = num2date(time, time.units)
         # self.z = self.nc_file['z']
         return
 
@@ -117,6 +146,7 @@ class PlotData:
         shp_lat = np.shape(new_lat)[0]
         shp_lon = np.shape(new_lon)[0]
         e_new = np.zeros([shp_lat, shp_lon])
+        # todo: use digitize instead of argmin;
         for i in range(0, shp_lat):
             for j in range(0, shp_lon):
                 lat_id = np.argmin(np.sqrt((lat_e[:] - new_lat[i]) ** 2))
@@ -130,21 +160,30 @@ class PlotData:
         return
 
 
-    def plot_dom_paths(self):
+    def plot_dom_paths(self, dom_paths):
         self.init_plot()
         self.plot_background()
-        self.dom_paths = self.dom_paths.astype(float)
-        self.dom_paths[self.dom_paths==0] = np.nan
-        n_levels = np.arange(np.nanmin(self.dom_paths), np.nanmax(self.dom_paths), np.nanmax(self.dom_paths)/40)
-        self.plot1 = plt.contourf(self.lon_bin_vals, self.lat_bin_vals, self.dom_paths.T, levels=n_levels, cmap=self.dom_cmap, transform=ccrs.PlateCarree(), extend='both')
-        self.c_max = self.max_scale * np.nanmax(self.dom_paths)
-        self.add_cbar(c_max= np.nanmax(self.dom_paths), caxis_title='unique_particles')
+        dom_paths = dom_paths.astype(float)
+        dom_paths[dom_paths==0] = np.nan
+        n_levels = np.arange(np.nanmin(dom_paths), np.nanmax(dom_paths), np.nanmax(dom_paths)/40)
+        self.plot1 = plt.contourf(self.lon_bin_vals, self.lat_bin_vals, dom_paths.T, levels=n_levels, cmap=self.dom_cmap, transform=ccrs.PlateCarree(), extend='both')
+        self.c_max = self.max_scale * np.nanmax(dom_paths)
+        self.add_cbar(c_max= self.c_max, caxis_title='unique_particles')
         plt_name = self.save_prefix + "dom_paths"
         self.save_plot(plt_name)
         return
 
+    def count_recruits(self):
+        recruit = self.recruit[:, :]
+        recruit_t = recruit[:, 0]
+        recruit_i = recruit[:, 1]
+        id1 = np.where(recruit_t > 0)
+        n_recruits = np.shape(id1)[1]
+        recruit_time = np.mean(recruit_t[recruit_t>0])
+        return n_recruits, recruit_time
+
     def plot_recruits(self):
-        recruit = self.recruit[:,:,self.n_poly]
+        recruit = self.recruit[:,:]
         recruit_t = recruit[:,0]
         recruit_i = recruit[:,1]
         id1 = np.where(recruit_t>0)
@@ -219,10 +258,10 @@ class PlotData:
         gl = self.ax.gridlines(draw_labels=True, alpha=0.4)
         gl.top_labels = False
         gl.right_labels = False
-        self.ax.set_extent(
-            [self.min_lon, self.max_lon, self.min_lat, self.max_lat])
-        #self.ax.set_extent([self.min_lon-self.lon_offset, self.max_lon+self.lon_offset, self.min_lat-self.lat_offset,
-                            #self.max_lat+self.lat_offset])
+        #self.ax.set_extent(
+            #[self.min_lon, self.max_lon, self.min_lat, self.max_lat])
+        self.ax.set_extent([self.min_lon-self.lon_offset, self.max_lon+self.lon_offset, self.min_lat-self.lat_offset,
+                            self.max_lat+self.lat_offset])
         return
 
     def plot_depth(self):
@@ -238,7 +277,7 @@ class PlotData:
         return
 
     def add_cbar(self, c_max, caxis_title):
-        cbar = plt.colorbar(self.plot1, extend='both')
+        cbar = plt.colorbar(self.plot1, extend='both', pad=0.01)
         cbar.ax.set_ylabel(caxis_title, loc='center', size=9, weight='bold')
         cbar.ax.tick_params(labelsize=10, rotation=0)
         plt.clim(0, c_max)

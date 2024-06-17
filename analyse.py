@@ -2,19 +2,20 @@
 from configure import FileExplorer
 from post_process import PostProcess
 
-# Ready the file paths for analysis
+# Ready the file paths for analysis:,1)
 fpath = FileExplorer(node='local', model_name='cmems', key="APSO")
-fpath.search_path(year=2017)  # select files which should be analysed
+fpath.search_path(year=2020, release_start=1, release_end=2)  # select files which should be analysed
 
 # Post-process simulation file, saving intermediate data (unique particle visits, transit times ...)
 #todo: make an instance of the process object that accepts kwargs- keyword list carrying a key value;
 for file_i in fpath.file_list:
     print('Analysing file: ' + file_i)
-    pp = PostProcess(fpath, file_i, test=True)
+    pp = PostProcess(fpath, file_i, test=False)
     #todo: add options to pass different polygons for recruitment vs. retention
     #todo: generally, allow more options here for different types of analysis- different polygons;
     pp.init_ncfile()
     pp.trajectory_analysis()
+    pp.trajectory_df.close()
 
 
 

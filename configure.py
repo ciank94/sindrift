@@ -49,7 +49,6 @@ class FileExplorer:
         self.figures_path = self.local_drift_path + 'figures/'
         return
 
-
     def get_phys_states(self, date_init, date_limit):
         if self.model_name == "sinmod":
             if not date_init.month == date_limit.month:
@@ -76,17 +75,19 @@ class FileExplorer:
             sys.exit('incorrect model name in check_phys_states')
         return phys_states
 
-    def search_path(self, year):
+    def search_path(self, year, release_start, release_end):
         path_list = os.listdir(self.analysis_path)
         self.file_list = []
+        release_range = np.arange(release_start, release_end+1, 1)
         print('===========================')
         print('File list for analysis: ')
         print('---------------------------')
         for file_name in path_list:
             if file_name[0:4] == self.key:
                 if file_name[5:9] == str(year):
-                    self.file_list.append(file_name)
-                    print(file_name)
+                    if int(file_name[11:12]) in release_range:
+                        self.file_list.append(file_name)
+                        print(file_name)
         print('===========================')
         return
 
@@ -115,7 +116,8 @@ class Scenario:
         self.scenario_initialization()  # furnish initialization scenario with class attributes at beginning
         self.trajectory_file_name = self.key + '_' + str(self.year) + '_R' + str(self.release_n) + '_trajectory.nc'
         self.trajectory_file = (fpath.trajectory_path + self.trajectory_file_name)  # Trajectory output file name
-        self.analysis_file_name = self.key + '_' + str(self.year) + '_R' + str(self.release_n) + '_trajectory_analysis.nc'
+        self.analysis_file_name = (self.key + '_' + str(self.year) + '_R' + str(self.release_n)
+                                   + '_trajectory_analysis.nc')
         self.analysis_file = (fpath.analysis_path + self.analysis_file_name)  # Analysis output file path name
         self.init_scenario_netcdf(fpath)
         return

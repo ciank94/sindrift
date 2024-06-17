@@ -18,6 +18,7 @@ class PostProcess:
         tr_file = fpath.trajectory_path + self.analysis_df.trajectory_file
         self.trajectory_df = nc.Dataset(tr_file, mode='r')
 
+
         times = self.trajectory_df.variables['time']
         self.dates = num2date(times, times.units)
 
@@ -33,8 +34,8 @@ class PostProcess:
         self.lat_bin_vals = self.analysis_df.variables['lat_bin_vals']
 
         if test:
-            self.p_stride = 10
-            self.t_stride = 10
+            self.p_stride = np.ceil(self.shp_p/20).astype(int)
+            self.t_stride = np.ceil(self.shp_t/20).astype(int)
         else:
             self.p_stride = 1
             self.t_stride = 1
@@ -64,8 +65,8 @@ class PostProcess:
             self.recruit(self.lon[p_i, :], self.lat[p_i, :])
 
         self.analysis_df.variables['dom_paths'][:] = dom_paths
-        self.analysis_df.variables['recruits'][:, 0, 0] = self.transit_hours
-        self.analysis_df.variables['recruits'][:, 1, 0] = self.visit_index
+        self.analysis_df.variables['recruits'][:, 0] = self.transit_hours
+        self.analysis_df.variables['recruits'][:, 1] = self.visit_index
         #todo: analysis- generic retention, z dom_paths, transit_times;
         #todo: find way to initialise polygons within analysis and handle them more efficiently;
 
@@ -101,7 +102,6 @@ class PostProcess:
         self.polygon = gpd.GeoSeries(polygon1)
         return
 
-
     def init_ncfile(self):
         # As I am appending to a file, I should check if dimensions or variables already exist
         dimension_key_dict = {'transit_info': 2, 'n_parts': self.shp_p}
@@ -109,8 +109,8 @@ class PostProcess:
             if dimension not in self.analysis_df.dimensions.keys():
                 self.analysis_df.createDimension(dimension, dimension_key_dict[dimension])
 
-        variable_key_dict = {'dom_paths': {'datatype':'i4','dimensions':('n_lon_bins', 'n_lat_bins'), 'description': 'unique particle visits' },
-                             'recruits': {'datatype':'i4','dimensions':('n_parts', 'transit_info'), 'description': 'transit hours to polygon' }}
+        variable_key_dict = {'dom_paths': {'datatype':'i4','dimensions':('n_lon_bins', 'n_lat_bins'), 'description': 'unique particle visits'},
+                             'recruits': {'datatype':'i4','dimensions':('n_parts', 'transit_info'), 'description': 'transit hours to polygon'}}
         for variable in variable_key_dict:
             if variable not in self.analysis_df.variables.keys():
                 self.analysis_df.createVariable(variable, variable_key_dict[variable]['datatype'], variable_key_dict[variable]['dimensions'])
