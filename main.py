@@ -1,6 +1,6 @@
 # Firstly, specify location of netcdf input files
 from configure import Scenario, FileExplorer
-fpath = FileExplorer(node='local', model_name='cmems', key="APSO")
+fpath = FileExplorer(node='local', model_name='cmems', key="BSSI")
 from opendrift.models.oceandrift import OceanDrift
 from opendrift.readers import reader_netCDF_CF_generic, reader_global_landmask
 import datetime
@@ -8,10 +8,10 @@ import datetime
 # Simulation settings (time, releases, initialization scenario)
 date_init = datetime.datetime(2020, 1, 1, 0, 0)  # beginning of first simulation;
 duration_days = datetime.timedelta(days=10)  # simulation duration in days;
-release_step = datetime.timedelta(days=1)  # days between releases of particles;
+release_step = datetime.timedelta(days=5)  # days between releases of particles;
 time_step = datetime.timedelta(hours=6)  # simulation time step (negative time is backwards stepping of model)
 save_step = datetime.timedelta(hours=6)  # save time step
-release_n = 2   # total number of releases for simulation
+release_n = 1   # total number of releases for simulation
 date_limit = date_init + (release_step*(release_n-1)) + duration_days  # final date that will be accessed
 phys_states = fpath.get_phys_states(date_init, date_limit)  # input netcdf file with physics (u, v ,T ...)
 
@@ -39,7 +39,7 @@ for release_i in range(0, release_n):
                         , reader_phys_states)
 
     # Initialization of simulation
-    o.disable_vertical_motion()
+    #o.disable_vertical_motion()
     o.seed_elements(lon=scenario.site_lon_init,
                     lat=scenario.site_lat_init,
                     time=scenario.date_init,

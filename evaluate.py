@@ -4,14 +4,14 @@ from compare import PlotData, CompareData
 import numpy as np
 
 # Ready the file paths for analysis
-fpath = FileExplorer(node='remote', model_name='cmems', key="APSO")
-fpath.mounted_paths()
+fpath = FileExplorer(node='local', model_name='cmems', key="BSSI")
+#fpath.mounted_paths()
 
 # setup analysis over several years
-y1 = 2017
+y1 = 2020
 y2 = 2020
-r1 = 1 # release start
-r2 = 7 # release end
+r1 = 1  # release start
+r2 = 1  # release end
 df = CompareData(y1, y2, r1, r2)
 
 counter_y = -1
@@ -25,7 +25,6 @@ for y in range(y1, y2+1, 1):
         counter_r = counter_r + 1
         print('Analysing file: ' + file_i)
         pld = PlotData(fpath, file_i)
-        breakpoint()
 
         # count recruits to area:
         recruit_number, recruit_time = pld.count_recruits()
@@ -37,6 +36,7 @@ for y in range(y1, y2+1, 1):
 
         # times
         pld.read_trajectory_df()
+        pld.plot_init()
         if counter_r == 0:
             pld.plot_recruits()
         pld.trajectory_df.close()  # close file after use- due to file locking in local python script;

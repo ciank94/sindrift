@@ -18,7 +18,7 @@ class FileExplorer:
         return
 
     def init_paths(self):
-        valid_key_list = ["SG8H", "APSO"]
+        valid_key_list = ["SG8H", "APSO", "BSSI"]
         if self.key not in valid_key_list:
             sys.exit('Not a valid key pointing to an initialisation scenario')
         if self.node == 'local':
@@ -102,7 +102,7 @@ class Scenario:
         self.time_step = time_step  # simulation time step in hours as datetime object
         self.save_time_step = save_step  # how often the file is saved
         self.release_step = release_step  # number of hours between releases
-        self.export_variables = ['lon', 'lat']  # choose variables to export from simulation to nc file
+        self.export_variables = ['lon', 'lat', 'z']  # choose variables to export from simulation to nc file
 
         # Information from the phys_states_file:
         self.phys_states_file = reader_phys_states.name
@@ -132,6 +132,8 @@ class Scenario:
             self.get_SG_bounds()
         elif self.key == "APSO":
             self.get_AP_bounds()
+        elif self.key == "BSSI":
+            self.get_BSSI_bounds()
         else:
             sys.exit('WARNING: missing key configuration in get_scenario')
 
@@ -150,21 +152,30 @@ class Scenario:
         return
 
 
+    def get_BSSI_bounds(self):
+        self.description = " Initialize with regular grid in Antarctic Peninsula nemo domain"
+        self.site_lon_min = -63
+        self.site_lon_max = -54
+        self.site_lat_min = -64
+        self.site_lat_max = -60
+        self.domain_lon_min = -69
+        self.domain_lon_max = -30
+        self.domain_lat_min = -65
+        self.domain_lat_max = -48
+        self.z = 50  # release depth
+        return
+
     def get_AP_bounds(self):
         self.description = " Initialize with regular grid in Antarctic Peninsula nemo domain"
         self.site_lon_min = -67
         self.site_lon_max = -40
         self.site_lat_min = -69
         self.site_lat_max = -57
-        # self.site_lon_max = -50
-        # self.site_lat_min = -60
-        # self.site_lat_max = -58
         self.domain_lon_min = -69
         self.domain_lon_max = -30
         self.domain_lat_min = -65
         self.domain_lat_max = -48
         self.z = 50  # release depth
-        self.APSO_square_polyons()
         return
 
     def SSMUs(self, fpath):
@@ -185,64 +196,7 @@ class Scenario:
         self.domain_lat_min = -57.19
         self.domain_lat_max = -50.92
         self.z = 15  # release depth
-        self.SG_square_polygons()
         return
-
-    def APSO_square_polyons(self):
-        self.n_polys = 2
-        self.lon_lims_poly = np.zeros([self.n_polys, 2])
-        self.lat_lims_poly = np.zeros([self.n_polys, 2])
-
-        # Define area:
-        lon_lims = [-39.5, -35]
-        lat_lims = [-54, -53]
-        poly_desc = 'polygon number 1: SG northern part of island'
-        self.assign_polygons(lon_lims, lat_lims, poly_desc, i=0)
-
-        # Define area:
-        lon_lims = [-42.48, -30.64]
-        lat_lims = [-57.19, -50.92]
-        poly_desc = 'polygon number 2: SG domain boundaries (800m model)'
-        self.assign_polygons(lon_lims, lat_lims, poly_desc, i=1)
-        return
-
-
-
-    def SG_square_polygons(self):
-        import matplotlib.pyplot as plt
-        self.n_polys = 3
-        self.lon_lims_poly = np.zeros([self.n_polys, 2])
-        self.lat_lims_poly = np.zeros([self.n_polys, 2])
-
-        # Define area:
-        lon_lims = [-39.25, -37.85]
-        lat_lims = [-53.85, -53.55]
-        poly_desc = 'polygon number 1: SG hotspot on the north western part of the island'
-        self.assign_polygons(lon_lims, lat_lims, poly_desc, i=0)
-
-        # area 2
-        lon_lims = [-36.1, -35.1]
-        lat_lims = [-54.85, -53.4]
-        poly_desc = 'polygon number 2: SG hotspot on the north eastern part of the island'
-        self.assign_polygons(lon_lims, lat_lims, poly_desc, i=1)
-
-        # test case
-        lon_lims = [-34, -32]
-        lat_lims = [-56, -54]
-        poly_desc = 'polygon number 3: test case for SG recruitment and retention'
-        self.assign_polygons(lon_lims, lat_lims, poly_desc, i=2)
-        return
-
-    def assign_polygons(self, lon_lims, lat_lims, poly_desc, i):
-        nline_indent = '\n\t\t\t\t\t\t  '
-        self.lon_lims_poly[i, 0:2] = lon_lims
-        self.lat_lims_poly[i, 0:2] = lat_lims
-        if i == 0:
-            self.poly_desc = poly_desc
-        else:
-            self.poly_desc = self.poly_desc + nline_indent + poly_desc
-        return
-
 
     def init_scenario_netcdf(self, fpath):
         self.outfile = nc.Dataset(self.analysis_file, 'w')
@@ -275,10 +229,9 @@ class Scenario:
         self.outfile.sim_end_day = self.date_end.day
         self.outfile.sim_end_month = self.date_end.month  # simulation end time
         self.outfile.sim_end_year = self.date_end.year
-
-        self.outfile.sim_duration_days = self.duration.days # simulation duration
-        self.outfile.sim_time_step_seconds = self.time_step.seconds # simulation time step
-        self.outfile.sim_save_time_step_seconds = self.save_time_step.seconds # simulation save time step
+        self.outfile.sim_duration_days = self.duration.days  # simulation duration
+        self.outfile.sim_time_step_seconds = self.time_step.seconds  # simulation time step
+        self.outfile.sim_save_time_step_seconds = self.save_time_step.seconds  # simulation save time step
 
         # phys_states reader information
         self.outfile.reader_time_step_seconds = self.phys_states_timestep  # phys_states time step
@@ -302,19 +255,6 @@ class Scenario:
         self.outfile.createVariable('lat_bin_vals', 'f4', ('n_lat_bins', ))
         self.outfile['lon_bin_vals'][:] = self.lon_bin_vals
         self.outfile['lat_bin_vals'][:] = self.lat_bin_vals
-
-        if self.n_polys > 0:
-            self.outfile.createDimension('n_polygons', self.n_polys)  # n_polys is defined for the key
-            self.outfile.createDimension('points', 4)
-            self.outfile.createVariable('square_polygons', 'f4', ('n_polygons', 'points'))
-            self.outfile['square_polygons'].coords_order = ('order of coords [0:4]: (lon_1, lon_2, lat_1, lat_2), '
-                                                            'use coords = ((lon_1, lat_1), '
-                                                            '(lon_1, lat_2), (lon_2, lat_2),'
-                                                            '(lon_2, lat_1), (lon_1, lat_1))')
-            for n_poly in range(0, self.n_polys):
-                self.outfile['square_polygons'][n_poly, 0:2] = self.lon_lims_poly[n_poly, :]
-                self.outfile['square_polygons'][n_poly, 2:4] = self.lat_lims_poly[n_poly, :]
-                self.outfile['square_polygons'].polygon_descriptions = self.poly_desc
 
         print('Closing: ' + self.analysis_file)
         self.outfile.close()

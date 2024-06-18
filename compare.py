@@ -20,6 +20,7 @@ class CompareData:
         self.recruit_time = np.zeros([self.n_releases, self.n_years])
         self.start_time = np.zeros([self.n_releases, self.n_years, 3]).astype(int)
         self.end_time = np.zeros([self.n_releases, self.n_years, 3]).astype(int)
+        return
 
     def recruit_values(self, recruit_number, recruit_time, r, y):
         self.recruit_number[r, y] = recruit_number
@@ -98,8 +99,8 @@ class PlotData:
         self.min_lat = self.analysis_df.domain_lat_min
         self.max_lon = self.analysis_df.domain_lon_max
         self.max_lat = self.analysis_df.domain_lat_max
-        self.polygons = self.analysis_df['square_polygons'][:]
-        self.recruit = self.analysis_df['recruits'][:]
+        #self.polygons = self.analysis_df['square_polygons'][:]
+        self.recruit = self.analysis_df['recruit_SG_north'][:]
         #self.CG = self.analysis_df['CG'][:]
         self.sim_start_day = self.analysis_df.sim_start_day
         self.duration = self.analysis_df.sim_duration_days
@@ -114,6 +115,15 @@ class PlotData:
         self.time = num2date(time, time.units)
         # self.z = self.nc_file['z']
         return
+
+    def plot_init(self):
+        self.init_plot()
+        self.plot_background()
+        plt.scatter(self.lon[:,0], self.lat[:,0])
+        plt_name = self.save_prefix + "init_plot"
+        self.save_plot(plt_name)
+        return
+
 
     def load_bathymetry(self):
         self.bath_res = 0.04  # bathymetry resolution
@@ -213,10 +223,12 @@ class PlotData:
 
 
     def get_polygon(self, poly_n):
-        self.lon_1 = self.analysis_df.variables['square_polygons'][poly_n, 0]
-        self.lon_2 = self.analysis_df.variables['square_polygons'][poly_n, 1]
-        self.lat_1 = self.analysis_df.variables['square_polygons'][poly_n, 2]
-        self.lat_2 = self.analysis_df.variables['square_polygons'][poly_n, 3]
+        lon_lims = [-39.5, -35]
+        lat_lims = [-54, -53]
+        self.lon_1 = lon_lims[0]
+        self.lon_2 = lon_lims[1]
+        self.lat_1 = lat_lims[0]
+        self.lat_2 = lat_lims[1]
         coords = ((self.lon_1, self.lat_1), (self.lon_1, self.lat_2), (self.lon_2, self.lat_2),
                   (self.lon_2, self.lat_1), (self.lon_1, self.lat_1))  # tuple item;
         poly = Polygon(coords)

@@ -44,7 +44,7 @@ class PostProcess:
     def trajectory_analysis(self):
         # Set up a netcdf file for storing output from the analysis:
         self.analysis_df.variables['dom_paths'][:] = 0  # Initialize dom_path matrix
-        self.analysis_df.variables['recruits'][:] = 0
+        self.analysis_df.variables['recruit_SG_north'][:] = 0
 
         # find bins for each particle
         id_lat = np.digitize(self.lat[:,::self.t_stride], self.lat_bin_vals)
@@ -61,14 +61,12 @@ class PostProcess:
             idx_p = id_lat[p_i, :] < np.shape(self.lat_bin_vals)[0]
             dom_paths[id_lon[p_i, idx_p], id_lat[p_i, idx_p]] = dom_paths[id_lon[p_i, idx_p], id_lat[p_i, idx_p]] + 1
             if p_i == 0:
-                self.init_square_polygon()
+                self.init_polygon()
             self.recruit(self.lon[p_i, :], self.lat[p_i, :])
 
         self.analysis_df.variables['dom_paths'][:] = dom_paths
-        self.analysis_df.variables['recruits'][:, 0] = self.transit_hours
-        self.analysis_df.variables['recruits'][:, 1] = self.visit_index
-        #todo: analysis- generic retention, z dom_paths, transit_times;
-        #todo: find way to initialise polygons within analysis and handle them more efficiently;
+        self.analysis_df.variables['recruit_SG_north'][:, 0] = self.transit_hours
+        self.analysis_df.variables['recruit_SG_north'][:, 1] = self.visit_index
 
         print('Closing: ' + self.analysis_file)
         os.system("echo closing analysis file")
@@ -89,13 +87,15 @@ class PostProcess:
             self.transit_hours[self.p_i] = (t_to_poly.days * 24) + np.floor(t_to_poly.seconds * 1 / (60 * 60)).astype(int)
         return
 
-    def init_square_polygon(self):
+    def init_polygon(self):
         import matplotlib.pyplot as plt
         # lon_1, lat_1 are bottom left coordinates
-        self.lon_1 = self.analysis_df.variables['square_polygons'][0, 0]
-        self.lon_2 = self.analysis_df.variables['square_polygons'][0, 1]
-        self.lat_1 = self.analysis_df.variables['square_polygons'][0, 2]
-        self.lat_2 = self.analysis_df.variables['square_polygons'][0, 3]
+        lon_lims = [-39.5, -35]
+        lat_lims = [-54, -53]
+        self.lon_1 = lon_lims[0]
+        self.lon_2 = lon_lims[1]
+        self.lat_1 = lat_lims[0]
+        self.lat_2 = lat_lims[1]
         coords = ((self.lon_1, self.lat_1), (self.lon_1, self.lat_2), (self.lon_2, self.lat_2),
                   (self.lon_2, self.lat_1), (self.lon_1, self.lat_1))  # tuple item;
         polygon1 = Polygon(coords)
@@ -110,13 +110,15 @@ class PostProcess:
                 self.analysis_df.createDimension(dimension, dimension_key_dict[dimension])
 
         variable_key_dict = {'dom_paths': {'datatype':'i4','dimensions':('n_lon_bins', 'n_lat_bins'), 'description': 'unique particle visits'},
-                             'recruits': {'datatype':'i4','dimensions':('n_parts', 'transit_info'), 'description': 'transit hours to polygon'}}
+                             'recruit_SG_north': {'datatype':'i4','dimensions':('n_parts', 'transit_info'), 'description': 'transit hours to polygon'}}
         for variable in variable_key_dict:
             if variable not in self.analysis_df.variables.keys():
                 self.analysis_df.createVariable(variable, variable_key_dict[variable]['datatype'], variable_key_dict[variable]['dimensions'])
                 self.analysis_df[variable].description = variable_key_dict[variable]['description']
 
         return
+
+
 
 
 
