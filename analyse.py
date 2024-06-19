@@ -11,11 +11,12 @@ fpath.search_path(year=2020, release_start=1, release_end=1)  # select files whi
 for file_i in fpath.file_list:
     print('Analysing file: ' + file_i)
     pp = PostProcess(fpath, file_i, test=False)
-    #todo: add options to pass different polygons for recruitment vs. retention
-    #todo: generally, allow more options here for different types of analysis- different polygons;
     pp.init_ncfile()
+    pp.temporal_analysis()
     pp.trajectory_analysis()
     pp.trajectory_df.close()
+    pp.analysis_df.close()
+    print('Closing: ' + pp.analysis_file)
 
 
 

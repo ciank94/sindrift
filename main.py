@@ -7,7 +7,7 @@ import datetime
 
 # Simulation settings (time, releases, initialization scenario)
 date_init = datetime.datetime(2020, 1, 1, 0, 0)  # beginning of first simulation;
-duration_days = datetime.timedelta(days=10)  # simulation duration in days;
+duration_days = datetime.timedelta(days=300)  # simulation duration in days;
 release_step = datetime.timedelta(days=5)  # days between releases of particles;
 time_step = datetime.timedelta(hours=6)  # simulation time step (negative time is backwards stepping of model)
 save_step = datetime.timedelta(hours=6)  # save time step

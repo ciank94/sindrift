@@ -85,9 +85,16 @@ class FileExplorer:
         for file_name in path_list:
             if file_name[0:4] == self.key:
                 if file_name[5:9] == str(year):
-                    if int(file_name[11:12]) in release_range:
-                        self.file_list.append(file_name)
-                        print(file_name)
+                    if file_name[12:13] == '_':
+                        if int(file_name[11:12]) in release_range:
+                            self.file_list.append(file_name)
+                            print(file_name)
+                    else:
+                        if int(file_name[11:13]) in release_range:
+                            self.file_list.append(file_name)
+                            print(file_name)
+
+
         print('===========================')
         return
 

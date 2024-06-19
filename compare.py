@@ -10,71 +10,106 @@ import os
 from netCDF4 import num2date
 
 
-class CompareData:
-    def __init__(self, y1, y2, r1, r2):
-        self.years = np.arange(y1, y2+1, 1)
-        self.releases = np.arange(r1, r2 + 1, 1)
-        self.n_years = np.shape(self.years)[0]
-        self.n_releases = np.shape(self.releases)[0]
-        self.recruit_number = np.zeros([self.n_releases, self.n_years])
-        self.recruit_time = np.zeros([self.n_releases, self.n_years])
-        self.start_time = np.zeros([self.n_releases, self.n_years, 3]).astype(int)
-        self.end_time = np.zeros([self.n_releases, self.n_years, 3]).astype(int)
+class ReadAnalysis:
+
+    def __init__(self, fpath, analysis_file):
+        self.analysis_file = fpath.analysis_path + analysis_file
+        self.analysis_df = nc.Dataset(self.analysis_file, 'r')
+        self.tr_file = fpath.trajectory_path + self.analysis_df.trajectory_file
+        self.fpath = fpath
         return
 
-    def recruit_values(self, recruit_number, recruit_time, r, y):
-        self.recruit_number[r, y] = recruit_number
-        self.recruit_time[r, y] = recruit_time
+    def read_trajectory_df(self):
+        self.trajectory_df = nc.Dataset(self.tr_file, 'r')
+        # extract data from trajectory file
+        self.lat = self.trajectory_df.variables['lat']
+        self.lon = self.trajectory_df.variables['lon']
+        self.shp_p = np.shape(self.lat)[0]
+        self.shp_t = np.shape(self.lat)[1]
+        time = self.trajectory_df.variables['time']
+        self.time = num2date(time, time.units)
+        # self.z = self.nc_file['z']
         return
 
-    def time_bounds(self, pld, r, y):
-        self.start_time[r, y, :] = [pld.time[0].day, pld.time[0].month, pld.time[0].year]
-        self.end_time[r, y, :] = [pld.time[-1].day, pld.time[-1].month, pld.time[-1].year]
-        self.duration_days = pld.duration
+    def read_analysis_df(self):
+        self.lon_bin_vals = self.analysis_df.variables['lon_bin_vals'][:]
+        self.lat_bin_vals = self.analysis_df.variables['lat_bin_vals'][:]
+        self.bin_res = self.analysis_df.bin_resolution
+        self.n_lat_bins = np.shape(self.lat_bin_vals)[0]
+        self.n_lon_bins = np.shape(self.lat_bin_vals)[0]
+        self.key = self.analysis_df.scenario_key
+        self.min_lon = self.analysis_df.domain_lon_min
+        self.min_lat = self.analysis_df.domain_lat_min
+        self.max_lon = self.analysis_df.domain_lon_max
+        self.max_lat = self.analysis_df.domain_lat_max
+        self.recruit = self.analysis_df['recruit_SG_north'][:]
+        self.CG = self.analysis_df['CG'][:]
+        self.dom_paths = self.analysis_df.variables['dom_paths'][:]
+        self.sim_start_day = self.analysis_df.sim_start_day
+        self.sim_start_month = self.analysis_df.sim_start_month
+        self.sim_start_year = self.analysis_df.sim_start_year
+        self.duration = self.analysis_df.sim_duration_days
+        return
+
+class StoreRelease:
+    def __init__(self, fpath):
+        self.shp_r = np.shape(fpath.file_list)[0]
+        self.counter_r = -1
+        self.fpath = fpath
+
+    def init_variables(self, rd):
+        self.CG = np.zeros([np.shape(rd.CG)[0], np.shape(rd.CG)[1], self.shp_r])
+        self.recruit_number = np.zeros([self.shp_r])
+        self.recruit_time = np.zeros([self.shp_r])
+        self.dom_paths = np.zeros(np.shape(rd.dom_paths))
+        self.key = rd.key
+        self.sim_start_year = rd.sim_start_year
+        self.lon_bin_vals = rd.lon_bin_vals[:]
+        self.lat_bin_vals = rd.lat_bin_vals[:]
+
+    def store_variables(self, rd):
+        self.CG[:, :, self.counter_r] = rd.CG
+        self.count_recruits(rd)
+        self.dom_paths = self.dom_paths + rd.dom_paths
+
+    def count_recruits(self, rd):
+        recruit = rd.recruit[:, :]
+        recruit_t = recruit[:, 0]
+        id1 = np.where(recruit_t > 0)
+        self.recruit_number[self.counter_r] = np.shape(id1)[1]
+        self.recruit_time[self.counter_r] = np.mean(recruit_t[recruit_t>0])
+        return
+
+    def counter(self):
+        self.counter_r = self.counter_r + 1
+        print("Analysing release number: " + str(self.counter_r + 1))
         return
 
 
 class PlotData:
 
-    def __init__(self, fpath, analysis_file):
-        # files for analysis
-        self.analysis_file = fpath.analysis_path + analysis_file
-        self.analysis_df = nc.Dataset(self.analysis_file, 'r')
-        self.tr_file = fpath.trajectory_path + self.analysis_df.trajectory_file
-        self.fpath = fpath
-
-        # extract data from analysis file
-        self.load_analysis_df()
-        self.save_prefix = (self.analysis_df.scenario_key + '_' + str(self.analysis_df.sim_start_year) + '_')
-                            #+ '_R'
-                            #+ str(self.analysis_df.release_number) + '_')
-
+    def __init__(self, df):
+        self.fpath = df.fpath
+        self.save_prefix = (df.key + '_' + str(df.sim_start_year) + '_')
 
         # polygon for analysis
         self.n_poly = 0
         self.poly = self.get_polygon(self.n_poly)
-
-        # load dom_paths
-        self.dom_paths = self.analysis_df.variables['dom_paths'][:]
 
         # For creating the bathymetry file
         self.load_bathymetry()
 
         # parameters for plotting:
         self.load_plot_params()
+        self.lon_lat_extent()
         return
 
-    def read_trajectory_df(self):
-        self.trajectory_df = nc.Dataset(self.tr_file, 'r')
-        # extract data from trajectory file
-        self.load_trajectory_df()
-        return
 
     def load_plot_params(self):
 
         # Dominant pathways color scaling:
         self.d_scale = 40
-        self.max_scale = 0.7
+        self.max_scale = 0.4
 
         # plotting parameters
         self.bath_contours = np.linspace(0, 3000, 10)
@@ -88,33 +123,23 @@ class PlotData:
         self.lat_offset = 3
         return
 
-    def load_analysis_df(self):
-        self.lon_bin_vals = self.analysis_df.variables['lon_bin_vals'][:]
-        self.lat_bin_vals = self.analysis_df.variables['lat_bin_vals'][:]
-        self.bin_res = self.analysis_df.bin_resolution
-        self.n_lat_bins = np.shape(self.lat_bin_vals)[0]
-        self.n_lon_bins = np.shape(self.lat_bin_vals)[0]
-        self.key = self.analysis_df.scenario_key
-        self.min_lon = self.analysis_df.domain_lon_min
-        self.min_lat = self.analysis_df.domain_lat_min
-        self.max_lon = self.analysis_df.domain_lon_max
-        self.max_lat = self.analysis_df.domain_lat_max
-        #self.polygons = self.analysis_df['square_polygons'][:]
-        self.recruit = self.analysis_df['recruit_SG_north'][:]
-        #self.CG = self.analysis_df['CG'][:]
-        self.sim_start_day = self.analysis_df.sim_start_day
-        self.duration = self.analysis_df.sim_duration_days
+    def lon_lat_extent(self):
+        # SG
+        self.min_lon = -45
+        self.max_lon = -33
+        self.min_lat = -57
+        self.max_lat = -52
         return
 
-    def load_trajectory_df(self):
-        self.lat = self.trajectory_df.variables['lat']
-        self.lon = self.trajectory_df.variables['lon']
-        self.shp_p = np.shape(self.lat)[0]
-        self.shp_t = np.shape(self.lat)[1]
-        time = self.trajectory_df.variables['time']
-        self.time = num2date(time, time.units)
-        # self.z = self.nc_file['z']
+    def plot_CG_paths(self, df):
+        self.init_plot()
+        self.plot_background()
+        [self.ax.plot(df.CG[:, 0, i], df.CG[:, 1, i], alpha=0.9, linewidth=0.5, c='k') for i in range(0, np.shape(df.CG)[2])]
+        plt_name = self.save_prefix + "CG_plot"
+        self.save_plot(plt_name)
         return
+
+
 
     def plot_init(self):
         self.init_plot()
@@ -170,27 +195,22 @@ class PlotData:
         return
 
 
-    def plot_dom_paths(self, dom_paths):
+    def plot_dom_paths(self, df):
         self.init_plot()
         self.plot_background()
-        dom_paths = dom_paths.astype(float)
+        dom_paths = df.dom_paths.astype(float)
         dom_paths[dom_paths==0] = np.nan
-        n_levels = np.arange(np.nanmin(dom_paths), np.nanmax(dom_paths), np.nanmax(dom_paths)/40)
-        self.plot1 = plt.contourf(self.lon_bin_vals, self.lat_bin_vals, dom_paths.T, levels=n_levels, cmap=self.dom_cmap, transform=ccrs.PlateCarree(), extend='both')
-        self.c_max = self.max_scale * np.nanmax(dom_paths)
+        dom_paths = (dom_paths/((df.counter_r +1)*10000)) * 100
+        max_vals = np.nanmax(dom_paths)*self.max_scale
+        n_levels = np.arange(np.nanmin(dom_paths), max_vals, max_vals/25)
+        self.plot1 = plt.contourf(df.lon_bin_vals, df.lat_bin_vals, dom_paths.T, levels=n_levels, cmap=self.dom_cmap, transform=ccrs.PlateCarree(), extend='both')
+        self.c_max = max_vals
         self.add_cbar(c_max= self.c_max, caxis_title='unique_particles')
         plt_name = self.save_prefix + "dom_paths"
         self.save_plot(plt_name)
         return
 
-    def count_recruits(self):
-        recruit = self.recruit[:, :]
-        recruit_t = recruit[:, 0]
-        recruit_i = recruit[:, 1]
-        id1 = np.where(recruit_t > 0)
-        n_recruits = np.shape(id1)[1]
-        recruit_time = np.mean(recruit_t[recruit_t>0])
-        return n_recruits, recruit_time
+
 
     def plot_recruits(self):
         recruit = self.recruit[:,:]
