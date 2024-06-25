@@ -8,27 +8,34 @@ import netCDF4 as nc
 # Ready the file paths for analysis
 fpath = FileExplorer(node='remote', model_name='cmems', key="BSSI")
 fpath.mounted_paths() # need to mount the servers for local testing
-fpath.search_path(year=2020, release_start=1, release_end=14)  # select files which should be plotted
+for year in range(2017, 2020+1):
+    fpath.search_path(year=year, release_start=1, release_end=20)  # select files which should be plotted
 
-df = StoreRelease(fpath)  # store information about simulations;
-for file_i in fpath.file_list:
-    # read analysis file for storage:
-    rd = ReadAnalysis(fpath, analysis_file=file_i)
-    rd.read_analysis_df()
+    df = StoreRelease(fpath)  # store information about simulations;
+    for file_i in fpath.file_list:
+        # read analysis file for storage:
+        rd = ReadAnalysis(fpath, analysis_file=file_i)
+        rd.read_analysis_df()
 
-    # if it is the first release in the list, initialise variables to be stored
-    df.counter()
-    if df.counter_r == 0:
-        df.init_variables(rd)
+        # if it is the first release in the list, initialise variables to be stored
+        df.counter()
+        if df.counter_r == 0:
+            df.init_variables(rd)
 
-    df.store_variables(rd)
-    rd.analysis_df.close()
+        df.store_variables(rd)
+        rd.analysis_df.close()
 
-pld = PlotData(df)
-pld.plot_dom_paths(df)
-pld.plot_CG_paths(df)
+        if df.counter_r == 0:
+            rd.read_trajectory_df()
+            df.store_trajectory_variables(rd)
+            rd.trajectory_df.close()
 
-breakpoint()
+    df.write_data()
+
+    pld = PlotData(df)
+    pld.plot_site_recruits(df)
+    pld.plot_dom_paths(df)
+# pld.plot_CG_paths(df)
 #
 #     counter_r = counter_r + 1
 #     print('Analysing file: ' + file_i)
@@ -69,4 +76,3 @@ breakpoint()
 
 
         #breakpoint()
-breakpoint()

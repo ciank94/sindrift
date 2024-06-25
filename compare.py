@@ -42,7 +42,11 @@ class ReadAnalysis:
         self.min_lat = self.analysis_df.domain_lat_min
         self.max_lon = self.analysis_df.domain_lon_max
         self.max_lat = self.analysis_df.domain_lat_max
-        self.recruit = self.analysis_df['recruit_SG_north'][:]
+        self.p_shp = self.analysis_df.n_part
+        try:
+            self.recruit = self.analysis_df['recruit_SG_north'][:]
+        except:
+            breakpoint()
         self.CG = self.analysis_df['CG'][:]
         self.dom_paths = self.analysis_df.variables['dom_paths'][:]
         self.sim_start_day = self.analysis_df.sim_start_day
@@ -61,24 +65,58 @@ class StoreRelease:
         self.CG = np.zeros([np.shape(rd.CG)[0], np.shape(rd.CG)[1], self.shp_r])
         self.recruit_number = np.zeros([self.shp_r])
         self.recruit_time = np.zeros([self.shp_r])
+        self.year_r = np.zeros([self.shp_r])
+        self.month_r = np.zeros([self.shp_r])
+        self.day_r = np.zeros([self.shp_r])
+        self.p_shp = rd.p_shp
+        self.site_recruits = np.zeros([rd.p_shp])
         self.dom_paths = np.zeros(np.shape(rd.dom_paths))
+        self.rd = rd
         self.key = rd.key
         self.sim_start_year = rd.sim_start_year
         self.lon_bin_vals = rd.lon_bin_vals[:]
         self.lat_bin_vals = rd.lat_bin_vals[:]
 
     def store_variables(self, rd):
-        self.CG[:, :, self.counter_r] = rd.CG
+        try:
+            self.CG[:, :, self.counter_r] = rd.CG
+        except:
+            self.CG[:, :, self.counter_r] = np.nan
         self.count_recruits(rd)
         self.dom_paths = self.dom_paths + rd.dom_paths
+        return
+
+    def store_trajectory_variables(self, t_df):
+        self.lon_init = np.array(t_df.lon[:, 0])
+        self.lat_init = np.array(t_df.lat[:, 0])
+        return
 
     def count_recruits(self, rd):
         recruit = rd.recruit[:, :]
         recruit_t = recruit[:, 0]
         id1 = np.where(recruit_t > 0)
+        site_vals = recruit_t>0
+        self.site_recruits = self.site_recruits + site_vals*1
         self.recruit_number[self.counter_r] = np.shape(id1)[1]
         self.recruit_time[self.counter_r] = np.mean(recruit_t[recruit_t>0])
+        self.year_r[self.counter_r] = self.sim_start_year
+        self.month_r[self.counter_r] = rd.sim_start_month
+        self.day_r[self.counter_r] = rd.sim_start_day
         return
+
+    def write_data(self):
+        import csv
+        import pandas as pd
+        self.save_prefix = (self.key + '_' + str(self.sim_start_year) + '_')
+        df_table = pd.DataFrame(
+            [self.year_r.astype(int), self.month_r.astype(int), self.day_r.astype(int), self.recruit_number.astype(int),
+             self.recruit_time]).T
+        df_table.to_csv(self.fpath.figures_path + self.save_prefix + 'recruit_table', ',', header=['year', 'month', 'day', 'recruit_number', 'recruit_time'])
+
+        return
+
+
+
 
     def counter(self):
         self.counter_r = self.counter_r + 1
@@ -101,7 +139,7 @@ class PlotData:
 
         # parameters for plotting:
         self.load_plot_params()
-        self.lon_lat_extent()
+        #self.lon_lat_extent()
         return
 
 
@@ -117,19 +155,14 @@ class PlotData:
         #self.dom_cmap = plt.get_cmap('Reds')
         self.dom_cmap = plt.get_cmap('OrRd')
         self.depth_colors = np.arange(0, 4500, 200)
+        self.site_recruit_cmap = plt.get_cmap('jet')
 
         # offsets for figure boundaries:
         self.lon_offset = 1
         self.lat_offset = 3
         return
 
-    def lon_lat_extent(self):
-        # SG
-        self.min_lon = -45
-        self.max_lon = -33
-        self.min_lat = -57
-        self.max_lat = -52
-        return
+
 
     def plot_CG_paths(self, df):
         self.init_plot()
@@ -138,6 +171,19 @@ class PlotData:
         plt_name = self.save_prefix + "CG_plot"
         self.save_plot(plt_name)
         return
+
+    def plot_site_recruits(self, df):
+        self.init_plot()
+        self.plot_background(background="AP")
+        c_vals = df.site_recruits/df.counter_r * 100
+        self.ax.scatter(df.lon_init, df.lat_init, s=10, facecolor='none', edgecolors='gray', alpha=0.3, linewidth=0.2)
+        self.plot1 = plt.scatter(df.lon_init, df.lat_init, c=c_vals,s=10, edgecolors='gray', vmin=np.nanmean(c_vals)/2,
+                               vmax=np.nanmean(c_vals)*2, linewidth=0.2, cmap=self.site_recruit_cmap)
+        self.add_cbar(c_max=np.nanmax(c_vals), caxis_title='Percentage (%)')
+        self.save_plot(plt_name=self.save_prefix + 'site_recruits')
+
+
+
 
 
 
@@ -197,7 +243,7 @@ class PlotData:
 
     def plot_dom_paths(self, df):
         self.init_plot()
-        self.plot_background()
+        self.plot_background(background='n')
         dom_paths = df.dom_paths.astype(float)
         dom_paths[dom_paths==0] = np.nan
         dom_paths = (dom_paths/((df.counter_r +1)*10000)) * 100
@@ -277,7 +323,7 @@ class PlotData:
         self.save_plot(plt_name)
         return
 
-    def plot_background(self):
+    def plot_background(self, background):
         land_10m = cfeature.NaturalEarthFeature('physical', 'land', '10m',
                                                 edgecolor='face',
                                                 facecolor='lightgrey')
@@ -292,7 +338,17 @@ class PlotData:
         gl.right_labels = False
         #self.ax.set_extent(
             #[self.min_lon, self.max_lon, self.min_lat, self.max_lat])
-        self.ax.set_extent([self.min_lon-self.lon_offset, self.max_lon+self.lon_offset, self.min_lat-self.lat_offset,
+        if background == "AP":
+            self.AP_lon_lat_extent()
+            self.ax.set_extent(
+                [self.min_lon, self.max_lon, self.min_lat,
+                 self.max_lat])
+            #self.ax.set_extent(
+             #   [self.min_lon - self.lon_offset, self.max_lon + self.lon_offset, self.min_lat - self.lat_offset,
+              #   self.max_lat + self.lat_offset])
+        else:
+            self.gen_lon_lat_extent()
+            self.ax.set_extent([self.min_lon-self.lon_offset, self.max_lon+self.lon_offset, self.min_lat-self.lat_offset,
                             self.max_lat+self.lat_offset])
         return
 
@@ -322,42 +378,21 @@ class PlotData:
         plt.close()
         return
 
+    def AP_lon_lat_extent(self):
+        self.min_lon = -65.3
+        self.max_lon = -51
+        self.min_lat = -69
+        self.max_lat = -56
+        return
 
-class FuseData:
-    def __init__(self, infile_path, outfile_path, year_ids, release_ids, key_ids):
-        self.dom_path_i = None
-        self.outfile_path = outfile_path
-        self.infile_path = infile_path
-        self.year_id = year_ids
-        self.release_ids = release_ids
-        self.key_id = key_ids
-        self.n_parts = 10000
+    def gen_lon_lat_extent(self):
+        # SG
+        self.min_lon = -45
+        self.max_lon = -33
+        self.min_lat = -57
+        self.max_lat = -52
+        return
 
-        # Fusion and statistics of datasets for plotting:
-        self.fuse_dominant_paths()
-
-    def fuse_dominant_paths(self):
-        c_i = 0
-        year = self.year_id
-        key = self.key_id
-        for release in self.release_ids:
-            c_i = c_i + 1
-            file = self.infile_path + key + '_' + str(year) + '_R' + str(release) + '_trajectory_analysis.nc'
-            f1 = nc.Dataset(file)
-            if c_i == 1:
-                self.dom_path_i = f1['dom_paths'][:]
-                f1.close()
-            else:
-                self.dom_path_i = self.dom_path_i + f1['dom_paths'][:]
-                f1.close()
-
-        #self.dom_path_i = self.dom_path_i/(c_i*self.n_parts)
-        #breakpoint()
-        self.dom_path_i = self.dom_path_i / np.nanmax(self.dom_path_i)
-        if self.dom_path_i[0,0] > 3*np.mean(np.unique(self.dom_path_i)):
-            self.dom_path_i[0, 0] = 0
-
-        self.dom_path_i = self.dom_path_i / np.nanmax(self.dom_path_i)
 
 
 

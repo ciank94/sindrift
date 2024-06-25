@@ -75,7 +75,10 @@ class PostProcess:
         CG_lon_lat = np.zeros([self.shp_t, 2])
         CG_lon_lat[:, 0] = np.nanmedian(self.lon, 0)
         CG_lon_lat[:, 1] = np.nanmedian(self.lat, 0)
-        self.analysis_df.variables['CG'][:] = CG_lon_lat
+        try:
+            self.analysis_df.variables['CG'][:] = CG_lon_lat
+        except:
+            self.analysis_df.variables['CG'][:] = np.nan
         return
 
     def retention(self, lon, lat):
