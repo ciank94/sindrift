@@ -53,6 +53,7 @@ class ReadAnalysis:
         self.sim_start_month = self.analysis_df.sim_start_month
         self.sim_start_year = self.analysis_df.sim_start_year
         self.duration = self.analysis_df.sim_duration_days
+        self.release_number = self.analysis_df.release_number
         return
 
 class StoreRelease:
@@ -68,6 +69,7 @@ class StoreRelease:
         self.year_r = np.zeros([self.shp_r])
         self.month_r = np.zeros([self.shp_r])
         self.day_r = np.zeros([self.shp_r])
+        self.release_number_r = np.zeros([self.shp_r])
         self.p_shp = rd.p_shp
         self.site_recruits = np.zeros([rd.p_shp])
         self.dom_paths = np.zeros(np.shape(rd.dom_paths))
@@ -102,21 +104,26 @@ class StoreRelease:
         self.year_r[self.counter_r] = self.sim_start_year
         self.month_r[self.counter_r] = rd.sim_start_month
         self.day_r[self.counter_r] = rd.sim_start_day
+        self.release_number_r[self.counter_r] = rd.release_number
         return
 
     def write_data(self):
-        import csv
         import pandas as pd
+        from datetime import datetime
         self.save_prefix = (self.key + '_' + str(self.sim_start_year) + '_')
-        df_table = pd.DataFrame(
-            [self.year_r.astype(int), self.month_r.astype(int), self.day_r.astype(int), self.recruit_number.astype(int),
-             self.recruit_time]).T
-        df_table.to_csv(self.fpath.figures_path + self.save_prefix + 'recruit_table', ',', header=['year', 'month', 'day', 'recruit_number', 'recruit_time'])
-
+        day_r = self.day_r
+        month_r = self.month_r
+        year_r = self.year_r
+        shp_r = np.shape(self.day_r)[0]
+        dates = ["{:02d}".format(day_r[i].astype(int)) + '/' + "{:02d}".format(month_r[i].astype(int)) #+ '/' + str(year_r[i].astype(int))
+                    for i in range(0, shp_r)]
+        df_table = pd.DataFrame([self.release_number_r, dates, self.recruit_number.astype(int), self.recruit_time]).T
+        df_table = df_table.sort_values(by=[0])
+        table_name = self.fpath.figures_path + self.save_prefix + 'recruit_table.csv'
+        df_table.to_csv(table_name, header=['release_number', 'date', 'recruit_number', 'recruit_time'])
+        recruit_table = pd.read_csv(table_name)
+        self.recruit_table = recruit_table.iloc[:,1:np.shape(recruit_table)[1]] # adds extra column for some reason
         return
-
-
-
 
     def counter(self):
         self.counter_r = self.counter_r + 1
@@ -256,6 +263,24 @@ class PlotData:
         self.save_plot(plt_name)
         return
 
+    def plot_time_recruits(self, df):
+        dates = df.recruit_table.date
+        recruit_n = df.recruit_table.recruit_number
+        recruit_t = df.recruit_table.recruit_time/24
+
+        fig, ax1 = plt.subplots()
+        plt.xticks(rotation=45, fontsize=10)
+        ax2 = ax1.twinx()
+        ax1.set_ylabel('recruit time (days)', color='b', fontsize=11)
+        ax2.set_ylabel('recruit number', color='r', fontsize=11)
+        ax1.plot(dates, recruit_t, c = 'b')
+        ax2.plot(dates, recruit_n, c = 'r')
+        #ax1.set_xlabel('date', fontsize=8)
+        plt.grid(alpha=0.45)  # nice and clean grid
+        plt_name = self.save_prefix + "recruit_times"
+        self.save_plot(plt_name)
+        breakpoint()
+
 
 
     def plot_recruits(self):
@@ -386,7 +411,7 @@ class PlotData:
         return
 
     def gen_lon_lat_extent(self):
-        # SG
+        # SG extent;
         self.min_lon = -45
         self.max_lon = -33
         self.min_lat = -57

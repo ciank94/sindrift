@@ -1,6 +1,6 @@
 #todo: add functionality for plotting diagnostics from simulation- add options so that the worms plot can be done alone as a check
 from configure import FileExplorer
-from compare import PlotData, ReadAnalysis, StoreRelease
+from results import PlotData, ReadAnalysis, StoreRelease
 import matplotlib.pyplot as plt
 import numpy as np
 import netCDF4 as nc
@@ -8,7 +8,7 @@ import netCDF4 as nc
 # Ready the file paths for analysis
 fpath = FileExplorer(node='remote', model_name='cmems', key="BSSI")
 fpath.mounted_paths() # need to mount the servers for local testing
-for year in range(2017, 2020+1):
+for year in range(2017, 2017+1):
     fpath.search_path(year=year, release_start=1, release_end=20)  # select files which should be plotted
 
     df = StoreRelease(fpath)  # store information about simulations;
@@ -30,11 +30,12 @@ for year in range(2017, 2020+1):
             df.store_trajectory_variables(rd)
             rd.trajectory_df.close()
 
-    df.write_data()
+    df.write_data()  # write data on recruits to file;
 
-    pld = PlotData(df)
-    pld.plot_site_recruits(df)
-    pld.plot_dom_paths(df)
+    pld = PlotData(df)  # initialise a plotting function
+    pld.plot_time_recruits(df)
+    pld.plot_site_recruits(df)  # plot recruits from sites
+    pld.plot_dom_paths(df)  # plot the dominant pathways for year
 # pld.plot_CG_paths(df)
 #
 #     counter_r = counter_r + 1

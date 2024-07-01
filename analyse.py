@@ -12,7 +12,6 @@ for file_i in fpath.file_list:
     print('Analysing file: ' + file_i)
     pp = PostProcess(fpath, file_i, test=False)
     pp.init_ncfile()
-    pp.temporal_analysis()
     pp.trajectory_analysis()
     pp.trajectory_df.close()
     pp.analysis_df.close()

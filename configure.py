@@ -18,7 +18,7 @@ class FileExplorer:
         return
 
     def init_paths(self):
-        valid_key_list = ["SG8H", "APSO", "BSSI"]
+        valid_key_list = ["SG8H", "BSSI", "SOIN"]
         if self.key not in valid_key_list:
             sys.exit('Not a valid key pointing to an initialisation scenario')
         if self.node == 'local':
@@ -53,7 +53,7 @@ class FileExplorer:
         if self.model_name == "sinmod":
             if not date_init.month == date_limit.month:
                 phys_states_list = []
-                for kMonth in range(date_init.month, date_limit.month+1):
+                for kMonth in range(date_init.month, date_limit.month + 1):
                     phys_states_i = (self.phys_states_path + self.phys_states_file_prefix + str(date_init.year) +
                                    "{:02d}".format(kMonth) + '.nc')
                     phys_states_list.append(phys_states_i)
@@ -98,6 +98,7 @@ class FileExplorer:
         print('===========================')
         return
 
+
 class Scenario:
     def __init__(self, fpath, date_release, duration_days, time_step, save_step, release_step, release_i,
                  reader_phys_states):
@@ -109,7 +110,7 @@ class Scenario:
         self.time_step = time_step  # simulation time step in hours as datetime object
         self.save_time_step = save_step  # how often the file is saved
         self.release_step = release_step  # number of hours between releases
-        self.export_variables = ['lon', 'lat', 'z']  # choose variables to export from simulation to nc file
+        self.export_variables = ['lon', 'lat', 'z', 'thetao', 'uo', 'vo']  # choose variables to export from simulation to nc file
 
         # Information from the phys_states_file:
         self.phys_states_file = reader_phys_states.name
@@ -129,17 +130,18 @@ class Scenario:
         self.init_scenario_netcdf(fpath)
         return
 
-
     def scenario_initialization(self):
         # Parameterization for sites in regular grid
         self.n_part = 10000   # number of particles & sites initialized
         self.radius = 0  # radius of initialized particles in metres (zero in case of regular grid)
         self.bin_res = 0.2  # resolution of bins (lat and lon) for analysis
         if self.key == "SG8H":
-            self.get_SG_bounds()
-        elif self.key == "APSO":
-            self.get_AP_bounds()
+            self.get_SG8H_bounds()
+        elif self.key == "SOIN":
+            self.get_NEMO_bounds()
+            self.get_SOIN_bounds()
         elif self.key == "BSSI":
+            self.get_NEMO_bounds()
             self.get_BSSI_bounds()
         else:
             sys.exit('WARNING: missing key configuration in get_scenario')
@@ -158,51 +160,38 @@ class Scenario:
         self.site_lat_init, self.site_lon_init = np.meshgrid(lats, lons)  # Initialize lonlat coordinates for sites
         return
 
+    def get_NEMO_bounds(self):
+        self.domain_lon_min = -69
+        self.domain_lon_max = -30
+        self.domain_lat_min = -65
+        self.domain_lat_max = -48
+        self.bound_name = 'NEMO boundaries'
+        return
 
     def get_BSSI_bounds(self):
         self.description = " Initialize with regular grid in Antarctic Peninsula nemo domain"
         self.site_lon_min = -63
         self.site_lon_max = -54
-        self.site_lat_min = -64
-        self.site_lat_max = -60
-        self.domain_lon_min = -69
-        self.domain_lon_max = -30
-        self.domain_lat_min = -65
-        self.domain_lat_max = -48
-        self.z = 50  # release depth
+        self.site_lat_min = -65
+        self.site_lat_max = -60.5
+        self.z = 75  # release depth
         return
 
-    def get_AP_bounds(self):
-        self.description = " Initialize with regular grid in Antarctic Peninsula nemo domain"
-        self.site_lon_min = -67
-        self.site_lon_max = -40
-        self.site_lat_min = -69
-        self.site_lat_max = -57
-        self.domain_lon_min = -69
-        self.domain_lon_max = -30
-        self.domain_lat_min = -65
-        self.domain_lat_max = -48
-        self.z = 50  # release depth
+    def get_SOIN_bounds(self):
+        self.description = " Initialize with regular grid in South Orkney islands nemo domain"
+        self.site_lon_min = -48
+        self.site_lon_max = -44.35
+        self.site_lat_min = -61
+        self.site_lat_max = -59.2
+        self.z = 75  # release depth
         return
 
-    def SSMUs(self, fpath):
-        import geopandas as gpd
-        shape_p = gpd.read_file(fpath.figures_path + "ssmusPolygon.shp")
-        g1 = shape_p[0].geometry
-        return
-
-
-    def get_SG_bounds(self):
+    def get_SG8H_bounds(self):
         self.description = " Initialize with regular grid in South Georgia 800m domain"
         self.site_lon_min = -42
         self.site_lon_max = -37.5
         self.site_lat_min = -57
         self.site_lat_max = -54
-        self.domain_lon_min = -42.48
-        self.domain_lon_max = -30.64
-        self.domain_lat_min = -57.19
-        self.domain_lat_max = -50.92
-        self.z = 15  # release depth
         return
 
     def init_scenario_netcdf(self, fpath):
@@ -249,6 +238,7 @@ class Scenario:
         self.outfile.site_lon_max = self.site_lon_max
         self.outfile.site_lat_min = self.site_lat_min
         self.outfile.site_lat_max = self.site_lat_max
+        self.outfile.bounds = self.bound_name
         self.outfile.domain_lon_min = self.domain_lon_min
         self.outfile.domain_lon_max = self.domain_lon_max
         self.outfile.domain_lat_min = self.domain_lat_min

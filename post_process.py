@@ -42,48 +42,55 @@ class PostProcess:
         self.shp_p = np.shape(self.lat)[0]
         self.shp_t = np.shape(self.lat)[1]
         return
-        # self.z = self.nc_file['z']
 
     def trajectory_analysis(self):
-        # Set up a netcdf file for storing output from the analysis:
-        self.analysis_df.variables['dom_paths'][:] = 0  # Initialize dom_path matrix
-        self.analysis_df.variables['recruit_SG_north'][:] = 0
+        # set up a netcdf file for storing output from the analysis:
+        self.initialize_variables()
 
         # find bins for each particle
-        id_lat = np.digitize(self.lat[:,::self.t_stride], self.lat_bin_vals)
-        id_lon = np.digitize(self.lon[:,::self.t_stride], self.lon_bin_vals)
+        self.id_lat = np.digitize(self.lat[:,::self.t_stride], self.lat_bin_vals)
+        self.id_lon = np.digitize(self.lon[:,::self.t_stride], self.lon_bin_vals)
 
-        dom_paths = np.zeros([np.shape(self.lon_bin_vals)[0], np.shape(self.lat_bin_vals)[0]])
+        # initialize variables to be stored
+        self.dom_paths = np.zeros([np.shape(self.lon_bin_vals)[0], np.shape(self.lat_bin_vals)[0]])
         self.transit_hours = np.zeros(self.shp_p)
         self.visit_index = np.zeros(self.shp_p)
 
         # loop through particles and check their positions
-        for p_i in range(0, self.shp_p, self.p_stride):
-            self.p_i = p_i
-            print("Particle analysis : " + str(self.p_i + 1) + " of " + str(self.shp_p))  # print particle id number in analysis
-            idx_p = id_lat[p_i, :] < np.shape(self.lat_bin_vals)[0]
-            dom_paths[id_lon[p_i, idx_p], id_lat[p_i, idx_p]] = dom_paths[id_lon[p_i, idx_p], id_lat[p_i, idx_p]] + 1
-            # analyse retention/ recruitment in the following function
-            self.retention(self.lon[p_i, :], self.lat[p_i, :])
+        self.particle_analysis()
+        self.temporal_analysis()
 
-        self.analysis_df.variables['dom_paths'][:] = dom_paths
-        self.analysis_df.variables['recruit_SG_north'][:, 0] = self.transit_hours
-        self.analysis_df.variables['recruit_SG_north'][:, 1] = self.visit_index
+        # store variables
+        self.store_variables()
         return
 
-    def temporal_analysis(self):
-        CG_lon_lat = np.zeros([self.shp_t, 2])
-        CG_lon_lat[:, 0] = np.nanmedian(self.lon, 0)
-        CG_lon_lat[:, 1] = np.nanmedian(self.lat, 0)
-        try:
-            self.analysis_df.variables['CG'][:] = CG_lon_lat
-        except:
-            self.analysis_df.variables['CG'][:] = np.nan
+    def initialize_variables(self):
+        self.analysis_df.variables['dom_paths'][:] = 0  # initialize dom_path matrix
+        if self.analysis_df.bounds == 'NEMO':
+            self.analysis_df.variables['recruit_SG_north'][:] = 0  # initialize recruitment to SG north
         return
 
-    def retention(self, lon, lat):
-        lon_lim = [-39.5, -35]
-        lat_lim = [-54, -53]
+    def store_variables(self):
+        self.analysis_df.variables['dom_paths'][:] = self.dom_paths
+        if self.analysis_df.bounds == 'NEMO':
+            self.analysis_df.variables['recruit_SG_north'][:, 0] = self.transit_hours
+            self.analysis_df.variables['recruit_SG_north'][:, 1] = self.visit_index
+        return
+
+    def particle_analysis(self):
+        if self.analysis_df.bounds == 'NEMO':
+            for p_i in range(0, self.shp_p, self.p_stride):
+                self.p_i = p_i
+                print("Particle analysis : " + str(self.p_i + 1) + " of " + str(self.shp_p))  # print particle id number in analysis
+                idx_p = self.id_lat[p_i, :] < np.shape(self.lat_bin_vals)[0]
+                self.dom_paths[self.id_lon[p_i, idx_p], self.id_lat[p_i, idx_p]] = self.dom_paths[self.id_lon[p_i, idx_p], self.id_lat[p_i, idx_p]] + 1
+                # analyse retention/ recruitment in the following function
+                self.recruit_SG_north(self.lon[p_i, :], self.lat[p_i, :])
+        return
+
+    def recruit_SG_north(self, lon, lat):
+        lon_lim = [-39.4, -35]
+        lat_lim = [-55, -53.2]
         idx_recruit = (lon > lon_lim[0]) & (lon < lon_lim[1]) & (lat > lat_lim[0]) & (lat < lat_lim[1])
         if not np.sum(idx_recruit) == 0:
             visits = np.where(idx_recruit>0)
@@ -101,14 +108,36 @@ class PostProcess:
             if dimension not in self.analysis_df.dimensions.keys():
                 self.analysis_df.createDimension(dimension, dimension_key_dict[dimension])
 
-        variable_key_dict = {'dom_paths': {'datatype':'i4','dimensions':('n_lon_bins', 'n_lat_bins'), 'description': 'unique particle visits'},
-                             'recruit_SG_north': {'datatype':'i4','dimensions':('n_parts', 'transit_info'), 'description': 'transit hours to polygon'},
-                             'CG': {'datatype':'f4','dimensions':('obs', 'CG'), 'description': 'average longitude and latitude over time'}}
+        if self.analysis_df.bounds == 'NEMO':
+            variable_key_dict = {'dom_paths': {'datatype': 'i4', 'dimensions': ('n_lon_bins', 'n_lat_bins'),
+                                               'description': 'unique particle visits'},
+                                 'recruit_SG_north': {'datatype': 'i4', 'dimensions': ('n_parts', 'transit_info'),
+                                                      'description': 'transit hours to polygon'},
+                                 'CG': {'datatype': 'f4', 'dimensions': ('obs', 'CG'),
+                                        'description': 'average longitude and latitude over time'}}
+        else:
+            variable_key_dict = {'dom_paths': {'datatype': 'i4', 'dimensions': ('n_lon_bins', 'n_lat_bins'),
+                                               'description': 'unique particle visits'},
+                                 'recruit_SG_north': {'datatype': 'i4', 'dimensions': ('n_parts', 'transit_info'),
+                                                      'description': 'transit hours to polygon'},
+                                 'CG': {'datatype': 'f4', 'dimensions': ('obs', 'CG'),
+                                        'description': 'average longitude and latitude over time'}}
 
         for variable in variable_key_dict:
             if variable not in self.analysis_df.variables.keys():
-                self.analysis_df.createVariable(variable, variable_key_dict[variable]['datatype'], variable_key_dict[variable]['dimensions'])
+                self.analysis_df.createVariable(variable, variable_key_dict[variable]['datatype'],
+                                                variable_key_dict[variable]['dimensions'])
                 self.analysis_df[variable].description = variable_key_dict[variable]['description']
+        return
+
+    def temporal_analysis(self):
+        CG_lon_lat = np.zeros([self.shp_t, 2])
+        CG_lon_lat[:, 0] = np.nanmedian(self.lon, 0)
+        CG_lon_lat[:, 1] = np.nanmedian(self.lat, 0)
+        try:
+            self.analysis_df.variables['CG'][:] = CG_lon_lat
+        except:
+            self.analysis_df.variables['CG'][:] = np.nan
         return
 
 
