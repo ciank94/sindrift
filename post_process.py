@@ -30,19 +30,6 @@ class PostProcess:
             self.t_stride = 1
         return
 
-    def read_trajectory(self):
-        # extract data from trajectory file
-        self.trajectory_df = nc.Dataset(self.tr_file, mode='r')
-        times = self.trajectory_df.variables['time']
-        self.dates = num2date(times, times.units)
-        self.lat = np.array(self.trajectory_df['lat'][:])
-        self.lat[self.lat > 1e06] = np.nan
-        self.lon = np.array(self.trajectory_df['lon'][:])
-        self.lon[self.lon > 1e06] = np.nan
-        self.shp_p = np.shape(self.lat)[0]
-        self.shp_t = np.shape(self.lat)[1]
-        return
-
     def trajectory_analysis(self):
         # set up a netcdf file for storing output from the analysis:
         self.initialize_variables()
@@ -51,20 +38,21 @@ class PostProcess:
         self.id_lat = np.digitize(self.lat[:,::self.t_stride], self.lat_bin_vals)
         self.id_lon = np.digitize(self.lon[:,::self.t_stride], self.lon_bin_vals)
 
-        # initialize variables to be stored
-        self.dom_paths = np.zeros([np.shape(self.lon_bin_vals)[0], np.shape(self.lat_bin_vals)[0]])
-        self.transit_hours = np.zeros(self.shp_p)
-        self.visit_index = np.zeros(self.shp_p)
-
         # loop through particles and check their positions
         self.particle_analysis()
         self.temporal_analysis()
+        self.environment_analysis()
 
         # store variables
         self.store_variables()
         return
 
     def initialize_variables(self):
+        # initialize variables to be stored
+        self.dom_paths = np.zeros([np.shape(self.lon_bin_vals)[0], np.shape(self.lat_bin_vals)[0]])
+        self.transit_hours = np.zeros(self.shp_p)
+        self.visit_index = np.zeros(self.shp_p)
+        self.CG_lon_lat = np.zeros([self.shp_t, 2])
         self.analysis_df.variables['dom_paths'][:] = 0  # initialize dom_path matrix
         if self.analysis_df.bounds == 'NEMO':
             self.analysis_df.variables['recruit_SG_north'][:] = 0  # initialize recruitment to SG north
@@ -83,7 +71,8 @@ class PostProcess:
                 self.p_i = p_i
                 print("Particle analysis : " + str(self.p_i + 1) + " of " + str(self.shp_p))  # print particle id number in analysis
                 idx_p = self.id_lat[p_i, :] < np.shape(self.lat_bin_vals)[0]
-                self.dom_paths[self.id_lon[p_i, idx_p], self.id_lat[p_i, idx_p]] = self.dom_paths[self.id_lon[p_i, idx_p], self.id_lat[p_i, idx_p]] + 1
+                self.dom_paths[self.id_lon[p_i, idx_p], self.id_lat[p_i, idx_p]] = (
+                        self.dom_paths[self.id_lon[p_i, idx_p], self.id_lat[p_i, idx_p]] + 1)
                 # analyse retention/ recruitment in the following function
                 self.recruit_SG_north(self.lon[p_i, :], self.lat[p_i, :])
         return
@@ -131,14 +120,37 @@ class PostProcess:
         return
 
     def temporal_analysis(self):
-        CG_lon_lat = np.zeros([self.shp_t, 2])
-        CG_lon_lat[:, 0] = np.nanmedian(self.lon, 0)
-        CG_lon_lat[:, 1] = np.nanmedian(self.lat, 0)
-        try:
-            self.analysis_df.variables['CG'][:] = CG_lon_lat
-        except:
-            self.analysis_df.variables['CG'][:] = np.nan
+        self.CG_lon_lat[:, 0] = np.nanmean(self.lon, 0)
+        self.CG_lon_lat[:, 1] = np.nanmean(self.lat, 0)
+        self.analysis_df.variables['CG'][:] = self.CG_lon_lat
         return
+
+    def environment_analysis(self):
+        breakpoint()
+        self.bio_file = self.fpath.phys_states_path + 'CMEMS_GLBIO_D_full_' + str(self.analysis_df.sim_start_year) + '.nc'
+        self.bio_states = nc.Dataset(self.bio_file, mode='r')
+        #todo: cycle through the original file- then find closest time index- then do the same for depth and CG_lon_lat
+        #todo: save the chlorophyll value from that point
+        chl = self.bio_states['chl']
+        o2 = self.bio_states['o2']
+
+
+    def read_trajectory(self):
+        # extract data from trajectory file
+        self.trajectory_df = nc.Dataset(self.tr_file, mode='r')
+        times = self.trajectory_df.variables['time']
+        self.dates = num2date(times, times.units)
+        self.lat = np.array(self.trajectory_df['lat'][:])
+        self.lat[self.lat > 1e06] = np.nan
+        self.lat[self.lat == 0] = np.nan
+        self.lon = np.array(self.trajectory_df['lon'][:])
+        self.lon[self.lon > 1e06] = np.nan
+        self.lon[self.lon == 0] = np.nan
+        self.shp_p = np.shape(self.lat)[0]
+        self.shp_t = np.shape(self.lat)[1]
+        return
+
+
 
 
 

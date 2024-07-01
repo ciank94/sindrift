@@ -6,10 +6,10 @@ import numpy as np
 import netCDF4 as nc
 
 # Ready the file paths for analysis
-fpath = FileExplorer(node='remote', model_name='cmems', key="BSSI")
-fpath.mounted_paths() # need to mount the servers for local testing
-for year in range(2017, 2017+1):
-    fpath.search_path(year=year, release_start=1, release_end=20)  # select files which should be plotted
+fpath = FileExplorer(node='local', model_name='cmems', key="SOIN")
+#fpath.mounted_paths() # need to mount the servers for local testing
+for year in range(2016, 2016+1):
+    fpath.search_path(year=year, release_start=1, release_end=1)  # select files which should be plotted
 
     df = StoreRelease(fpath)  # store information about simulations;
     for file_i in fpath.file_list:

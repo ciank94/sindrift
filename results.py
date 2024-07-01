@@ -181,13 +181,14 @@ class PlotData:
 
     def plot_site_recruits(self, df):
         self.init_plot()
-        self.plot_background(background="AP")
-        c_vals = df.site_recruits/df.counter_r * 100
+        self.plot_background(background="SOI")
+        c_vals = df.site_recruits[:]/(df.counter_r + 1) * 100
         self.ax.scatter(df.lon_init, df.lat_init, s=10, facecolor='none', edgecolors='gray', alpha=0.3, linewidth=0.2)
         self.plot1 = plt.scatter(df.lon_init, df.lat_init, c=c_vals,s=10, edgecolors='gray', vmin=np.nanmean(c_vals)/2,
                                vmax=np.nanmean(c_vals)*2, linewidth=0.2, cmap=self.site_recruit_cmap)
         self.add_cbar(c_max=np.nanmax(c_vals), caxis_title='Percentage (%)')
         self.save_plot(plt_name=self.save_prefix + 'site_recruits')
+        return
 
 
 
@@ -279,7 +280,6 @@ class PlotData:
         plt.grid(alpha=0.45)  # nice and clean grid
         plt_name = self.save_prefix + "recruit_times"
         self.save_plot(plt_name)
-        breakpoint()
 
 
 
@@ -371,6 +371,11 @@ class PlotData:
             #self.ax.set_extent(
              #   [self.min_lon - self.lon_offset, self.max_lon + self.lon_offset, self.min_lat - self.lat_offset,
               #   self.max_lat + self.lat_offset])
+        elif background == "SOI":
+            self.SOI_lon_lat_extent()
+            self.ax.set_extent(
+                [self.min_lon, self.max_lon, self.min_lat,
+                 self.max_lat])
         else:
             self.gen_lon_lat_extent()
             self.ax.set_extent([self.min_lon-self.lon_offset, self.max_lon+self.lon_offset, self.min_lat-self.lat_offset,
@@ -408,6 +413,14 @@ class PlotData:
         self.max_lon = -51
         self.min_lat = -69
         self.max_lat = -56
+        return
+
+    def SOI_lon_lat_extent(self):
+        #todo: put all site_lims in same function and add ifelse statements
+        self.min_lon = -49
+        self.max_lon = -41
+        self.min_lat = -64.5
+        self.max_lat = -58
         return
 
     def gen_lon_lat_extent(self):

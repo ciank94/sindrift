@@ -49,6 +49,10 @@ class FileExplorer:
         self.figures_path = self.local_drift_path + 'figures/'
         return
 
+    def local_phys_states(self):
+        self.phys_states_path = self.local_drift_path + 'phys_states/'
+        return
+
     def get_phys_states(self, date_init, date_limit):
         if self.model_name == "sinmod":
             if not date_init.month == date_limit.month:
@@ -110,7 +114,7 @@ class Scenario:
         self.time_step = time_step  # simulation time step in hours as datetime object
         self.save_time_step = save_step  # how often the file is saved
         self.release_step = release_step  # number of hours between releases
-        self.export_variables = ['lon', 'lat', 'z', 'thetao', 'uo', 'vo']  # choose variables to export from simulation to nc file
+        self.export_variables = ['lon', 'lat', 'z']  # choose variables to export from simulation to nc file
 
         # Information from the phys_states_file:
         self.phys_states_file = reader_phys_states.name
@@ -165,7 +169,7 @@ class Scenario:
         self.domain_lon_max = -30
         self.domain_lat_min = -65
         self.domain_lat_max = -48
-        self.bound_name = 'NEMO boundaries'
+        self.bound_name = 'NEMO'
         return
 
     def get_BSSI_bounds(self):
@@ -192,6 +196,7 @@ class Scenario:
         self.site_lon_max = -37.5
         self.site_lat_min = -57
         self.site_lat_max = -54
+        self.z = 75  # release depth
         return
 
     def init_scenario_netcdf(self, fpath):
