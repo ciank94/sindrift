@@ -28,27 +28,27 @@ class ReadAnalysis:
         self.shp_t = np.shape(self.lat)[1]
         time = self.trajectory_df.variables['time']
         self.time = num2date(time, time.units)
-        # self.z = self.nc_file['z']
         return
 
     def read_analysis_df(self):
-        self.lon_bin_vals = self.analysis_df.variables['lon_bin_vals'][:]
-        self.lat_bin_vals = self.analysis_df.variables['lat_bin_vals'][:]
+        # subset variables from file in dictionary
+        self.analysis_vardict = dict()
+        for key in self.analysis_df.variables:
+            self.analysis_vardict[key] = self.analysis_df.variables[key]
+
+        # subset dimension size from file
+        self.n_lat_bins = self.analysis_df.dimensions['n_lat_bins'].size
+        self.n_lon_bins = self.analysis_df.dimensions['n_lon_bins'].size
+        self.shp_t = self.analysis_df.dimensions['obs'].size
+
+        # subset attributes from file
         self.bin_res = self.analysis_df.bin_resolution
-        self.n_lat_bins = np.shape(self.lat_bin_vals)[0]
-        self.n_lon_bins = np.shape(self.lat_bin_vals)[0]
         self.key = self.analysis_df.scenario_key
         self.min_lon = self.analysis_df.domain_lon_min
         self.min_lat = self.analysis_df.domain_lat_min
         self.max_lon = self.analysis_df.domain_lon_max
         self.max_lat = self.analysis_df.domain_lat_max
         self.p_shp = self.analysis_df.n_part
-        try:
-            self.recruit = self.analysis_df['recruit_SG_north'][:]
-        except:
-            breakpoint()
-        self.CG = self.analysis_df['CG'][:]
-        self.dom_paths = self.analysis_df.variables['dom_paths'][:]
         self.sim_start_day = self.analysis_df.sim_start_day
         self.sim_start_month = self.analysis_df.sim_start_month
         self.sim_start_year = self.analysis_df.sim_start_year
@@ -63,7 +63,14 @@ class StoreRelease:
         self.fpath = fpath
 
     def init_variables(self, rd):
-        self.CG = np.zeros([np.shape(rd.CG)[0], np.shape(rd.CG)[1], self.shp_r])
+        # initialise time series variables:
+        self.CG_lon = np.zeros([rd.shp_t, self.shp_r])
+        self.CG_lat = np.zeros([rd.shp_t, self.shp_r])
+        self.o2_exp = np.zeros([rd.shp_t, self.shp_r])
+        self.chl_exp = np.zeros([rd.shp_t, self.shp_r])
+        self.temp_exp = np.zeros([rd.shp_t, self.shp_r])
+
+        # initialise for 1D data
         self.recruit_number = np.zeros([self.shp_r])
         self.recruit_time = np.zeros([self.shp_r])
         self.year_r = np.zeros([self.shp_r])
@@ -74,16 +81,18 @@ class StoreRelease:
         self.site_recruits = np.zeros([rd.p_shp])
         self.dom_paths = np.zeros(np.shape(rd.dom_paths))
         self.rd = rd
-        self.key = rd.key
+        self.key = rd.scenario_key
         self.sim_start_year = rd.sim_start_year
-        self.lon_bin_vals = rd.lon_bin_vals[:]
-        self.lat_bin_vals = rd.lat_bin_vals[:]
+        self.lon_bin_vals = rd.analysis_vardict['lon_bin_vals'][:]
+        self.lat_bin_vals = rd.analysis_vardict['lat_bin_vals'][:]
+        return
 
     def store_variables(self, rd):
-        try:
-            self.CG[:, :, self.counter_r] = rd.CG
-        except:
-            self.CG[:, :, self.counter_r] = np.nan
+        self.CG_lon[:, self.counter_r] = rd.analysis_vardict['CG_lon'][:]
+        self.CG_lat[:, self.counter_r] = rd.analysis_vardict['CG_lat'][:]
+        self.o2_exp[:, self.counter_r] = rd.analysis_vardict['o2_exp'][:]
+        self.chl_exp[:, self.counter_r] = rd.analysis_vardict['chl_exp'][:]
+        self.temp_exp[:, self.counter_r] = rd.analysis_vardict['temp_exp'][:]
         self.count_recruits(rd)
         self.dom_paths = self.dom_paths + rd.dom_paths
         return

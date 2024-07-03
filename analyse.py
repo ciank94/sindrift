@@ -2,13 +2,17 @@
 from configure import FileExplorer
 from post_process import PostProcess
 
-# Ready the file paths for analysis:,1)
+# Ready the file paths for analysis, specifying whether running code and accessing files locally or remotely
 node_name = 'local'
+file_loc = 'remote'
 fpath = FileExplorer(node=node_name, model_name='cmems', key="SOIN")
 fpath.search_path(year=2016, release_start=1, release_end=1)  # select files which should be analysed
 
 if node_name == 'local':
-    fpath.local_phys_states()
+    if file_loc == 'remote':
+        fpath.mounted_paths()
+    else:
+        fpath.local_phys_states()
 
 # Post-process simulation file, saving intermediate data (unique particle visits, transit times ...)
 #todo: make an instance of the process object that accepts kwargs- keyword list carrying a key value;
