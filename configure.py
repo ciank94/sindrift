@@ -21,16 +21,19 @@ class FileExplorer:
         valid_key_list = ["SG8H", "BSSI", "SOIN"]
         if self.key not in valid_key_list:
             sys.exit('Not a valid key pointing to an initialisation scenario')
+        #todo: use dictionary with folder names
         if self.node == 'local':
             sys.path.insert(0, 'C:/Users/ciank/PycharmProjects/sinmod/opendrift')  # add opendrift local path
             self.phys_states_path = self.mounted_remote_drift_path + 'phys_states/'
             self.trajectory_path = self.local_drift_path + 'trajectory/'
             self.analysis_path = self.local_drift_path + 'analysis/'
+            self.compile_path = self.local_drift_path + 'compile/'
             self.figures_path = self.local_drift_path + 'figures/'
         elif self.node == 'remote':
             self.phys_states_path = self.remote_drift_path + 'phys_states/'
             self.trajectory_path = self.remote_drift_path + 'trajectory/'
             self.analysis_path = self.remote_drift_path + 'analysis/'
+            self.compile_path = self.remote_drift_path + 'compile/'
             self.figures_path = self.remote_drift_path + 'figures/'
         else:
             sys.exit('Specify the correct node in FileExplorer, node = ' + self.node + ' is not an option')

@@ -90,6 +90,10 @@ class PostProcess:
         self.analysis_df.variables['chl_exp'][:] = self.chl_exp
         self.analysis_df.variables['o2_exp'][:] = self.o2_exp
         self.analysis_df.variables['temp_exp'][:] = self.temp_exp
+        self.analysis_df.variables['lat_init'][:] = self.lat[:, 0]
+        self.analysis_df.variables['lon_init'][:] = self.lon[:, 0]
+        self.analysis_df['time'][:] = self.times[:]
+        self.analysis_df['time'].units = self.times.units
 
         # close files:
         self.bio_states.close()
@@ -157,8 +161,8 @@ class PostProcess:
     def read_trajectory(self):
         # extract data from trajectory file
         self.trajectory_df = nc.Dataset(self.tr_file, mode='r')
-        times = self.trajectory_df.variables['time']
-        self.dates = num2date(times, times.units)
+        self.times = self.trajectory_df.variables['time']
+        self.dates = num2date(self.times, self.times.units)
         self.lat = np.array(self.trajectory_df['lat'][:])
         self.lat[self.lat > 1e06] = np.nan
         self.lat[self.lat == 0] = np.nan
@@ -191,7 +195,13 @@ class PostProcess:
                                  'chl_exp': {'datatype': 'f4', 'dimensions': ('obs',),
                                              'description': 'experienced chlorophyll concentration along trajectory'},
                                  'temp_exp': {'datatype': 'f4', 'dimensions': ('obs',),
-                                              'description': 'experienced temperature along trajectory'}
+                                              'description': 'experienced temperature along trajectory'},
+                                 'lat_init': {'datatype': 'f4', 'dimensions': ('trajectory',),
+                                              'description': 'initial latitude'},
+                                 'lon_init': {'datatype': 'f4', 'dimensions': ('trajectory',),
+                                              'description': 'initial longitude'},
+                                 'time': {'datatype': 'f4', 'dimensions': ('obs',),
+                                          'description': 'times saved for analysis'}
                                  }
         else:
             variable_key_dict = {'dom_paths': {'datatype': 'i4', 'dimensions': ('n_lon_bins', 'n_lat_bins'),
@@ -207,7 +217,13 @@ class PostProcess:
                                  'chl_exp': {'datatype': 'f4', 'dimensions': ('obs',),
                                              'description': 'experienced chlorophyll concentration along trajectory'},
                                  'temp_exp': {'datatype': 'f4', 'dimensions': ('obs',),
-                                              'description': 'experienced temperature along trajectory'}
+                                              'description': 'experienced temperature along trajectory'},
+                                 'lat_init': {'datatype': 'f4', 'dimensions': ('trajectory',),
+                                              'description': 'initial latitude'},
+                                 'lon_init': {'datatype': 'f4', 'dimensions': ('trajectory',),
+                                              'description': 'initial longitude'},
+                                 'time': {'datatype': 'f4', 'dimensions': ('obs',),
+                                          'description': 'times saved for analysis'}
                                  }
 
 
