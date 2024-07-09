@@ -107,7 +107,7 @@ class FileExplorer:
 
 
 class Scenario:
-    def __init__(self, fpath, date_release, duration_days, time_step, save_step, release_step, release_i,
+    def __init__(self, fpath, date_init, date_release, duration_days, time_step, save_step, release_step, release_i,
                  reader_phys_states):
         # Simulation settings for scenario
         self.key = fpath.key  # key used to identify initialization scenario
@@ -129,7 +129,7 @@ class Scenario:
 
         # Initialize scenario parameters and save them as attributes to scenario file
         self.scenario_initialization()  # furnish initialization scenario with class attributes at beginning
-        self.trajectory_file_name = self.key + '_' + str(self.year) + '_R' + str(self.release_n) + '_trajectory.nc'
+        self.trajectory_file_name = self.key + '_' + str(date_init.year) + '_R' + str(self.release_n) + '_trajectory.nc'
         self.trajectory_file = (fpath.trajectory_path + self.trajectory_file_name)  # Trajectory output file name
         self.analysis_file_name = (self.key + '_' + str(self.year) + '_R' + str(self.release_n)
                                    + '_trajectory_analysis.nc')
@@ -143,6 +143,7 @@ class Scenario:
         self.radius = 0  # radius of initialized particles in metres (zero in case of regular grid)
         self.bin_res = 0.2  # resolution of bins (lat and lon) for analysis
         if self.key == "SG8H":
+            self.get_NEMO_bounds()
             self.get_SG8H_bounds()
         elif self.key == "SOIN":
             self.get_NEMO_bounds()

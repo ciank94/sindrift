@@ -1,21 +1,35 @@
 #todo: add functionality for plotting diagnostics from simulation- add options so that the worms plot can be done alone as a check
 from configure import FileExplorer
 from compile_releases import StoreReleases
+from plot_data import PlotData
 import matplotlib.pyplot as plt
 import numpy as np
 import netCDF4 as nc
+compile_folder = 'A:/Cian_sinmod/opendrift/' + 'compile/'
+analysis_folder = 'A:/Cian_sinmod/opendrift/' + 'analysis/'
+
+p_plot = PlotData(key='SG8H', year='2017', compile_folder=compile_folder, analysis_folder=analysis_folder)
+
+filename = p_plot.compile_folder + p_plot.file_prefix + 'dom_paths.npy'
+dom_paths = np.load(filename)
+p_plot.plot_dom_paths(dom_paths, release_n=3)
+
+
+breakpoint()
+
+filename = file_prefix + 'CG_lat.npy'
+
+CG_lat = np.load(filename)
+
+filename = file_prefix + 'temp_exp.npy'
+temp_exp = np.load(filename)
+breakpoint()
 
 # Ready the file paths for analysis
-node_name = 'local'
-file_loc = 'remote'
-fpath = FileExplorer(node=node_name, model_name='cmems', key="SOIN")
-if node_name == 'local':
-    if file_loc == 'remote':
-        fpath.mounted_paths()
-    else:
-        fpath.local_phys_states()
 
-fpath.search_path(year=2016, release_start=1, release_end=3)  # select files which should be analysed
+
+# pseudocode:
+# load files using numpy- get data needed
 
 
 # pld.plot_CG_paths(df)

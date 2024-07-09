@@ -6,10 +6,10 @@ from opendrift.readers import reader_netCDF_CF_generic, reader_global_landmask
 import datetime
 
 # Simulation settings (time, releases, initialization scenario)
-date_init = datetime.datetime(2016, 11, 1, 0, 0)  # beginning of first simulation;
-duration_days = datetime.timedelta(days=3)  # simulation duration in days;
+date_init = datetime.datetime(2017, 1, 30, 0, 0)  # beginning of first simulation;
+duration_days = datetime.timedelta(days=20)  # simulation duration in days;
 release_step = datetime.timedelta(days=3)  # days between releases of particles;
-time_step = datetime.timedelta(hours=1)  # simulation time step (negative time is backwards stepping of model)
+time_step = datetime.timedelta(hours=6)  # simulation time step (negative time is backwards stepping of model)
 save_step = datetime.timedelta(hours=6)  # save time step
 release_n = 1   # total number of releases for simulation
 date_limit = date_init + (release_step*(release_n-1)) + duration_days  # final date that will be accessed
@@ -35,7 +35,7 @@ for release_i in range(0, release_n):
     o.add_reader([reader_landmask, reader_phys_states])  # add readers for input
 
     # Parameterization of scenario object for initialization and running
-    scenario = Scenario(fpath, date_release, duration_days, time_step, save_step, release_step, release_i
+    scenario = Scenario(fpath, date_init, date_release, duration_days, time_step, save_step, release_step, release_i
                         , reader_phys_states)
 
     # Initialization of simulation

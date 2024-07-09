@@ -10,9 +10,16 @@ import os
 from netCDF4 import num2date
 class PlotData:
 
-    def __init__(self, df):
-        self.fpath = df.fpath
-        self.save_prefix = (df.key + '_' + str(df.sim_start_year) + '_')
+    def __init__(self, key, year, compile_folder, analysis_folder):
+        self.figures_path = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/figures/'
+        self.key = key
+        self.year = year
+        self.compile_folder = compile_folder
+        self.analysis_folder = analysis_folder
+        self.file_prefix = key + '_' + year + '_'
+        self.save_prefix = self.figures_path + self.file_prefix
+        self.analysis_file = self.analysis_folder + self.file_prefix + 'R1_trajectory_analysis.nc'
+        self.df = nc.Dataset(self.analysis_file)
 
         # polygon for analysis
         self.n_poly = 0
@@ -31,7 +38,7 @@ class PlotData:
 
         # Dominant pathways color scaling:
         self.d_scale = 40
-        self.max_scale = 0.4
+        self.max_scale = 0.75
 
         # plotting parameters
         self.bath_contours = np.linspace(0, 3000, 10)
@@ -46,7 +53,21 @@ class PlotData:
         self.lat_offset = 3
         return
 
-
+    def plot_dom_paths(self, dom_paths, release_n):
+        self.init_plot()
+        self.plot_background(background='n')
+        dom_paths = dom_paths.astype(float)
+        #dom_paths[dom_paths == 0] = np.nan
+        dom_paths = (dom_paths / ((release_n) * 10000)) * 100
+        max_vals = np.nanmax(dom_paths) * self.max_scale
+        n_levels = np.arange(np.nanmin(dom_paths), max_vals, max_vals / 50)
+        self.plot1 = plt.contourf(self.df['lon_bin_vals'][:], self.df['lat_bin_vals'][:], dom_paths.T, levels=n_levels, cmap=self.dom_cmap,
+                                  transform=ccrs.PlateCarree(), extend='both')
+        self.c_max = max_vals
+        self.add_cbar(c_max=self.c_max, caxis_title='unique_particles')
+        plt_name = self.file_prefix + "dom_paths"
+        self.save_plot(plt_name)
+        return
 
     def plot_CG_paths(self, df):
         self.init_plot()
@@ -83,9 +104,9 @@ class PlotData:
 
     def load_bathymetry(self):
         self.bath_res = 0.04  # bathymetry resolution
-        self.bath_file = self.fpath.figures_path + 'bath.npy'
-        self.bath_file_lon = self.fpath.figures_path + 'bath_lon.npy'
-        self.bath_file_lat = self.fpath.figures_path + 'bath_lat.npy'
+        self.bath_file = self.figures_path + 'bath.npy'
+        self.bath_file_lon = self.figures_path + 'bath_lon.npy'
+        self.bath_file_lat = self.figures_path + 'bath_lat.npy'
         if not os.path.exists(self.bath_file):
             self.get_bathfile()
             print('Creating ' + self.bath_file)
@@ -126,20 +147,6 @@ class PlotData:
         return
 
 
-    def plot_dom_paths(self, df):
-        self.init_plot()
-        self.plot_background(background='n')
-        dom_paths = df.dom_paths.astype(float)
-        dom_paths[dom_paths==0] = np.nan
-        dom_paths = (dom_paths/((df.counter_r +1)*10000)) * 100
-        max_vals = np.nanmax(dom_paths)*self.max_scale
-        n_levels = np.arange(np.nanmin(dom_paths), max_vals, max_vals/25)
-        self.plot1 = plt.contourf(df.lon_bin_vals, df.lat_bin_vals, dom_paths.T, levels=n_levels, cmap=self.dom_cmap, transform=ccrs.PlateCarree(), extend='both')
-        self.c_max = max_vals
-        self.add_cbar(c_max= self.c_max, caxis_title='unique_particles')
-        plt_name = self.save_prefix + "dom_paths"
-        self.save_plot(plt_name)
-        return
 
     def plot_time_recruits(self, df):
         dates = df.recruit_table.date
@@ -255,8 +262,8 @@ class PlotData:
                  self.max_lat])
         else:
             self.gen_lon_lat_extent()
-            self.ax.set_extent([self.min_lon-self.lon_offset, self.max_lon+self.lon_offset, self.min_lat-self.lat_offset,
-                            self.max_lat+self.lat_offset])
+            self.ax.set_extent([self.min_lon, self.max_lon, self.min_lat,
+                            self.max_lat])
         return
 
     def plot_depth(self):
@@ -279,7 +286,7 @@ class PlotData:
         return
 
     def save_plot(self, plt_name):
-        savefile = self.fpath.figures_path + plt_name + '.png'
+        savefile = self.figures_path + plt_name + '.png'
         print('Saving file: ' + savefile)
         plt.savefig(savefile, dpi=400)
         plt.close()
@@ -302,9 +309,9 @@ class PlotData:
 
     def gen_lon_lat_extent(self):
         # SG extent;
-        self.min_lon = -45
+        self.min_lon = -43
         self.max_lon = -33
-        self.min_lat = -57
-        self.max_lat = -52
+        self.min_lat = -58
+        self.max_lat = -50
         return
 
