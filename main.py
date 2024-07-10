@@ -1,6 +1,6 @@
 # Firstly, specify location of netcdf input files
 from configure import Scenario, FileExplorer
-fpath = FileExplorer(node='local', model_name='cmems', key="SOIN")
+fpath = FileExplorer(node='local', model_name='sinmod', key="SG8H")
 from opendrift.models.oceandrift import OceanDrift
 from opendrift.readers import reader_netCDF_CF_generic, reader_global_landmask
 import datetime

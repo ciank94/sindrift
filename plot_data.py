@@ -38,7 +38,8 @@ class PlotData:
 
         # Dominant pathways color scaling:
         self.d_scale = 40
-        self.max_scale = 0.75
+        if self.key == 'SOIN':
+            self.max_val = 5
 
         # plotting parameters
         self.bath_contours = np.linspace(0, 3000, 10)
@@ -46,28 +47,78 @@ class PlotData:
         #self.dom_cmap = plt.get_cmap('Reds')
         self.dom_cmap = plt.get_cmap('OrRd')
         self.depth_colors = np.arange(0, 4500, 200)
-        self.site_recruit_cmap = plt.get_cmap('jet')
+        self.site_recruit_cmap = plt.get_cmap('hot')
 
         # offsets for figure boundaries:
         self.lon_offset = 1
         self.lat_offset = 3
         return
 
-    def plot_dom_paths(self, dom_paths, release_n):
+    def plot_dom_paths(self, release_n):
         self.init_plot()
-        self.plot_background(background='n')
+        self.plot_background(background=self.key)
+        filename = self.compile_folder + self.file_prefix + 'dom_paths.npy'
+        dom_paths = np.load(filename)
         dom_paths = dom_paths.astype(float)
         #dom_paths[dom_paths == 0] = np.nan
         dom_paths = (dom_paths / ((release_n) * 10000)) * 100
-        max_vals = np.nanmax(dom_paths) * self.max_scale
-        n_levels = np.arange(np.nanmin(dom_paths), max_vals, max_vals / 50)
-        self.plot1 = plt.contourf(self.df['lon_bin_vals'][:], self.df['lat_bin_vals'][:], dom_paths.T, levels=n_levels, cmap=self.dom_cmap,
-                                  transform=ccrs.PlateCarree(), extend='both')
-        self.c_max = max_vals
-        self.add_cbar(c_max=self.c_max, caxis_title='unique_particles')
+        n_levels = np.arange(np.nanmin(dom_paths), self.max_val, self.max_val / 25)
+        #self.plot1 = plt.contourf(self.df['lon_bin_vals'][:], self.df['lat_bin_vals'][:], dom_paths.T, levels=n_levels, cmap=self.dom_cmap,
+                                  #transform=ccrs.PlateCarree(), extend='both')
+        self.plot1 = plt.pcolormesh(self.df['lon_bin_vals'][:], self.df['lat_bin_vals'][:], dom_paths.T,
+                                  cmap=self.dom_cmap,
+                                  transform=ccrs.PlateCarree())
+        self.add_cbar(c_max=self.max_val, caxis_title='probability (%)')
         plt_name = self.file_prefix + "dom_paths"
         self.save_plot(plt_name)
         return
+
+    def plot_site_recruit_t(self, release_n):
+        self.init_plot()
+        self.plot_background(background='SOI')
+        filename = self.compile_folder + self.file_prefix + 'site_recruits.npy'
+        site_recruits = np.load(filename)
+        self.ax.scatter(self.df.variables['lon_init'][:], self.df.variables['lat_init'][:], s=10, facecolor='none', edgecolors='gray',
+                        alpha=0.3, linewidth=0.2)
+        c_vals = site_recruits[2, :] / (release_n) * 100
+        self.plot1 = plt.scatter(self.df.variables['lon_init'][:], self.df.variables['lat_init'][:], c=c_vals, s=10, edgecolors='gray',
+                                 vmin=np.nanmean(c_vals)/2,
+                                 vmax=100, linewidth=0.2, cmap=self.site_recruit_cmap)
+        self.add_cbar(c_max=60, caxis_title='Percentage (%)')
+        self.save_plot(plt_name=self.file_prefix + 'site_recruits')
+        return
+
+    def plot_hist_environment(self):
+        filename = self.compile_folder + self.file_prefix + 'chl_exp.npy'
+        chl_exp = np.load(filename)
+        plt.plot(chl_exp, c='k')
+        plt.ylabel('mg m-3')
+        plt.ylim([0.03, 0.26])
+        self.save_plot(plt_name=self.file_prefix + 'chl_exp')
+
+        filename = self.compile_folder + self.file_prefix + 'o2_exp.npy'
+        o2_exp = np.load(filename)
+        plt.plot(o2_exp, c='k')
+        plt.ylabel('mmol m-3')
+        plt.ylim([320, 365])
+        self.save_plot(plt_name=self.file_prefix + 'o2_exp')
+
+        filename = self.compile_folder + self.file_prefix + 'temp_exp.npy'
+        temp_exp = np.load(filename)
+        plt.plot(temp_exp, c='k')
+        plt.ylabel('C')
+        plt.ylim([-2, 2])
+        self.save_plot(plt_name=self.file_prefix + 'temp_exp')
+
+        filename = self.compile_folder + self.file_prefix + 'CG_lat.npy'
+        CG_lat = np.load(filename)
+        plt.plot(CG_lat, c='k')
+        plt.ylabel('latitude')
+        plt.ylim([-60.4, -57])
+        self.save_plot(plt_name=self.file_prefix + 'CG_lat')
+        return
+
+
 
     def plot_CG_paths(self, df):
         self.init_plot()
@@ -260,6 +311,11 @@ class PlotData:
             self.ax.set_extent(
                 [self.min_lon, self.max_lon, self.min_lat,
                  self.max_lat])
+        elif background == "SOIN":
+            self.SOIN_lon_lat_extent()
+            self.ax.set_extent(
+                [self.min_lon, self.max_lon, self.min_lat,
+                 self.max_lat])
         else:
             self.gen_lon_lat_extent()
             self.ax.set_extent([self.min_lon, self.max_lon, self.min_lat,
@@ -312,6 +368,14 @@ class PlotData:
         self.min_lon = -43
         self.max_lon = -33
         self.min_lat = -58
+        self.max_lat = -50
+        return
+
+    def SOIN_lon_lat_extent(self):
+        # SG extent;
+        self.min_lon = -50
+        self.max_lon = -31
+        self.min_lat = -65
         self.max_lat = -50
         return
 

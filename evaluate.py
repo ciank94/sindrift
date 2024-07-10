@@ -7,23 +7,34 @@ import numpy as np
 import netCDF4 as nc
 compile_folder = 'A:/Cian_sinmod/opendrift/' + 'compile/'
 analysis_folder = 'A:/Cian_sinmod/opendrift/' + 'analysis/'
+years = ['2016', '2017', '2018', '2019']
+release_number = 10
+# switches for different analysis
+case_dom = False
+case_srec = False
+case_env = True
 
-p_plot = PlotData(key='SG8H', year='2017', compile_folder=compile_folder, analysis_folder=analysis_folder)
+for y in years:
+    p_plot = PlotData(key='SOIN', year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+    if case_dom:
+        p_plot.plot_dom_paths(release_n=release_number)
+    if case_srec:
+        p_plot.plot_site_recruit_t(release_n=release_number)
+    if case_env:
+        p_plot.plot_hist_environment()
 
-filename = p_plot.compile_folder + p_plot.file_prefix + 'dom_paths.npy'
-dom_paths = np.load(filename)
-p_plot.plot_dom_paths(dom_paths, release_n=3)
 
 
-breakpoint()
 
-filename = file_prefix + 'CG_lat.npy'
 
-CG_lat = np.load(filename)
 
-filename = file_prefix + 'temp_exp.npy'
-temp_exp = np.load(filename)
-breakpoint()
+    #filename = file_prefix + 'CG_lat.npy'
+
+    #CG_lat = np.load(filename)
+
+    #filename = file_prefix + 'temp_exp.npy'
+    #temp_exp = np.load(filename)
+
 
 # Ready the file paths for analysis
 
