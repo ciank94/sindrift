@@ -1,5 +1,6 @@
 import matplotlib
 import matplotlib.pyplot as plt
+import pandas as pd
 #from matplotlib.patches import Polygon
 from shapely.geometry.polygon import LinearRing, Polygon
 import cartopy.crs as ccrs
@@ -78,9 +79,17 @@ class PlotData:
         self.plot_background(background='SOI')
         filename = self.compile_folder + self.file_prefix + 'site_recruits.npy'
         site_recruits = np.load(filename)
+        filename2 = self.compile_folder + self.file_prefix + 'recruit_SG.csv'
+        r_table = pd.read_csv(filename2)
+        print('recruit number mean ' + self.year + ': ' + str(np.mean(r_table.recruit_number*100/10000)))
+        print('recruit number std ' + self.year + ': ' + str(np.std(r_table.recruit_number*100/10000)))
+        print('recruit time mean ' + self.year + ': ' + str(np.mean(r_table.recruit_time/24)))
+        print('recruit time std ' + self.year + ': ' + str(np.std(r_table.recruit_time / 24)))
         self.ax.scatter(self.df.variables['lon_init'][:], self.df.variables['lat_init'][:], s=10, facecolor='none', edgecolors='gray',
                         alpha=0.3, linewidth=0.2)
         c_vals = site_recruits[2, :] / (release_n) * 100
+        #print('recruit mean values for ' + self.year + ': ' + str(np.mean(c_vals)))
+        #print('recruit std values for ' + self.year + ': ' + str(np.std(c_vals)))
         self.plot1 = plt.scatter(self.df.variables['lon_init'][:], self.df.variables['lat_init'][:], c=c_vals, s=10, edgecolors='gray',
                                  vmin=np.nanmean(c_vals)/2,
                                  vmax=100, linewidth=0.2, cmap=self.site_recruit_cmap)
@@ -91,6 +100,8 @@ class PlotData:
     def plot_hist_environment(self):
         filename = self.compile_folder + self.file_prefix + 'chl_exp.npy'
         chl_exp = np.load(filename)
+        print('chlorophyll mean: ' + self.year + ': ' + str(np.mean(chl_exp)))
+        print('chlorophyll std: ' + self.year + ': ' + str(np.std(chl_exp)))
         plt.plot(chl_exp, c='k')
         plt.ylabel('mg m-3')
         plt.ylim([0.03, 0.26])
@@ -98,6 +109,8 @@ class PlotData:
 
         filename = self.compile_folder + self.file_prefix + 'o2_exp.npy'
         o2_exp = np.load(filename)
+        print('o2 mean: ' + self.year + ': ' + str(np.mean(o2_exp)))
+        print('o2 std: ' + self.year + ': ' + str(np.std(o2_exp)))
         plt.plot(o2_exp, c='k')
         plt.ylabel('mmol m-3')
         plt.ylim([320, 365])
@@ -105,6 +118,8 @@ class PlotData:
 
         filename = self.compile_folder + self.file_prefix + 'temp_exp.npy'
         temp_exp = np.load(filename)
+        print('temp mean: ' + self.year + ': ' + str(np.mean(temp_exp)))
+        print('temp std: ' + self.year + ': ' + str(np.std(temp_exp)))
         plt.plot(temp_exp, c='k')
         plt.ylabel('C')
         plt.ylim([-2, 2])
