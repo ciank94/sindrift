@@ -7,15 +7,86 @@ import numpy as np
 import netCDF4 as nc
 compile_folder = 'A:/Cian_sinmod/opendrift/' + 'compile/'
 analysis_folder = 'A:/Cian_sinmod/opendrift/' + 'analysis/'
-years = ['2016', '2017', '2018', '2019']
+years = np.arange(2006, 2017+1, 1)
 release_number = 10
 # switches for different analysis
 case_dom = False
 case_srec = False
 case_env = True
 
+# the catch dataset is now in figures folder; use the data to compare against simulations;
+recruit_v = np.zeros(np.shape(years))
+catch_v = np.zeros(np.shape(years))
+temp_v = np.zeros(np.shape(years))
+chl_v = np.zeros(np.shape(years))
+o2_v = np.zeros(np.shape(years))
+counter = -1
 for y in years:
-    p_plot = PlotData(key='SOIN', year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+    counter = counter + 1
+    p_plot = PlotData(key='BSSI', year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+    catch_v[counter] = p_plot.read_catch()
+    recruit_v[counter] = p_plot.get_recruits()
+    temp_v[counter] = p_plot.get_temp_exp()
+    chl_v[counter] = p_plot.get_chl_exp()
+    o2_v[counter] = p_plot.get_o2_exp()
+
+
+fig, ax1 = plt.subplots(4)
+
+axis1_title = 'catch'
+axis2_title = 'temp'
+ax2 = ax1[0].twinx()
+ax1[0].set_ylabel(axis1_title, color='b', fontsize=13)
+ax2.set_ylabel(axis2_title, color='r', fontsize=13)
+ax1[0].plot(catch_v, 'bo', fillstyle='none')
+ax2.plot(temp_v, c='r')
+uniq_years = np.unique(years)
+plt.xticks(np.arange(0, np.shape(uniq_years)[0]),
+                   ['2007', '2008','2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018'])
+plt.grid(alpha=0.45)  # nice and clean grid
+
+
+axis1_title = 'catch'
+axis2_title = 'recruit'
+ax2 = ax1[1].twinx()
+ax1[1].set_ylabel(axis1_title, color='b', fontsize=13)
+ax2.set_ylabel(axis2_title, color='r', fontsize=13)
+ax1[1].plot(catch_v, 'bo', fillstyle='none')
+ax2.plot(recruit_v, c='r')
+uniq_years = np.unique(years)
+plt.xticks(np.arange(0, np.shape(uniq_years)[0]),
+                   ['2007', '2008','2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018'])
+plt.grid(alpha=0.45)  # nice and clean grid
+
+
+axis1_title = 'catch'
+axis2_title = 'chl'
+ax2 = ax1[2].twinx()
+ax1[2].set_ylabel(axis1_title, color='b', fontsize=13)
+ax2.set_ylabel(axis2_title, color='r', fontsize=13)
+ax1[2].plot(catch_v, 'bo', fillstyle='none')
+ax2.plot(chl_v, c='r')
+uniq_years = np.unique(years)
+plt.xticks(np.arange(0, np.shape(uniq_years)[0]),
+                   ['2007', '2008','2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018'])
+plt.grid(alpha=0.45)  # nice and clean grid
+
+axis1_title = 'catch'
+axis2_title = 'o2'
+ax2 = ax1[3].twinx()
+ax1[3].set_ylabel(axis1_title, color='b', fontsize=13)
+ax2.set_ylabel(axis2_title, color='r', fontsize=13)
+ax1[3].plot(catch_v, 'bo', fillstyle='none')
+ax2.plot(o2_v, c='r')
+uniq_years = np.unique(years)
+plt.xticks(np.arange(0, np.shape(uniq_years)[0]),
+                   ['2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018'])
+plt.grid(alpha=0.45)  # nice and clean grid
+breakpoint()
+
+for y in years:
+    p_plot = PlotData(key='BSSI', year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+    # first,
     if case_dom:
         p_plot.plot_dom_paths(release_n=release_number)
     if case_srec:

@@ -8,16 +8,18 @@ import cartopy.feature as cfeature
 import numpy as np
 import netCDF4 as nc
 import os
+from datetime import datetime
 from netCDF4 import num2date
 class PlotData:
 
     def __init__(self, key, year, compile_folder, analysis_folder):
         self.figures_path = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/figures/'
         self.key = key
-        self.year = year
+        self.year_n = year
+        self.year = str(year)
         self.compile_folder = compile_folder
         self.analysis_folder = analysis_folder
-        self.file_prefix = key + '_' + year + '_'
+        self.file_prefix = key + '_' + self.year + '_'
         self.save_prefix = self.figures_path + self.file_prefix
         self.analysis_file = self.analysis_folder + self.file_prefix + 'R1_trajectory_analysis.nc'
         self.df = nc.Dataset(self.analysis_file)
@@ -33,6 +35,69 @@ class PlotData:
         self.load_plot_params()
         #self.lon_lat_extent()
         return
+
+    def read_catch(self):
+        catch_file = self.figures_path + 'C1_680.csv'
+        self.time_file = self.figures_path + 'time.npy'
+
+        csv_file = pd.read_csv(catch_file, sep=',')
+        self.area_rule = csv_file.asd_code == 483  # key code for area
+        self.get_time(csv_file)
+        self.df = csv_file[self.area_rule]
+
+        id_c = self.year_c == self.year_n + 1
+        avg_catch = np.nanmean(self.df.krill_greenweight_kg[id_c]/1000)
+        return avg_catch
+
+    def get_time(self, csv_file):
+        if not os.path.exists(self.time_file):  # if file doesn't exist
+            time_array = csv_file.datetime_haul_start
+            shp_t = np.shape(time_array)[0]
+            time_store = np.zeros([shp_t, 4])
+
+            for i in range(0, shp_t):
+                d1 = datetime.strptime(time_array[i], "%Y-%m-%d %H:%M:%S")
+                time_store[i, 0] = d1.hour
+                time_store[i, 1] = d1.day
+                time_store[i, 2] = d1.month
+                time_store[i, 3] = d1.year
+
+            np.save(self.time_file, time_store)
+            time_array = np.load(self.time_file)
+            print('Saving file: ' + self.time_file)
+        else:
+            time_array = np.load(self.time_file)
+            print('File exists: ' + self.time_file)
+        time_sub = time_array[self.area_rule]
+        self.hour = time_sub[:, 0].astype(int)
+        self.day = time_sub[:, 1].astype(int)
+        self.month = time_sub[:, 2].astype(int)
+        self.year_c = time_sub[:, 3].astype(int)
+        return
+
+    def get_recruits(self):
+        filename = self.compile_folder + self.file_prefix + 'recruit_SG.csv'
+        r_table = pd.read_csv(filename)
+        recruit_mean = np.mean(r_table.recruit_number * 100 / 10000)
+        return recruit_mean
+
+    def get_temp_exp(self):
+        filename = self.compile_folder + self.file_prefix + 'temp_exp.npy'
+        temp_exp = np.load(filename)
+        temp_mean = np.nanmean(temp_exp)
+        return temp_mean
+
+    def get_chl_exp(self):
+        filename = self.compile_folder + self.file_prefix + 'chl_exp.npy'
+        chl_exp = np.load(filename)
+        chl_mean = np.nanmean(chl_exp)
+        return chl_mean
+
+    def get_o2_exp(self):
+        filename = self.compile_folder + self.file_prefix + 'o2_exp.npy'
+        o2_exp = np.load(filename)
+        o2_mean = np.nanmean(o2_exp)
+        return o2_mean
 
 
     def load_plot_params(self):
@@ -118,8 +183,8 @@ class PlotData:
 
         filename = self.compile_folder + self.file_prefix + 'temp_exp.npy'
         temp_exp = np.load(filename)
-        print('temp mean: ' + self.year + ': ' + str(np.mean(temp_exp)))
-        print('temp std: ' + self.year + ': ' + str(np.std(temp_exp)))
+        print('temp mean: ' + self.year + ': ' + str(np.nanmean(temp_exp)))
+        print('temp std: ' + self.year + ': ' + str(np.nanstd(temp_exp)))
         plt.plot(temp_exp, c='k')
         plt.ylabel('C')
         plt.ylim([-2, 2])
