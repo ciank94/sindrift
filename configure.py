@@ -18,7 +18,7 @@ class FileExplorer:
         return
 
     def init_paths(self):
-        valid_key_list = ["SG8H", "BSSI", "SOIN"]
+        valid_key_list = ["SG8H", "BSSI", "SOIN", "SGCM"]
         if self.key not in valid_key_list:
             sys.exit('Not a valid key pointing to an initialisation scenario')
         #todo: use dictionary with folder names
@@ -151,6 +151,9 @@ class Scenario:
         elif self.key == "BSSI":
             self.get_NEMO_bounds()
             self.get_BSSI_bounds()
+        elif self.key == "SGCM":
+            self.get_SGret_bounds()
+            self.get_SGCM_bounds()
         else:
             sys.exit('WARNING: missing key configuration in get_scenario')
 
@@ -174,6 +177,14 @@ class Scenario:
         self.domain_lat_min = -65
         self.domain_lat_max = -48
         self.bound_name = 'NEMO'
+        return
+
+    def get_SGret_bounds(self):
+        self.domain_lon_min = -69
+        self.domain_lon_max = -30
+        self.domain_lat_min = -65
+        self.domain_lat_max = -48
+        self.bound_name = 'SGret'
         return
 
     def get_BSSI_bounds(self):
@@ -200,6 +211,15 @@ class Scenario:
         self.site_lon_max = -37.5
         self.site_lat_min = -57
         self.site_lat_max = -54
+        self.z = 75  # release depth
+        return
+
+    def get_SGCM_bounds(self):
+        self.description = " Initialize with regular grid in South Georgia nemo domain"
+        self.site_lon_min = -39.4
+        self.site_lon_max = -35
+        self.site_lat_min = -55
+        self.site_lat_max = -53.2
         self.z = 75  # release depth
         return
 

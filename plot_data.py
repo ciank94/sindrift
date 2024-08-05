@@ -459,3 +459,187 @@ class PlotData:
         self.max_lat = -50
         return
 
+
+class CatchData:
+    def __init__(self):
+        self.figures_path = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/figures/'
+        catch_file = self.figures_path + 'C1_680.csv'
+        self.time_file = self.figures_path + 'time.npy'
+        self.csv_file = pd.read_csv(catch_file, sep=',')
+        return
+
+    def plot_lat_lon(self):
+        self.get_area(481)
+        lat = self.df.latitude_haul_start
+        lon = self.df.longitude_haul_start
+        b_depth = self.df.depth_bottom_haul_start_m
+        g_depth = self.df.depth_gear_haul_start_m
+
+        fig, axs = plt.subplots(3, 4, figsize=(20, 14))
+
+        axs[0, 0].hist(lon, facecolor='#2ab0ff', edgecolor='#169acf', linewidth=0.5, alpha=0.75, bins=30)
+
+        axs[0, 1].hist(lat, facecolor='#2ab0ff', edgecolor='#169acf', linewidth=0.5, alpha=0.75, bins=30)
+        axs[0, 2].hist(g_depth, facecolor='#2ab0ff', edgecolor='#169acf', linewidth=0.5, alpha=0.75, bins=30)
+        axs[0, 3].hist(b_depth, facecolor='#2ab0ff', edgecolor='#169acf', linewidth=0.5, alpha=0.75, bins=30)
+
+        axs[0, 2].set_xlim([0, 350])
+        axs[0, 3].set_xlim([0, 4000])
+
+        self.get_area(482)
+        lat = self.df.latitude_haul_start
+        lon = self.df.longitude_haul_start
+        b_depth = self.df.depth_bottom_haul_start_m
+        g_depth = self.df.depth_gear_haul_start_m
+
+        axs[1, 0].hist(lon, facecolor='#2ab0ff', edgecolor='#169acf', linewidth=0.5, alpha=0.75, bins=30)
+        axs[1, 1].hist(lat, facecolor='#2ab0ff', edgecolor='#169acf', linewidth=0.5, alpha=0.75, bins=30)
+        axs[1, 2].hist(g_depth, facecolor='#2ab0ff', edgecolor='#169acf', linewidth=0.5, alpha=0.75, bins=30)
+        axs[1, 3].hist(b_depth, facecolor='#2ab0ff', edgecolor='#169acf', linewidth=0.5, alpha=0.75, bins=30)
+
+        axs[1, 2].set_xlim([0, 350])
+        axs[1, 3].set_xlim([0, 4000])
+
+
+        self.get_area(483)
+        lat = self.df.latitude_haul_start
+        lon = self.df.longitude_haul_start
+        b_depth = self.df.depth_bottom_haul_start_m
+        g_depth = self.df.depth_gear_haul_start_m
+
+        axs[2, 0].hist(lon, facecolor='#2ab0ff', edgecolor='#169acf', linewidth=0.5, alpha=0.75, bins=30)
+        axs[2, 1].hist(lat, facecolor='#2ab0ff', edgecolor='#169acf', linewidth=0.5, alpha=0.75, bins=30)
+        axs[2, 2].hist(g_depth, facecolor='#2ab0ff', edgecolor='#169acf', linewidth=0.5, alpha=0.75, bins=30)
+        axs[2, 3].hist(b_depth, facecolor='#2ab0ff', edgecolor='#169acf', linewidth=0.5, alpha=0.75, bins=30)
+
+        axs[2, 2].set_xlim([0, 350])
+        axs[2, 3].set_xlim([0, 4000])
+
+        axs[0, 0].set_ylabel('AP', fontsize=13)
+        axs[1, 0].set_ylabel('SO', fontsize=13)
+        axs[2, 0].set_ylabel('SG', fontsize=13)
+
+        axs[2, 0].set_xlabel('Longitude', fontsize=13)
+        axs[2, 1].set_xlabel('Latitude', fontsize=13)
+        axs[2, 2].set_xlabel('Gear depth (m)', fontsize=13)
+        axs[2, 3].set_xlabel('Bottom depth (m)', fontsize=13)
+
+        axs[0, 0].grid(alpha=0.45)  # nice and clean grid
+        axs[0, 1].grid(alpha=0.45)  # nice and clean grid
+        axs[1, 0].grid(alpha=0.45)  # nice and clean grid
+        axs[1, 1].grid(alpha=0.45)  # nice and clean grid
+        axs[2, 0].grid(alpha=0.45)  # nice and clean grid
+        axs[2, 1].grid(alpha=0.45)  # nice and clean grid
+        axs[2, 2].grid(alpha=0.45)  # nice and clean grid
+        axs[2, 3].grid(alpha=0.45)  # nice and clean grid
+        axs[1, 2].grid(alpha=0.45)  # nice and clean grid
+        axs[1, 3].grid(alpha=0.45)  # nice and clean grid
+        self.save_plot(plt_name='fishing_lon_lat')
+        breakpoint()
+
+
+
+    def plot_fishing_season(self):
+        self.get_area(481)
+        ap_c = np.zeros(12)
+        c = -1
+        for i in range(1, 13):
+            c = c + 1
+            ap_c[c] = np.sum(self.month == i)
+
+        self.get_area(482)
+        so_c = np.zeros(12)
+        c = -1
+        for i in range(1, 13):
+            c = c + 1
+            so_c[c] = np.sum(self.month == i)
+
+        self.get_area(483)
+        sg_c = np.zeros(12)
+        c = -1
+        for i in range(1, 13):
+            c = c + 1
+            sg_c[c] = np.sum(self.month == i)
+
+        fig, axs = plt.subplots(2, 1, figsize=(12, 8))
+        x_name = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        axs[0].bar(x_name, ap_c, color='r')
+        axs[0].bar(x_name, so_c, bottom=ap_c, color='b')
+        axs[0].bar(x_name, sg_c, bottom=ap_c + so_c, color='y')
+        axs[0].set_ylabel("Catch events", fontsize=13)
+        axs[0].set_xlabel("Month", fontsize=13)
+        axs[0].legend(["AP", "SO", "SG"], fontsize=13)
+
+        self.get_area(481)
+        ap_c = np.zeros(18)
+        c = -1
+        for i in range(2006, 2024):
+            c = c + 1
+            ap_c[c] = np.sum(self.year_c == i)
+
+        self.get_area(482)
+        so_c = np.zeros(18)
+        c = -1
+        for i in range(2006, 2024):
+            c = c + 1
+            so_c[c] = np.sum(self.year_c == i)
+
+        self.get_area(483)
+        sg_c = np.zeros(18)
+        c = -1
+        for i in range(2006, 2024):
+            c = c + 1
+            sg_c[c] = np.sum(self.year_c == i)
+
+        x_name = ['2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017',
+                  '2018', '2019', '2020', '2021', '2022', '2023']
+        axs[1].bar(x_name, ap_c, color='r')
+        axs[1].bar(x_name, so_c, bottom=ap_c, color='b')
+        axs[1].bar(x_name, sg_c, bottom=ap_c + so_c, color='y')
+        axs[1].set_ylabel("Catch events", fontsize=13)
+        axs[1].set_xlabel("Year", fontsize=13)
+        axs[1].legend(["AP", "SO", "SG"], fontsize=13, loc='upper left')
+        self.save_plot(plt_name='fishing_season')
+        return
+
+    def get_area(self, asd_code):
+        self.area_rule = self.csv_file.asd_code == asd_code  # key code for area
+        self.get_time(self.csv_file)
+        self.df = self.csv_file[self.area_rule]
+        return
+
+
+    def get_time(self, csv_file):
+        if not os.path.exists(self.time_file):  # if file doesn't exist
+            time_array = csv_file.datetime_haul_start
+            shp_t = np.shape(time_array)[0]
+            time_store = np.zeros([shp_t, 4])
+
+            for i in range(0, shp_t):
+                d1 = datetime.strptime(time_array[i], "%Y-%m-%d %H:%M:%S")
+                time_store[i, 0] = d1.hour
+                time_store[i, 1] = d1.day
+                time_store[i, 2] = d1.month
+                time_store[i, 3] = d1.year
+
+            np.save(self.time_file, time_store)
+            time_array = np.load(self.time_file)
+            print('Saving file: ' + self.time_file)
+        else:
+            time_array = np.load(self.time_file)
+            print('File exists: ' + self.time_file)
+        time_sub = time_array[self.area_rule]
+        self.hour = time_sub[:, 0].astype(int)
+        self.day = time_sub[:, 1].astype(int)
+        self.month = time_sub[:, 2].astype(int)
+        self.year_c = time_sub[:, 3].astype(int)
+        return
+
+    def save_plot(self, plt_name):
+        savefile = self.figures_path + plt_name + '.png'
+        print('Saving file: ' + savefile)
+        plt.savefig(savefile, dpi=400)
+        plt.close()
+        return
+
+

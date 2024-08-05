@@ -56,6 +56,8 @@ class PostProcess:
         self.analysis_df.variables['dom_paths'][:] = 0  # initialize dom_path matrix
         if self.analysis_df.bounds == 'NEMO':
             self.analysis_df.variables['recruit_SG_north'][:] = 0  # initialize recruitment to SG north
+        elif self.analysis_df.bounds == 'SGret':
+            self.analysis_df.variables['retain_SG_north'][:] = 0  # initialize recruitment to SG north
         return
 
     def particle_analysis(self):
@@ -72,7 +74,24 @@ class PostProcess:
             self.analysis_df.variables['dom_paths'][:] = self.dom_paths
             self.analysis_df.variables['recruit_SG_north'][:, 0] = self.transit_hours
             self.analysis_df.variables['recruit_SG_north'][:, 1] = self.visit_index
+
+        if self.analysis_df.bounds == 'SGret':
+            for p_i in range(0, self.shp_p, self.p_stride):
+                self.p_i = p_i
+                print("Particle analysis : " + str(self.p_i + 1) + " of " + str(self.shp_p))  # print particle id number in analysis
+                idx_p = self.id_lat[p_i, :] < np.shape(self.lat_bin_vals)[0]
+                self.dom_paths[self.id_lon[p_i, idx_p], self.id_lat[p_i, idx_p]] = (
+                        self.dom_paths[self.id_lon[p_i, idx_p], self.id_lat[p_i, idx_p]] + 1)
+                # analyse retention/ recruitment in the following function
+                self.retain_SG_north(self.lon[p_i, :], self.lat[p_i, :])
+
+            self.analysis_df.variables['dom_paths'][:] = self.dom_paths
+            self.analysis_df.variables['retain_SG_north'][:, 0] = self.transit_hours
+            self.analysis_df.variables['retain_SG_north'][:, 1] = self.visit_index
         return
+
+
+
 
     def environment_analysis(self):
         self.read_bio()   # read NEMO ecosystem model data
@@ -99,6 +118,31 @@ class PostProcess:
         self.bio_states.close()
         self.phys_states.close()
         return
+
+    def retain_SG_north(self, lon1, lat1):
+        lon2 = self.lon[0, :]
+        lat2 = self.lat[0, :]
+        phi_1 = np.radians(lat1)
+        phi_2 = np.radians(lat2)
+        R = 6371000
+        delta_phi = np.radians(lat2 - lat1)
+        delta_lambda = np.radians(lon2 - lon1)
+
+        a = np.sin(delta_phi / 2.0) ** 2 + \
+            np.cos(phi_1) * np.cos(phi_2) * \
+            np.sin(delta_lambda / 2.0) ** 2
+        c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
+        dist_km = R*c/1000
+        idx_retain = dist_km > 200
+        if not np.sum(idx_retain) == 0:
+             visits = np.where(idx_retain > 0)
+             self.visit_index[self.p_i] = visits[0][0]
+             t_to_poly = self.dates[visits[0][0]] - self.dates[0]
+             self.transit_hours[self.p_i] = ((t_to_poly.days * 24) +
+                                             np.floor(t_to_poly.seconds * 1 / (60 * 60)).astype(int))
+
+        return
+
 
     def recruit_SG_north(self, lon, lat):
         lon_lim = [-39.4, -35]
@@ -206,7 +250,7 @@ class PostProcess:
         else:
             variable_key_dict = {'dom_paths': {'datatype': 'i4', 'dimensions': ('n_lon_bins', 'n_lat_bins'),
                                                'description': 'unique particle visits'},
-                                 'recruit_SG_north': {'datatype': 'i4', 'dimensions': ('trajectory', 'transit_info'),
+                                 'retain_SG_north': {'datatype': 'i4', 'dimensions': ('trajectory', 'transit_info'),
                                                       'description': 'transit hours to polygon'},
                                  'CG_lon': {'datatype': 'f4', 'dimensions': ('obs',),
                                             'description': 'average longitude over time'},

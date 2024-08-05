@@ -1,13 +1,32 @@
 #todo: add functionality for plotting diagnostics from simulation- add options so that the worms plot can be done alone as a check
 from configure import FileExplorer
 from compile_releases import StoreReleases
-from plot_data import PlotData
+from plot_data import PlotData, CatchData
 import matplotlib.pyplot as plt
 import numpy as np
 import netCDF4 as nc
 compile_folder = 'A:/Cian_sinmod/opendrift/' + 'compile/'
 analysis_folder = 'A:/Cian_sinmod/opendrift/' + 'analysis/'
-years = np.arange(2006, 2017+1, 1)
+
+cdata = CatchData()
+np.sum(cdata.csv_file.asd_code == 481)#ap
+np.sum(cdata.csv_file.asd_code == 481)/cdata.csv_file.shape[0]
+np.sum(cdata.csv_file.asd_code == 482)/cdata.csv_file.shape[0]
+np.sum(cdata.csv_file.asd_code == 483)/cdata.csv_file.shape[0]
+
+# figure 1:
+# cdata.plot_fishing_season()
+
+# figure 2:
+cdata.plot_lat_lon()
+breakpoint()
+breakpoint()
+
+
+
+
+
+years = np.arange(2005, 2019+1, 1)
 release_number = 10
 # switches for different analysis
 case_dom = False
@@ -26,6 +45,7 @@ for y in years:
     p_plot = PlotData(key='BSSI', year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
     catch_v[counter] = p_plot.read_catch()
     recruit_v[counter] = p_plot.get_recruits()
+
     temp_v[counter] = p_plot.get_temp_exp()
     chl_v[counter] = p_plot.get_chl_exp()
     o2_v[counter] = p_plot.get_o2_exp()
@@ -42,7 +62,7 @@ ax1[0].plot(catch_v, 'bo', fillstyle='none')
 ax2.plot(temp_v, c='r')
 uniq_years = np.unique(years)
 plt.xticks(np.arange(0, np.shape(uniq_years)[0]),
-                   ['2007', '2008','2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018'])
+                   ['2006', '2007', '2008','2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020'])
 plt.grid(alpha=0.45)  # nice and clean grid
 
 
@@ -55,7 +75,7 @@ ax1[1].plot(catch_v, 'bo', fillstyle='none')
 ax2.plot(recruit_v, c='r')
 uniq_years = np.unique(years)
 plt.xticks(np.arange(0, np.shape(uniq_years)[0]),
-                   ['2007', '2008','2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018'])
+                   ['2006', '2007', '2008','2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020'])
 plt.grid(alpha=0.45)  # nice and clean grid
 
 
@@ -68,7 +88,7 @@ ax1[2].plot(catch_v, 'bo', fillstyle='none')
 ax2.plot(chl_v, c='r')
 uniq_years = np.unique(years)
 plt.xticks(np.arange(0, np.shape(uniq_years)[0]),
-                   ['2007', '2008','2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018'])
+                   ['2006', '2007', '2008','2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020'])
 plt.grid(alpha=0.45)  # nice and clean grid
 
 axis1_title = 'catch'
@@ -80,7 +100,7 @@ ax1[3].plot(catch_v, 'bo', fillstyle='none')
 ax2.plot(o2_v, c='r')
 uniq_years = np.unique(years)
 plt.xticks(np.arange(0, np.shape(uniq_years)[0]),
-                   ['2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018'])
+                   ['2006', '2007', '2008','2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020'])
 plt.grid(alpha=0.45)  # nice and clean grid
 breakpoint()
 
