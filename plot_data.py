@@ -667,6 +667,19 @@ class CatchData:
         plt.close()
         return
 
+
+def check_retain(compile_folder, analysis_folder):
+    p_plot = PlotData(key='SGCM', year=2005, compile_folder=compile_folder, analysis_folder=analysis_folder)
+    filename = p_plot.compile_folder + p_plot.file_prefix + 'retain_SG.csv'
+    r_table = pd.read_csv(filename)
+
+    filename = p_plot.compile_folder + p_plot.file_prefix + 'site_retention.npy'
+    ret_sites = np.load(filename)
+    p_plot.init_plot()
+    p_plot.plot_background(background='SG')
+    plt.scatter(ret_sites[0,:],ret_sites[1,:])
+    return
+
 def plot_recruit_stat(compile_folder, analysis_folder):
     years = np.arange(2005, 2019 + 1, 1)
     release_number = 10
