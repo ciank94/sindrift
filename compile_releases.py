@@ -116,6 +116,31 @@ class StoreReleases:
                     np.array([self.lon_init, self.lat_init, self.site_recruits])) #todo: add lat_init, lon_init etc.
         return
 
+    def update_retention(self, counter):
+        if counter == 0:
+            headers = ['release_id', 'date', 'retain_number', 'retain_time']
+            self.retain_filename = 'retain_SG.csv'
+            self.init_file(headers, filename=self.retain_filename)
+        release_id = counter + 0
+        recruit_t = self.analysis_vardict['retain_SG_north'][:, 0]
+        recruit_index = self.analysis_vardict['retain_SG_north'][:, 1]
+        site_vals = recruit_t > 0
+        self.site_recruits = self.site_recruits + site_vals * 1
+        id1 = np.where(recruit_t > 0)
+        recruit_number = np.shape(id1)[1]
+        recruit_time = np.mean(recruit_t[recruit_t > 0])
+        day_r = self.sim_start_day
+        month_r = self.sim_start_month
+        year_r = self.sim_start_year
+        dates = ("{:02d}".format(day_r.astype(int)) + '/' + "{:02d}".format(month_r.astype(int)) + '/' +
+                 str(year_r.astype(int)))
+        df_row = [release_id, dates, recruit_number, recruit_time]
+        self.write_file(filename=self.retain_filename, row=df_row)
+        if counter + 1 == self.shp_r:
+            np.save(self.save_path + 'site_retention.npy',
+                    np.array([self.lon_init, self.lat_init, self.site_recruits])) #todo: add lat_init, lon_init etc.
+        return
+
     #todo: save table with lat_init, lon_init, recruit numbers, recruit_time etc.
     def init_file(self, headers, filename):
         csv_filename = self.f_path.compile_path + self.save_prefix + filename

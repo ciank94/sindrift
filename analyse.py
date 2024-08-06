@@ -35,7 +35,10 @@ for y in year_list:
     for file_i in fpath.file_list:
         counter = counter + 1
         st.read_analysis_df(fpath, analysis_file=file_i, counter=counter)
-        st.update_recruits(counter)
+        if st.analysis_df.bounds == 'SGret':
+            st.update_retention(counter)
+        else:
+            st.update_recruits(counter)
         st.update_environment(counter)
         st.update_dom_paths(counter)
         st.analysis_df.close()

@@ -81,6 +81,12 @@ class PlotData:
         recruit_mean = np.mean(r_table.recruit_number * 100 / 10000)
         return recruit_mean
 
+    def get_recruit_times(self):
+        filename = self.compile_folder + self.file_prefix + 'recruit_SG.csv'
+        r_table = pd.read_csv(filename)
+        recruit_time = np.mean(r_table.recruit_time)/24
+        return recruit_time
+
     def get_temp_exp(self):
         filename = self.compile_folder + self.file_prefix + 'temp_exp.npy'
         temp_exp = np.load(filename)
@@ -468,6 +474,25 @@ class CatchData:
         self.csv_file = pd.read_csv(catch_file, sep=',')
         return
 
+    def catch_facts(self):
+        self.get_area(482)
+        np.nanmean(self.df.krill_greenweight_kg)/1000
+
+        np.sum((self.month == 12) | (self.month == 1)| (self.month == 2)| (self.month == 3)) / np.sum(self.month>0)
+
+        self.get_area(481)
+        np.sum((self.month == 4) | (self.month == 5) | (self.month == 6) | (self.month == 3)) / np.sum(self.month > 0)
+
+        self.get_area(483)
+        np.sum((self.year_c == 2019))
+        breakpoint()
+
+        np.sum(self.csv_file.asd_code == 481)  # ap
+        np.sum(self.csv_file.asd_code == 481) / self.csv_file.shape[0]
+        np.sum(self.csv_file.asd_code == 482) / self.csv_file.shape[0]
+        np.sum(self.csv_file.asd_code == 483) / self.csv_file.shape[0]
+
+
     def plot_lat_lon(self):
         self.get_area(481)
         lat = self.df.latitude_haul_start
@@ -642,4 +667,110 @@ class CatchData:
         plt.close()
         return
 
+def plot_recruit_stat(compile_folder, analysis_folder):
+    years = np.arange(2005, 2019 + 1, 1)
+    release_number = 10
+
+    # the catch dataset is now in figures folder; use the data to compare against simulations;
+    recruit_v = np.zeros(np.shape(years))
+    recruit_t = np.zeros(np.shape(years))
+    catch_v = np.zeros(np.shape(years))
+    temp_v = np.zeros(np.shape(years))
+    chl_v = np.zeros(np.shape(years))
+    o2_v = np.zeros(np.shape(years))
+
+    counter = -1
+    for y in years:
+        counter = counter + 1
+        p_plot = PlotData(key='BSSI', year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+        catch_v[counter] = p_plot.read_catch()
+        recruit_v[counter] = p_plot.get_recruits()
+        recruit_t[counter] = p_plot.get_recruit_times()
+        temp_v[counter] = p_plot.get_temp_exp()
+        chl_v[counter] = p_plot.get_chl_exp()
+        o2_v[counter] = p_plot.get_o2_exp()
+
+    fig, ax1 = plt.subplots(2, 2, figsize=(20, 14))
+
+    axis1_title = 'catch'
+    axis2_title = 'time (days)'
+    ax2 = ax1[0, 0].twinx()
+    ax2.set_ylabel(axis1_title, color='r', fontsize=13)
+    ax2.plot(catch_v, 'r')
+    ax1[0, 0].set_ylabel(axis2_title, color='b', fontsize=13)
+    ax1[0, 0].bar(np.arange(0, np.shape(recruit_t)[0]), recruit_t, color='b')
+    uniq_years = np.unique(years)
+    plt.xticks(np.arange(0, np.shape(uniq_years)[0]),
+               ['2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018',
+                '2019', '2020'])
+    plt.grid(alpha=0.45)  # nice and clean grid
+
+    axis1_title = 'catch'
+    axis2_title = 'fraction recruited (%)'
+    ax2 = ax1[0, 1].twinx()
+    ax2.set_ylabel(axis1_title, color='r', fontsize=13)
+    ax2.plot(catch_v, 'r')
+    ax1[0, 1].set_ylabel(axis2_title, color='b', fontsize=13)
+    ax1[0, 1].bar(np.arange(0, np.shape(recruit_v)[0]), recruit_v, color='b')
+    uniq_years = np.unique(years)
+    plt.xticks(np.arange(0, np.shape(uniq_years)[0]),
+               ['2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018',
+                '2019', '2020'])
+    plt.grid(alpha=0.45)  # nice and clean grid
+
+    years = np.arange(2005, 2019 + 1, 1)
+    release_number = 10
+
+    # the catch dataset is now in figures folder; use the data to compare against simulations;
+    recruit_v = np.zeros(np.shape(years))
+    recruit_t = np.zeros(np.shape(years))
+    catch_v = np.zeros(np.shape(years))
+    temp_v = np.zeros(np.shape(years))
+    chl_v = np.zeros(np.shape(years))
+    o2_v = np.zeros(np.shape(years))
+
+    counter = -1
+    for y in years:
+        counter = counter + 1
+        p_plot = PlotData(key='SOIN', year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+        catch_v[counter] = p_plot.read_catch()
+        recruit_v[counter] = p_plot.get_recruits()
+        recruit_t[counter] = p_plot.get_recruit_times()
+        temp_v[counter] = p_plot.get_temp_exp()
+        chl_v[counter] = p_plot.get_chl_exp()
+        o2_v[counter] = p_plot.get_o2_exp()
+
+    axis1_title = 'catch'
+    axis2_title = 'time (days)'
+    ax2 = ax1[1, 0].twinx()
+    ax2.set_ylabel(axis1_title, color='r', fontsize=13)
+    ax2.plot(catch_v, 'r')
+    ax1[1, 0].set_ylabel(axis2_title, color='b', fontsize=13)
+    ax1[1, 0].bar(np.arange(0, np.shape(recruit_t)[0]), recruit_t, color='b')
+    uniq_years = np.unique(years)
+    plt.xticks(np.arange(0, np.shape(uniq_years)[0]),
+               ['2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018',
+                '2019', '2020'])
+    plt.grid(alpha=0.45)  # nice and clean grid
+
+    axis1_title = 'catch'
+    axis2_title = 'fraction recruited (%)'
+    ax2 = ax1[1, 1].twinx()
+    ax2.set_ylabel(axis1_title, color='r', fontsize=13)
+    ax2.plot(catch_v, 'r')
+    ax1[1, 1].set_ylabel(axis2_title, color='b', fontsize=13)
+    ax1[1, 1].bar(np.arange(0, np.shape(recruit_v)[0]), recruit_v, color='b')
+    ax1[0, 0].set_ylim([0, 250])
+    ax1[1, 0].set_ylim([0, 250])
+    ax1[0, 1].set_ylim([0, 14])
+    ax1[1, 1].set_ylim([0, 14])
+    uniq_years = np.unique(years)
+    plt.xticks(np.arange(0, np.shape(uniq_years)[0]),
+               ['2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018',
+                '2019', '2020'])
+    plt.grid(alpha=0.45)  # nice and clean grid
+
+
+    p_plot.save_plot('recruit_stat')
+    return
 
