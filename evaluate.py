@@ -13,14 +13,14 @@ analysis_folder = 'A:/Cian_sinmod/opendrift/' + 'analysis/'
 # catch facts
 #cdata.catch_facts()
 # figure 1:
-# cdata.plot_fishing_season()
+#cdata.plot_fishing_season()
 # figure 2:
 #cdata.plot_lat_lon()
 
 
 # s2.2: results for recruitment to SG:
 # figure 1:
-#plot_recruit_stat(compile_folder, analysis_folder)
+plot_recruit_stat(compile_folder, analysis_folder)
 # figure 2:
 #check_retain(compile_folder, analysis_folder)
 

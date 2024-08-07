@@ -500,16 +500,20 @@ class CatchData:
         b_depth = self.df.depth_bottom_haul_start_m
         g_depth = self.df.depth_gear_haul_start_m
 
-        fig, axs = plt.subplots(3, 4, figsize=(20, 14))
+        fig, axs = plt.subplots(3, 4, figsize=(24, 14))
 
-        axs[0, 0].hist(lon, facecolor='#2ab0ff', edgecolor='#169acf', linewidth=0.5, alpha=0.75, bins=30)
+        axs[0, 0].hist(lon, facecolor='red', edgecolor='gray', linewidth=0.5, alpha=0.75, bins=30)
+        axs[0, 1].hist(lat, facecolor='red', edgecolor='gray', linewidth=0.5, alpha=0.75, bins=30)
+        axs[0, 2].hist(g_depth, facecolor='red', edgecolor='gray', linewidth=0.5, alpha=0.75, bins=30)
+        axs[0, 3].hist(b_depth, facecolor='red', edgecolor='gray', linewidth=0.5, alpha=0.75, bins=30)
 
-        axs[0, 1].hist(lat, facecolor='#2ab0ff', edgecolor='#169acf', linewidth=0.5, alpha=0.75, bins=30)
-        axs[0, 2].hist(g_depth, facecolor='#2ab0ff', edgecolor='#169acf', linewidth=0.5, alpha=0.75, bins=30)
-        axs[0, 3].hist(b_depth, facecolor='#2ab0ff', edgecolor='#169acf', linewidth=0.5, alpha=0.75, bins=30)
+        for i in range(0, 4):
+            axs[0, i].xaxis.set_tick_params(labelsize=14)
+            axs[0, i].yaxis.set_tick_params(labelsize=14)
 
         axs[0, 2].set_xlim([0, 350])
         axs[0, 3].set_xlim([0, 4000])
+
 
         self.get_area(482)
         lat = self.df.latitude_haul_start
@@ -517,10 +521,14 @@ class CatchData:
         b_depth = self.df.depth_bottom_haul_start_m
         g_depth = self.df.depth_gear_haul_start_m
 
-        axs[1, 0].hist(lon, facecolor='#2ab0ff', edgecolor='#169acf', linewidth=0.5, alpha=0.75, bins=30)
-        axs[1, 1].hist(lat, facecolor='#2ab0ff', edgecolor='#169acf', linewidth=0.5, alpha=0.75, bins=30)
-        axs[1, 2].hist(g_depth, facecolor='#2ab0ff', edgecolor='#169acf', linewidth=0.5, alpha=0.75, bins=30)
-        axs[1, 3].hist(b_depth, facecolor='#2ab0ff', edgecolor='#169acf', linewidth=0.5, alpha=0.75, bins=30)
+        axs[1, 0].hist(lon, facecolor='blue', edgecolor='gray', linewidth=0.5, alpha=0.75, bins=30)
+        axs[1, 1].hist(lat, facecolor='blue', edgecolor='gray', linewidth=0.5, alpha=0.75, bins=30)
+        axs[1, 2].hist(g_depth, facecolor='blue', edgecolor='gray', linewidth=0.5, alpha=0.75, bins=30)
+        axs[1, 3].hist(b_depth, facecolor='blue', edgecolor='gray', linewidth=0.5, alpha=0.75, bins=30)
+
+        for i in range(0, 4):
+            axs[1, i].xaxis.set_tick_params(labelsize=14)
+            axs[1, i].yaxis.set_tick_params(labelsize=14)
 
         axs[1, 2].set_xlim([0, 350])
         axs[1, 3].set_xlim([0, 4000])
@@ -532,22 +540,27 @@ class CatchData:
         b_depth = self.df.depth_bottom_haul_start_m
         g_depth = self.df.depth_gear_haul_start_m
 
-        axs[2, 0].hist(lon, facecolor='#2ab0ff', edgecolor='#169acf', linewidth=0.5, alpha=0.75, bins=30)
-        axs[2, 1].hist(lat, facecolor='#2ab0ff', edgecolor='#169acf', linewidth=0.5, alpha=0.75, bins=30)
-        axs[2, 2].hist(g_depth, facecolor='#2ab0ff', edgecolor='#169acf', linewidth=0.5, alpha=0.75, bins=30)
-        axs[2, 3].hist(b_depth, facecolor='#2ab0ff', edgecolor='#169acf', linewidth=0.5, alpha=0.75, bins=30)
+        axs[2, 0].hist(lon, facecolor='olive', edgecolor='gray', linewidth=0.5, alpha=0.75, bins=30)
+        axs[2, 1].hist(lat, facecolor='olive', edgecolor='gray', linewidth=0.5, alpha=0.75, bins=30)
+        axs[2, 2].hist(g_depth, facecolor='olive', edgecolor='gray', linewidth=0.5, alpha=0.75, bins=30)
+        axs[2, 3].hist(b_depth, facecolor='olive', edgecolor='gray', linewidth=0.5, alpha=0.75, bins=30)
 
+        for i in range(0, 4):
+            axs[2, i].xaxis.set_tick_params(labelsize=14)
+            axs[2, i].yaxis.set_tick_params(labelsize=14)
+
+        axs[2, 1].set_xlim([-55, -53])
         axs[2, 2].set_xlim([0, 350])
         axs[2, 3].set_xlim([0, 4000])
 
-        axs[0, 0].set_ylabel('AP', fontsize=13)
-        axs[1, 0].set_ylabel('SO', fontsize=13)
-        axs[2, 0].set_ylabel('SG', fontsize=13)
+        axs[0, 0].set_ylabel('Catch events', fontsize=15)
+        axs[1, 0].set_ylabel('Catch events', fontsize=15)
+        axs[2, 0].set_ylabel('Catch events', fontsize=15)
 
-        axs[2, 0].set_xlabel('Longitude', fontsize=13)
-        axs[2, 1].set_xlabel('Latitude', fontsize=13)
-        axs[2, 2].set_xlabel('Gear depth (m)', fontsize=13)
-        axs[2, 3].set_xlabel('Bottom depth (m)', fontsize=13)
+        axs[2, 0].set_xlabel('Longitude', fontsize=15)
+        axs[2, 1].set_xlabel('Latitude', fontsize=15)
+        axs[2, 2].set_xlabel('Gear depth (m)', fontsize=15)
+        axs[2, 3].set_xlabel('Bottom depth (m)', fontsize=15)
 
         axs[0, 0].grid(alpha=0.45)  # nice and clean grid
         axs[0, 1].grid(alpha=0.45)  # nice and clean grid
@@ -560,7 +573,7 @@ class CatchData:
         axs[1, 2].grid(alpha=0.45)  # nice and clean grid
         axs[1, 3].grid(alpha=0.45)  # nice and clean grid
         self.save_plot(plt_name='fishing_lon_lat')
-        breakpoint()
+        return
 
 
 
@@ -588,12 +601,13 @@ class CatchData:
 
         fig, axs = plt.subplots(2, 1, figsize=(12, 8))
         x_name = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-        axs[0].bar(x_name, ap_c, color='r')
-        axs[0].bar(x_name, so_c, bottom=ap_c, color='b')
-        axs[0].bar(x_name, sg_c, bottom=ap_c + so_c, color='y')
+        axs[0].bar(x_name, ap_c, color='red', alpha=0.75)
+        axs[0].bar(x_name, so_c, bottom=ap_c, color='blue', alpha=0.75)
+        axs[0].bar(x_name, sg_c, bottom=ap_c + so_c, color='olive', alpha=0.75)
         axs[0].set_ylabel("Catch events", fontsize=13)
         axs[0].set_xlabel("Month", fontsize=13)
         axs[0].legend(["AP", "SO", "SG"], fontsize=13)
+        axs[0].grid(alpha=0.45)
 
         self.get_area(481)
         ap_c = np.zeros(18)
@@ -618,12 +632,14 @@ class CatchData:
 
         x_name = ['2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017',
                   '2018', '2019', '2020', '2021', '2022', '2023']
-        axs[1].bar(x_name, ap_c, color='r')
-        axs[1].bar(x_name, so_c, bottom=ap_c, color='b')
-        axs[1].bar(x_name, sg_c, bottom=ap_c + so_c, color='y')
+        axs[1].grid(alpha=0.45)
+        axs[1].bar(x_name, ap_c, color='r', alpha=0.75)
+        axs[1].bar(x_name, so_c, bottom=ap_c, color='b', alpha=0.75)
+        axs[1].bar(x_name, sg_c, bottom=ap_c + so_c, color='olive', alpha=0.75)
         axs[1].set_ylabel("Catch events", fontsize=13)
         axs[1].set_xlabel("Year", fontsize=13)
         axs[1].legend(["AP", "SO", "SG"], fontsize=13, loc='upper left')
+
         self.save_plot(plt_name='fishing_season')
         return
 
@@ -703,15 +719,20 @@ def plot_recruit_stat(compile_folder, analysis_folder):
         chl_v[counter] = p_plot.get_chl_exp()
         o2_v[counter] = p_plot.get_o2_exp()
 
-    fig, ax1 = plt.subplots(2, 2, figsize=(20, 14))
+    fig, ax1 = plt.subplots(2, 2, figsize=(26, 14))
 
     axis1_title = 'catch'
     axis2_title = 'time (days)'
     ax2 = ax1[0, 0].twinx()
-    ax2.set_ylabel(axis1_title, color='r', fontsize=13)
-    ax2.plot(catch_v, 'r')
-    ax1[0, 0].set_ylabel(axis2_title, color='b', fontsize=13)
-    ax1[0, 0].bar(np.arange(0, np.shape(recruit_t)[0]), recruit_t, color='b')
+    ax2.set_ylabel(axis1_title, color='k', fontsize=15)
+    ax2.plot(catch_v, 'k--', linewidth=4, alpha=0.75)
+    ax1[0, 0].set_ylabel(axis2_title, color='r', fontsize=15)
+    ax1[0, 0].bar(np.arange(0, np.shape(recruit_t)[0]), recruit_t, color='r', alpha=.75)
+    ax1[0,0].xaxis.set_tick_params(labelsize=14)
+    ax1[0,0].yaxis.set_tick_params(labelsize=14)
+    ax2.yaxis.set_tick_params(labelsize=14)
+
+
     uniq_years = np.unique(years)
     plt.xticks(np.arange(0, np.shape(uniq_years)[0]),
                ['2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018',
@@ -721,10 +742,13 @@ def plot_recruit_stat(compile_folder, analysis_folder):
     axis1_title = 'catch'
     axis2_title = 'fraction recruited (%)'
     ax2 = ax1[0, 1].twinx()
-    ax2.set_ylabel(axis1_title, color='r', fontsize=13)
-    ax2.plot(catch_v, 'r')
-    ax1[0, 1].set_ylabel(axis2_title, color='b', fontsize=13)
-    ax1[0, 1].bar(np.arange(0, np.shape(recruit_v)[0]), recruit_v, color='b')
+    ax2.set_ylabel(axis1_title, color='k', fontsize=15)
+    ax2.plot(catch_v, 'k--', linewidth=4, alpha=0.75)
+    ax1[0, 1].set_ylabel(axis2_title, color='r', fontsize=15)
+    ax1[0, 1].bar(np.arange(0, np.shape(recruit_v)[0]), recruit_v, color='r', alpha=0.75)
+    ax1[0, 1].xaxis.set_tick_params(labelsize=14)
+    ax1[0, 1].yaxis.set_tick_params(labelsize=14)
+    ax2.yaxis.set_tick_params(labelsize=14)
     uniq_years = np.unique(years)
     plt.xticks(np.arange(0, np.shape(uniq_years)[0]),
                ['2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018',
@@ -756,10 +780,13 @@ def plot_recruit_stat(compile_folder, analysis_folder):
     axis1_title = 'catch'
     axis2_title = 'time (days)'
     ax2 = ax1[1, 0].twinx()
-    ax2.set_ylabel(axis1_title, color='r', fontsize=13)
-    ax2.plot(catch_v, 'r')
-    ax1[1, 0].set_ylabel(axis2_title, color='b', fontsize=13)
-    ax1[1, 0].bar(np.arange(0, np.shape(recruit_t)[0]), recruit_t, color='b')
+    ax2.set_ylabel(axis1_title, color='k', fontsize=15)
+    ax2.plot(catch_v, 'k--', linewidth=4, alpha=0.75)
+    ax1[1, 0].set_ylabel(axis2_title, color='blue', fontsize=15)
+    ax1[1, 0].bar(np.arange(0, np.shape(recruit_t)[0]), recruit_t, color='b', alpha=0.75)
+    ax1[1, 0].xaxis.set_tick_params(labelsize=14)
+    ax1[1, 0].yaxis.set_tick_params(labelsize=14)
+    ax2.yaxis.set_tick_params(labelsize=14)
     uniq_years = np.unique(years)
     plt.xticks(np.arange(0, np.shape(uniq_years)[0]),
                ['2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018',
@@ -769,14 +796,17 @@ def plot_recruit_stat(compile_folder, analysis_folder):
     axis1_title = 'catch'
     axis2_title = 'fraction recruited (%)'
     ax2 = ax1[1, 1].twinx()
-    ax2.set_ylabel(axis1_title, color='r', fontsize=13)
-    ax2.plot(catch_v, 'r')
-    ax1[1, 1].set_ylabel(axis2_title, color='b', fontsize=13)
-    ax1[1, 1].bar(np.arange(0, np.shape(recruit_v)[0]), recruit_v, color='b')
+    ax2.set_ylabel(axis1_title, color='k', fontsize=15)
+    ax2.plot(catch_v, 'k--', linewidth=4, alpha=0.75)
+    ax1[1, 1].set_ylabel(axis2_title, color='b', fontsize=15)
+    ax1[1, 1].bar(np.arange(0, np.shape(recruit_v)[0]), recruit_v, color='b', alpha=0.75)
+    ax1[1, 1].xaxis.set_tick_params(labelsize=14)
+    ax1[1, 1].yaxis.set_tick_params(labelsize=14)
     ax1[0, 0].set_ylim([0, 250])
     ax1[1, 0].set_ylim([0, 250])
     ax1[0, 1].set_ylim([0, 14])
     ax1[1, 1].set_ylim([0, 14])
+    ax2.yaxis.set_tick_params(labelsize=14)
     uniq_years = np.unique(years)
     plt.xticks(np.arange(0, np.shape(uniq_years)[0]),
                ['2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018',
