@@ -369,24 +369,24 @@ class PlotData:
         self.save_plot(plt_name)
         return
 
-    def plot_background(self, background):
+    def plot_background(self, background, ax_name):
         land_10m = cfeature.NaturalEarthFeature('physical', 'land', '10m',
                                                 edgecolor='face',
                                                 facecolor='lightgrey')
-        self.ax.add_feature(land_10m)
-        self.ax.coastlines(resolution='10m', linewidth=0.7)
-        plt.contour(self.bath_lon, self.bath_lat, self.bath, self.bath_contours, colors='k', alpha=0.2, linewidths=0.7,
+        ax_name.add_feature(land_10m)
+        ax_name.coastlines(resolution='10m', linewidth=0.7)
+        ax_name.contour(self.bath_lon, self.bath_lat, self.bath, self.bath_contours, colors='k', alpha=0.2, linewidths=0.7,
                     transform=ccrs.PlateCarree())
 
         # set extent and grid lines;
-        gl = self.ax.gridlines(draw_labels=True, alpha=0.4)
+        gl = ax_name.gridlines(draw_labels=True, alpha=0.4)
         gl.top_labels = False
         gl.right_labels = False
         #self.ax.set_extent(
             #[self.min_lon, self.max_lon, self.min_lat, self.max_lat])
         if background == "AP":
             self.AP_lon_lat_extent()
-            self.ax.set_extent(
+            ax_name.set_extent(
                 [self.min_lon, self.max_lon, self.min_lat,
                  self.max_lat])
             #self.ax.set_extent(
@@ -394,17 +394,17 @@ class PlotData:
               #   self.max_lat + self.lat_offset])
         elif background == "SOI":
             self.SOI_lon_lat_extent()
-            self.ax.set_extent(
+            ax_name.set_extent(
                 [self.min_lon, self.max_lon, self.min_lat,
                  self.max_lat])
         elif background == "SOIN":
             self.SOIN_lon_lat_extent()
-            self.ax.set_extent(
+            ax_name.set_extent(
                 [self.min_lon, self.max_lon, self.min_lat,
                  self.max_lat])
         else:
             self.gen_lon_lat_extent()
-            self.ax.set_extent([self.min_lon, self.max_lon, self.min_lat,
+            ax_name.set_extent([self.min_lon, self.max_lon, self.min_lat,
                             self.max_lat])
         return
 
@@ -420,11 +420,11 @@ class PlotData:
         self.ax = self.fig.add_subplot(projection=ccrs.PlateCarree())
         return
 
-    def add_cbar(self, c_max, caxis_title):
-        cbar = plt.colorbar(self.plot1, extend='both', pad=0.01)
+    def add_cbar(self, c_max, caxis_title, axis_name):
+        cbar = axis_name.colorbar(self.plot1, extend='both', pad=0.01)
         cbar.ax.set_ylabel(caxis_title, loc='center', size=9, weight='bold')
         cbar.ax.tick_params(labelsize=10, rotation=0)
-        plt.clim(0, c_max)
+        axis_name.clim(0, c_max)
         return
 
     def save_plot(self, plt_name):
@@ -683,17 +683,77 @@ class CatchData:
         plt.close()
         return
 
+def plot_recruit_dom_paths(compile_folder, analysis_folder):
+    fig, axs = plt.subplots(figsize=(24, 24), ncols=4, subplot_kw={'projection': ccrs.PlateCarree()})
 
-def check_retain(compile_folder, analysis_folder):
-    p_plot = PlotData(key='SGCM', year=2005, compile_folder=compile_folder, analysis_folder=analysis_folder)
-    filename = p_plot.compile_folder + p_plot.file_prefix + 'retain_SG.csv'
-    r_table = pd.read_csv(filename)
+    years = np.arange(2006, 2009+1,1)
+    release_n = 10
 
-    filename = p_plot.compile_folder + p_plot.file_prefix + 'site_retention.npy'
-    ret_sites = np.load(filename)
-    p_plot.init_plot()
-    p_plot.plot_background(background='SG')
-    plt.scatter(ret_sites[0,:],ret_sites[1,:])
+    idx = -1
+    for y in years:
+        idx = idx +1
+        p_plot = PlotData(key='SGCM', year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+        p_plot.plot_background(background=p_plot.key, ax_name=axs[idx])
+        filename = compile_folder + p_plot.file_prefix + 'dom_paths.npy'
+        dom_paths = np.load(filename)
+        dom_paths = dom_paths.astype(float)
+        # dom_paths[dom_paths == 0] = np.nan
+        dom_paths = (dom_paths / ((release_n) * 10000)) * 100
+        max_val = np.nanmax(dom_paths) / 50
+        n_levels = np.arange(np.nanmin(dom_paths), np.nanmax(dom_paths), max_val)
+    # self.plot1 = plt.contourf(self.df['lon_bin_vals'][:], self.df['lat_bin_vals'][:], dom_paths.T, levels=n_levels, cmap=self.dom_cmap,
+    # transform=ccrs.PlateCarree(), extend='both')
+        axs[idx].pcolormesh(p_plot.df['lon_bin_vals'][:], p_plot.df['lat_bin_vals'][:], dom_paths.T,
+                                cmap=p_plot.dom_cmap,
+                                transform=ccrs.PlateCarree())
+        p_plot.add_cbar(max_val, 'probability (%)', axs[idx])
+
+
+    # self.add_cbar(c_max=self.max_val, caxis_title='probability (%)')
+    # plt_name = self.file_prefix + "dom_paths"
+    # self.save_plot(plt_name)
+
+
+
+
+    # p_plot = PlotData(key='SGCM', year=2006, compile_folder=compile_folder, analysis_folder=analysis_folder)
+    # p_plot.plot_background(background=p_plot.key, ax_name=ax2)
+
+    # fig = plt.figure(figsize=(26, 14))
+    # ax1 = fig.add_subplot(projection=ccrs.PlateCarree())
+    # ax2 = fig.add_subplot(projection=ccrs.PlateCarree())
+    plt.show()
+    breakpoint()
+
+
+def plot_retain(compile_folder, analysis_folder):
+    years = np.arange(2006, 2020 + 1, 1)
+    counter=-1
+    flush_time = np.zeros(np.shape(years))
+    for y in years:
+        counter = counter + 1
+        p_plot = PlotData(key='SGCM', year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+        filename = p_plot.compile_folder + p_plot.file_prefix + 'retain_SG.csv'
+        r_table = pd.read_csv(filename)
+        flush_time[counter] = np.nanmean((r_table.retain_time/24))
+
+    fig, ax1 = plt.subplots(1, 1, figsize=(26, 14))
+    ax1.bar(np.arange(0, np.shape(flush_time)[0]), flush_time, color='r', alpha=.75)
+    ax1.set_ylabel('time (days)', color='r', fontsize=15)
+    ax1.xaxis.set_tick_params(labelsize=14)
+    ax1.yaxis.set_tick_params(labelsize=14)
+    uniq_years = np.unique(years)
+    plt.xticks(np.arange(0, np.shape(uniq_years)[0]),
+               ['2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018',
+                '2019', '2020'])
+    plt.grid(alpha=0.45)  # nice and clean grid
+    p_plot.save_plot('flushing_time')
+
+    # filename = p_plot.compile_folder + p_plot.file_prefix + 'site_retention.npy'
+    # ret_sites = np.load(filename)
+    # p_plot.init_plot()
+    # p_plot.plot_background(background='SG')
+    # plt.scatter(ret_sites[0,:],ret_sites[1,:])
     return
 
 def plot_recruit_stat(compile_folder, analysis_folder):
