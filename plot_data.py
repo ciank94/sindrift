@@ -49,6 +49,8 @@ class PlotData:
         avg_catch = np.nanmean(self.df.krill_greenweight_kg[id_c]/1000)
         return avg_catch
 
+
+
     def get_time(self, csv_file):
         if not os.path.exists(self.time_file):  # if file doesn't exist
             time_array = csv_file.datetime_haul_start
@@ -876,4 +878,166 @@ def plot_recruit_stat(compile_folder, analysis_folder):
 
     p_plot.save_plot('recruit_stat')
     return
+
+def plot_temp_SG(compile_folder, analysis_folder):
+    filename = compile_folder + 'CMEMS_TEMP_SGfull_2006.nc'
+    nc_file = nc.Dataset(filename)
+    dp = nc_file.variables['depth']
+    theta = nc_file['thetao']
+    lat = nc_file.variables['latitude']
+    lon = nc_file.variables['longitude']
+    times = num2date(nc_file['time'], nc_file['time'].units)
+    cdata = CatchData()
+    cdata.get_area(483)
+    counter = -1
+
+    # box 1 = WCB (north-western shelf of south georgia)
+    lon1=-55
+    lon2=-30
+    lat1=-56
+    lat2=-50
+    id_lon = (lon[:] > lon1) & (lon[:] < lon2)
+    id_lat = (lat[:] > lat1) & (lat[:] < lat2)
+    id_dp = 3
+    month =np.zeros(times.shape[0])
+    year = np.zeros(times.shape[0])
+    for i in range(0, times.shape[0]):
+        year[i] = times[i].year
+        month[i] = times[i].month
+
+    theta_sub = theta[:, id_dp, id_lat, id_lon].data
+    theta_sub[theta_sub < -20000] = np.nan
+    theta_box = np.nanmean(theta_sub, axis=(1, 2))
+
+    lat_c = cdata.df.latitude_haul_start
+    lon_c = cdata.df.longitude_haul_start
+    id_lat_c = (lat_c[:] > lat1) & (lat_c[:] < lat2)
+    id_lon_c = (lon_c[:] > lon1) & (lon_c[:] < lon2)
+    catches = np.zeros(15)
+    temp = np.zeros(15)
+    data_list = []
+    for y in range(2006, 2020+1):
+        counter = counter + 1
+        id_y = cdata.year_c == y
+        catches[counter] = np.nanmean(cdata.df.krill_greenweight_kg[id_lat_c & id_lon_c & id_y]) / 1000
+        id_time = year == y
+        vals = theta_box[id_time]
+        temp[counter] = np.nanmean(vals)
+        mask = ~np.isnan(vals)
+        data_list.append(vals[mask])
+
+    fig, ax1 = plt.subplots(2, 1, figsize=(26, 14))
+
+    axis1_title = 'catch'
+    axis2_title = 'temp'
+    idx = 0
+    ax2 = ax1[idx].twinx()
+    ax1[idx].boxplot(data_list)
+    ax2.set_ylabel(axis1_title, color='k', fontsize=15)
+    ax2.plot(np.arange(1, 16), catches, 'k--', linewidth=4, alpha=0.75)
+    ax1[idx].set_ylabel(axis2_title, color='b', fontsize=15)
+
+    ax1[idx].xaxis.set_tick_params(labelsize=14)
+    ax1[idx].yaxis.set_tick_params(labelsize=14)
+    # ax1.set_ylim([0, 250])
+    # ax1.set_ylim([0, 250])
+    # ax1.set_ylim([0, 14])
+    # ax1.set_ylim([0, 14])
+    ax2.yaxis.set_tick_params(labelsize=14)
+    plt.xticks(np.arange(1, 16),
+               ['2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018',
+                '2019', '2020'])
+    plt.grid(alpha=0.45)  # nice and clean grid
+
+    counter = -1
+    catches = np.zeros(4)
+    temp = np.zeros(4)
+    data_list = []
+    for m in range(6, 9+1):
+        counter = counter + 1
+        id_m = cdata.month == m
+        catches[counter] = np.nanmean(cdata.df.krill_greenweight_kg[id_lat_c & id_lon_c & id_m]) / 1000
+        id_time = month == m
+        vals = theta_box[id_time]
+        temp[counter] = np.nanmean(vals)
+        mask = ~np.isnan(vals)
+        data_list.append(vals[mask])
+
+
+
+    axis1_title = 'catch'
+    axis2_title = 'temp'
+    idx = 1
+    ax2 = ax1[idx].twinx()
+    ax1[idx].boxplot(data_list)
+    ax2.set_ylabel(axis1_title, color='k', fontsize=15)
+    ax2.plot(np.arange(1, 5), catches, 'k--', linewidth=4, alpha=0.75)
+    ax1[idx].set_ylabel(axis2_title, color='b', fontsize=15)
+    #ax1[idx].bar(np.arange(0, np.shape(temp)[0]), temp, color='b', alpha=0.75)
+
+    ax1[idx].xaxis.set_tick_params(labelsize=14)
+    ax1[idx].yaxis.set_tick_params(labelsize=14)
+    # ax1.set_ylim([0, 250])
+    # ax1.set_ylim([0, 250])
+    # ax1.set_ylim([0, 14])
+    # ax1.set_ylim([0, 14])
+    ax2.yaxis.set_tick_params(labelsize=14)
+    plt.xticks(np.arange(1, 5),
+               ['Jun', 'Jul', 'Aug', 'Sep'])
+    plt.grid(alpha=0.45)  # nice and clean grid
+
+    plt_name = 'temp_by_year'
+    figures_path = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/figures/'
+    savefile = figures_path + plt_name + '.png'
+    print('Saving file: ' + savefile)
+    plt.savefig(savefile, dpi=400)
+    plt.close()
+    return
+
+def plot_catch_points(compile_folder, analysis_folder):
+    cdata = CatchData()
+    lon = cdata.csv_file.longitude_haul_start
+    lat = cdata.csv_file.latitude_haul_start
+    figures_path = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/figures/'
+    bath_file = figures_path + 'bath.npy'
+    bath_file_lon = figures_path + 'bath_lon.npy'
+    bath_file_lat = figures_path + 'bath_lat.npy'
+    bath_contours = np.arange(0, 5750, 300)
+    bath = np.load(bath_file)
+    bath_lon = np.load(bath_file_lon)
+    bath_lat = np.load(bath_file_lat)
+    fig = plt.figure(figsize=(12, 8))
+    ax_name = fig.add_subplot(projection=ccrs.PlateCarree())
+    land_10m = cfeature.NaturalEarthFeature('physical', 'land', '10m',
+                                            edgecolor='face',
+                                            facecolor='lightgrey')
+    ax_name.add_feature(land_10m)
+    ax_name.coastlines(resolution='10m', linewidth=0.7)
+    ax_name.contour(bath_lon, bath_lat, bath, bath_contours, colors='k', alpha=0.2, linewidths=0.7,
+                    transform=ccrs.PlateCarree())
+    d_map = ax_name.contourf(bath_lon, bath_lat, bath, levels=bath_contours,
+                  transform=ccrs.PlateCarree(), cmap= plt.get_cmap('Blues'), vmin=0, vmax=4000)
+
+    #d_map = ax_name.imshow(bath_lon, bath_lat, bath, levels=bath_contours,
+                            # transform=ccrs.PlateCarree(), cmap= plt.get_cmap('Blues'))
+
+    cbar = plt.colorbar(d_map, extend='both', pad=0.01, ax = ax_name)
+    cbar.ax.set_ylabel('depth (m)', loc='center', size=9, weight='bold')
+    cbar.ax.tick_params(labelsize=10, rotation=0)
+
+    # set extent and grid lines;
+    gl = ax_name.gridlines(draw_labels=True, alpha=0.4)
+    gl.top_labels = False
+    gl.right_labels = False
+    ax_name.scatter(lon, lat, c='r', s=1)
+
+    ax_name.set_extent(
+        [-64, -34, -70, -50])
+    cdata.save_plot(plt_name='fishing_points')
+
+    breakpoint()
+
+
+
+
 
