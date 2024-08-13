@@ -582,66 +582,119 @@ class CatchData:
     def plot_fishing_season(self):
         self.get_area(481)
         ap_c = np.zeros(12)
+        ap_av = np.zeros(12)
+        std_ap = np.zeros(12)
         c = -1
         for i in range(1, 13):
             c = c + 1
             ap_c[c] = np.sum(self.month == i)
+            ap_av[c] = np.nanmean(self.df.krill_greenweight_kg[self.month==i]) / 1000
+            std_ap[c] = np.nanstd(self.df.krill_greenweight_kg[self.month==i]) / 1000
 
         self.get_area(482)
         so_c = np.zeros(12)
+        so_av = np.zeros(12)
+        std_so = np.zeros(12)
         c = -1
         for i in range(1, 13):
             c = c + 1
             so_c[c] = np.sum(self.month == i)
+            so_av[c] = np.nanmean(self.df.krill_greenweight_kg[self.month == i]) / 1000
+            std_so[c] = np.nanstd(self.df.krill_greenweight_kg[self.month == i]) / 1000
 
         self.get_area(483)
         sg_c = np.zeros(12)
+        sg_av = np.zeros(12)
+        std_sg = np.zeros(12)
         c = -1
         for i in range(1, 13):
             c = c + 1
             sg_c[c] = np.sum(self.month == i)
+            sg_av[c] = np.nanmean(self.df.krill_greenweight_kg[self.month == i]) / 1000
+            std_sg[c] = np.nanstd(self.df.krill_greenweight_kg[self.month == i]) / 1000
 
-        fig, axs = plt.subplots(2, 1, figsize=(12, 8))
+        fig, axs = plt.subplots(2, 2, figsize=(20, 8))
         x_name = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-        axs[0].bar(x_name, ap_c, color='red', alpha=0.75)
-        axs[0].bar(x_name, so_c, bottom=ap_c, color='blue', alpha=0.75)
-        axs[0].bar(x_name, sg_c, bottom=ap_c + so_c, color='olive', alpha=0.75)
-        axs[0].set_ylabel("Catch events", fontsize=13)
-        axs[0].set_xlabel("Month", fontsize=13)
-        axs[0].legend(["AP", "SO", "SG"], fontsize=13)
-        axs[0].grid(alpha=0.45)
+        axs[0,0].bar(x_name, ap_c, color='red', alpha=0.75)
+        axs[0,0].bar(x_name, so_c, bottom=ap_c, color='blue', alpha=0.75)
+        axs[0,0].bar(x_name, sg_c, bottom=ap_c + so_c, color='olive', alpha=0.75)
+        axs[0,0].set_ylabel("frequency", fontsize=13)
+        axs[0,0].set_xlabel("month", fontsize=13)
+        axs[0,0].legend(["AP", "SO", "SG"], fontsize=13)
+        axs[0,0].grid(alpha=0.45)
+        axs[0, 0].set_ylim([0, 18000])
+
+        axs[1, 0].scatter(x_name, ap_av, c='r', linewidth=5, s=3)
+        axs[1, 0].errorbar(x_name, ap_av, yerr=std_ap, color="r", alpha=0.5)
+        axs[1, 0].scatter(x_name, so_av, c='b', linewidth=5, s=3)
+        axs[1, 0].errorbar(x_name, so_av, yerr=std_so, color="b", alpha=0.5)
+        axs[1, 0].scatter(x_name, sg_av, c='olive', linewidth=5, s=3)
+        axs[1, 0].errorbar(x_name, sg_av, yerr=std_so, color="olive", alpha=0.5)
+        axs[1, 0].set_ylabel("weight (tonnes)", fontsize=13)
+        axs[1, 0].set_xlabel("month", fontsize=13)
+        axs[1, 0].legend(["AP", "SO", "SG"], fontsize=13)
+        axs[1, 0].grid(alpha=0.45)
+        axs[1, 0].set_ylim([0, 50])
+
 
         self.get_area(481)
         ap_c = np.zeros(18)
+        ap_av = np.zeros(18)
+        std_ap = np.zeros(18)
         c = -1
         for i in range(2006, 2024):
             c = c + 1
             ap_c[c] = np.sum(self.year_c == i)
+            ap_av[c] = np.nanmean(self.df.krill_greenweight_kg[self.year_c == i]) / 1000
+            std_ap[c] = np.nanstd(self.df.krill_greenweight_kg[self.year_c == i]) / 1000
 
         self.get_area(482)
         so_c = np.zeros(18)
+        so_av = np.zeros(18)
+        std_so = np.zeros(18)
         c = -1
         for i in range(2006, 2024):
             c = c + 1
             so_c[c] = np.sum(self.year_c == i)
+            so_av[c] = np.nanmean(self.df.krill_greenweight_kg[self.year_c == i]) / 1000
+            std_so[c] = np.nanstd(self.df.krill_greenweight_kg[self.year_c == i]) / 1000
 
         self.get_area(483)
         sg_c = np.zeros(18)
+        sg_av = np.zeros(18)
+        std_sg = np.zeros(18)
         c = -1
         for i in range(2006, 2024):
             c = c + 1
             sg_c[c] = np.sum(self.year_c == i)
+            sg_av[c] = np.nanmean(self.df.krill_greenweight_kg[self.year_c == i]) / 1000
+            std_sg[c] = np.nanstd(self.df.krill_greenweight_kg[self.year_c == i]) / 1000
 
         x_name = ['2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017',
                   '2018', '2019', '2020', '2021', '2022', '2023']
-        axs[1].grid(alpha=0.45)
-        axs[1].bar(x_name, ap_c, color='r', alpha=0.75)
-        axs[1].bar(x_name, so_c, bottom=ap_c, color='b', alpha=0.75)
-        axs[1].bar(x_name, sg_c, bottom=ap_c + so_c, color='olive', alpha=0.75)
-        axs[1].set_ylabel("Catch events", fontsize=13)
-        axs[1].set_xlabel("Year", fontsize=13)
-        axs[1].legend(["AP", "SO", "SG"], fontsize=13, loc='upper left')
 
+        axs[0, 1].bar(x_name, ap_c, color='red', alpha=0.75)
+        axs[0, 1].bar(x_name, so_c, bottom=ap_c, color='blue', alpha=0.75)
+        axs[0, 1].bar(x_name, sg_c, bottom=ap_c + so_c, color='olive', alpha=0.75)
+        axs[0, 1].set_ylabel("frequency", fontsize=13)
+        axs[0, 1].set_xlabel("year", fontsize=13)
+        axs[0, 1].legend(["AP", "SO", "SG"], fontsize=13)
+        axs[0, 1].grid(alpha=0.45)
+        axs[0, 1].set_ylim([0, 18000])
+
+        axs[1, 1].scatter(x_name, ap_av, c='r', linewidth=5, s=3)
+        axs[1, 1].errorbar(x_name, ap_av, yerr=std_ap, color="r", alpha=0.5)
+        axs[1, 1].scatter(x_name, so_av, c='b', linewidth=5, s=3)
+        axs[1, 1].errorbar(x_name, so_av, yerr=std_so, color="b", alpha=0.5)
+        axs[1, 1].scatter(x_name, sg_av, c='olive', linewidth=5, s=3)
+        axs[1, 1].errorbar(x_name, sg_av, yerr=std_so, color="olive", alpha=0.5)
+        axs[1, 1].set_ylabel("weight (tonnes)", fontsize=13)
+        axs[1, 1].set_xlabel("year", fontsize=13)
+        axs[1, 1].legend(["AP", "SO", "SG"], fontsize=13)
+        axs[1, 1].grid(alpha=0.45)
+        axs[1, 1].set_ylim([0, 50])
+
+        plt.tight_layout()
         self.save_plot(plt_name='fishing_season')
         return
 
@@ -1035,7 +1088,7 @@ def plot_catch_points(compile_folder, analysis_folder):
         [-64, -34, -70, -50])
     cdata.save_plot(plt_name='fishing_points')
 
-    breakpoint()
+    return
 
 
 

@@ -10,15 +10,15 @@ compile_folder = 'A:/Cian_sinmod/opendrift/' + 'compile/'
 analysis_folder = 'A:/Cian_sinmod/opendrift/' + 'analysis/'
 
 # s2.1: results for catch data:
-#cdata = CatchData()
+cdata = CatchData()
 # catch facts
 #cdata.catch_facts()
 # figure 1:
-#cdata.plot_fishing_season()
+cdata.plot_fishing_season()
 # figure 2:
 #cdata.plot_lat_lon()
 # figure 3:
-plot_catch_points(compile_folder, analysis_folder)
+#plot_catch_points(compile_folder, analysis_folder)
 
 # s2.2: results for recruitment to SG:
 # figure 1:
