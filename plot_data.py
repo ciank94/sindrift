@@ -386,8 +386,9 @@ class PlotData:
         gl.right_labels = False
         #self.ax.set_extent(
             #[self.min_lon, self.max_lon, self.min_lat, self.max_lat])
-        if background == "AP":
-            self.AP_lon_lat_extent()
+        if background == "BSSI":
+            #self.AP_lon_lat_extent()
+            self.gen_lon_lat_extent()
             ax_name.set_extent(
                 [self.min_lon, self.max_lon, self.min_lat,
                  self.max_lat])
@@ -437,10 +438,11 @@ class PlotData:
         return
 
     def AP_lon_lat_extent(self):
-        self.min_lon = -65.3
-        self.max_lon = -51
-        self.min_lat = -69
-        self.max_lat = -56
+        self.min_lon = -64
+        self.max_lon = -34
+        self.min_lat = -70
+        self.max_lat = -50
+
         return
 
     def SOI_lon_lat_extent(self):
@@ -738,47 +740,172 @@ class CatchData:
         plt.close()
         return
 
-def plot_recruit_dom_paths(compile_folder, analysis_folder):
-    fig, axs = plt.subplots(figsize=(24, 24), ncols=4, subplot_kw={'projection': ccrs.PlateCarree()})
+def plot_SOIN_recruit_dom_paths(compile_folder, analysis_folder):
+    fig, axs = plt.subplots(figsize=(24, 12), nrows=3, ncols=5, subplot_kw={'projection': ccrs.PlateCarree()}, sharex=True,
+                            layout='constrained', sharey=True)
 
-    years = np.arange(2006, 2009+1,1)
-    release_n = 10
+    years = np.arange(2005, 2009+1,1)
+    release_n = 20
+    max_v = 6
+    l_max = 24
 
     idx = -1
+    key_name = 'SOIN'
+    idy = 0
     for y in years:
-        idx = idx +1
-        p_plot = PlotData(key='SGCM', year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
-        p_plot.plot_background(background=p_plot.key, ax_name=axs[idx])
+        idx = idx + 1
+        p_plot = PlotData(key=key_name, year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+        p_plot.plot_background(background='BSSI', ax_name=axs[idy, idx])
         filename = compile_folder + p_plot.file_prefix + 'dom_paths.npy'
         dom_paths = np.load(filename)
         dom_paths = dom_paths.astype(float)
         # dom_paths[dom_paths == 0] = np.nan
         dom_paths = (dom_paths / ((release_n) * 10000)) * 100
-        max_val = np.nanmax(dom_paths) / 50
-        n_levels = np.arange(np.nanmin(dom_paths), np.nanmax(dom_paths), max_val)
+        #max_val = np.nanmax(dom_paths) / 50
+        #n_levels = np.arange(np.nanmin(dom_paths), np.nanmax(dom_paths), max_val)
+        n_levels = np.arange(0, l_max, 0.1)
     # self.plot1 = plt.contourf(self.df['lon_bin_vals'][:], self.df['lat_bin_vals'][:], dom_paths.T, levels=n_levels, cmap=self.dom_cmap,
     # transform=ccrs.PlateCarree(), extend='both')
-        axs[idx].pcolormesh(p_plot.df['lon_bin_vals'][:], p_plot.df['lat_bin_vals'][:], dom_paths.T,
-                                cmap=p_plot.dom_cmap,
-                                transform=ccrs.PlateCarree())
-        p_plot.add_cbar(max_val, 'probability (%)', axs[idx])
+        d_map = axs[idy, idx].contourf(p_plot.df['lon_bin_vals'][:], p_plot.df['lat_bin_vals'][:], dom_paths.T,
+                                cmap=p_plot.dom_cmap, levels=n_levels,
+                                transform=ccrs.PlateCarree(), vmin =0, vmax = max_v)
+        axs[idy, idx].set_title(str(y+1))
 
 
-    # self.add_cbar(c_max=self.max_val, caxis_title='probability (%)')
-    # plt_name = self.file_prefix + "dom_paths"
-    # self.save_plot(plt_name)
+    years = np.arange(2010, 2014 + 1, 1)
+    idx = -1
+    idy = 1
+    for y in years:
+        idx = idx + 1
+        p_plot = PlotData(key=key_name, year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+        p_plot.plot_background(background='BSSI', ax_name=axs[idy, idx])
+        filename = compile_folder + p_plot.file_prefix + 'dom_paths.npy'
+        dom_paths = np.load(filename)
+        dom_paths = dom_paths.astype(float)
+        # dom_paths[dom_paths == 0] = np.nan
+        dom_paths = (dom_paths / ((release_n) * 10000)) * 100
+        # max_val = np.nanmax(dom_paths) / 50
+        # n_levels = np.arange(np.nanmin(dom_paths), np.nanmax(dom_paths), max_val)
+        n_levels = np.arange(0, l_max, 0.1)
+        # self.plot1 = plt.contourf(self.df['lon_bin_vals'][:], self.df['lat_bin_vals'][:], dom_paths.T, levels=n_levels, cmap=self.dom_cmap,
+        # transform=ccrs.PlateCarree(), extend='both')
+        d_map = axs[idy, idx].contourf(p_plot.df['lon_bin_vals'][:], p_plot.df['lat_bin_vals'][:], dom_paths.T,
+                                       cmap=p_plot.dom_cmap, levels=n_levels,
+                                       transform=ccrs.PlateCarree(), vmin=0, vmax=max_v)
+        axs[idy, idx].set_title(str(y+1))
+
+    fig.colorbar(d_map, ax = axs[idy, idx], shrink=0.99, label='probability (%)')
+
+    years = np.arange(2015, 2019 + 1, 1)
+    idx = -1
+    idy = 2
+    for y in years:
+        idx = idx + 1
+        p_plot = PlotData(key=key_name, year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+        p_plot.plot_background(background='BSSI', ax_name=axs[idy, idx])
+        filename = compile_folder + p_plot.file_prefix + 'dom_paths.npy'
+        dom_paths = np.load(filename)
+        dom_paths = dom_paths.astype(float)
+        # dom_paths[dom_paths == 0] = np.nan
+        dom_paths = (dom_paths / ((release_n) * 10000)) * 100
+        # max_val = np.nanmax(dom_paths) / 50
+        # n_levels = np.arange(np.nanmin(dom_paths), np.nanmax(dom_paths), max_val)
+        n_levels = np.arange(0, l_max, 0.1)
+        # self.plot1 = plt.contourf(self.df['lon_bin_vals'][:], self.df['lat_bin_vals'][:], dom_paths.T, levels=n_levels, cmap=self.dom_cmap,
+        # transform=ccrs.PlateCarree(), extend='both')
+        d_map = axs[idy, idx].contourf(p_plot.df['lon_bin_vals'][:], p_plot.df['lat_bin_vals'][:], dom_paths.T,
+                                       cmap=p_plot.dom_cmap, levels=n_levels,
+                                       transform=ccrs.PlateCarree(), vmin=0, vmax=max_v)
+        axs[idy, idx].set_title(str(y+1))
 
 
+    name_p = 'dom_paths_' + key_name
+    p_plot.save_plot(plt_name=name_p)
+    return
+
+def plot_BSSI_recruit_dom_paths(compile_folder, analysis_folder):
+    fig, axs = plt.subplots(figsize=(24, 12), nrows=3, ncols=5, subplot_kw={'projection': ccrs.PlateCarree()},
+                            sharex=True,
+                            layout='constrained', sharey=True)
+
+    years = np.arange(2005, 2009 + 1, 1)
+    release_n = 20
+    max_v = 6
+    l_max = 24
+
+    idx = -1
+    key_name = 'BSSI'
+    idy = 0
+    for y in years:
+        idx = idx + 1
+        p_plot = PlotData(key=key_name, year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+        p_plot.plot_background(background='BSSI', ax_name=axs[idy, idx])
+        filename = compile_folder + p_plot.file_prefix + 'dom_paths.npy'
+        dom_paths = np.load(filename)
+        dom_paths = dom_paths.astype(float)
+        # dom_paths[dom_paths == 0] = np.nan
+        dom_paths = (dom_paths / ((release_n) * 10000)) * 100
+        # max_val = np.nanmax(dom_paths) / 50
+        # n_levels = np.arange(np.nanmin(dom_paths), np.nanmax(dom_paths), max_val)
+        n_levels = np.arange(0, l_max, 0.1)
+        # self.plot1 = plt.contourf(self.df['lon_bin_vals'][:], self.df['lat_bin_vals'][:], dom_paths.T, levels=n_levels, cmap=self.dom_cmap,
+        # transform=ccrs.PlateCarree(), extend='both')
+        d_map = axs[idy, idx].contourf(p_plot.df['lon_bin_vals'][:], p_plot.df['lat_bin_vals'][:], dom_paths.T,
+                                       cmap=p_plot.dom_cmap, levels=n_levels,
+                                       transform=ccrs.PlateCarree(), vmin=0, vmax=max_v)
+        axs[idy, idx].set_title(str(y + 1))
+
+    years = np.arange(2010, 2014 + 1, 1)
+    idx = -1
+    idy = 1
+    for y in years:
+        idx = idx + 1
+        p_plot = PlotData(key=key_name, year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+        p_plot.plot_background(background='BSSI', ax_name=axs[idy, idx])
+        filename = compile_folder + p_plot.file_prefix + 'dom_paths.npy'
+        dom_paths = np.load(filename)
+        dom_paths = dom_paths.astype(float)
+        # dom_paths[dom_paths == 0] = np.nan
+        dom_paths = (dom_paths / ((release_n) * 10000)) * 100
+        # max_val = np.nanmax(dom_paths) / 50
+        # n_levels = np.arange(np.nanmin(dom_paths), np.nanmax(dom_paths), max_val)
+        n_levels = np.arange(0, l_max, 0.1)
+        # self.plot1 = plt.contourf(self.df['lon_bin_vals'][:], self.df['lat_bin_vals'][:], dom_paths.T, levels=n_levels, cmap=self.dom_cmap,
+        # transform=ccrs.PlateCarree(), extend='both')
+        d_map = axs[idy, idx].contourf(p_plot.df['lon_bin_vals'][:], p_plot.df['lat_bin_vals'][:], dom_paths.T,
+                                       cmap=p_plot.dom_cmap, levels=n_levels,
+                                       transform=ccrs.PlateCarree(), vmin=0, vmax=max_v)
+        axs[idy, idx].set_title(str(y + 1))
+
+    fig.colorbar(d_map, ax=axs[idy, idx], shrink=0.99, label='probability (%)')
+
+    years = np.arange(2015, 2019 + 1, 1)
+    idx = -1
+    idy = 2
+    for y in years:
+        idx = idx + 1
+        p_plot = PlotData(key=key_name, year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+        p_plot.plot_background(background='BSSI', ax_name=axs[idy, idx])
+        filename = compile_folder + p_plot.file_prefix + 'dom_paths.npy'
+        dom_paths = np.load(filename)
+        dom_paths = dom_paths.astype(float)
+        # dom_paths[dom_paths == 0] = np.nan
+        dom_paths = (dom_paths / ((release_n) * 10000)) * 100
+        # max_val = np.nanmax(dom_paths) / 50
+        # n_levels = np.arange(np.nanmin(dom_paths), np.nanmax(dom_paths), max_val)
+        n_levels = np.arange(0, l_max, 0.1)
+        # self.plot1 = plt.contourf(self.df['lon_bin_vals'][:], self.df['lat_bin_vals'][:], dom_paths.T, levels=n_levels, cmap=self.dom_cmap,
+        # transform=ccrs.PlateCarree(), extend='both')
+        d_map = axs[idy, idx].contourf(p_plot.df['lon_bin_vals'][:], p_plot.df['lat_bin_vals'][:], dom_paths.T,
+                                       cmap=p_plot.dom_cmap, levels=n_levels,
+                                       transform=ccrs.PlateCarree(), vmin=0, vmax=max_v)
+        axs[idy, idx].set_title(str(y + 1))
+
+    name_p = 'dom_paths_' + key_name
+    p_plot.save_plot(plt_name=name_p)
+    return
 
 
-    # p_plot = PlotData(key='SGCM', year=2006, compile_folder=compile_folder, analysis_folder=analysis_folder)
-    # p_plot.plot_background(background=p_plot.key, ax_name=ax2)
-
-    # fig = plt.figure(figsize=(26, 14))
-    # ax1 = fig.add_subplot(projection=ccrs.PlateCarree())
-    # ax2 = fig.add_subplot(projection=ccrs.PlateCarree())
-    plt.show()
-    breakpoint()
 
 
 def plot_retain(compile_folder, analysis_folder):
@@ -787,7 +914,7 @@ def plot_retain(compile_folder, analysis_folder):
     flush_time = np.zeros(np.shape(years))
     for y in years:
         counter = counter + 1
-        p_plot = PlotData(key='SGCM', year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+        p_plot = PlotData(key='SOIN', year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
         filename = p_plot.compile_folder + p_plot.file_prefix + 'retain_SG.csv'
         r_table = pd.read_csv(filename)
         flush_time[counter] = np.nanmean((r_table.retain_time/24))
@@ -810,6 +937,63 @@ def plot_retain(compile_folder, analysis_folder):
     # p_plot.plot_background(background='SG')
     # plt.scatter(ret_sites[0,:],ret_sites[1,:])
     return
+
+def plot_linreg(compile_folder, analysis_folder):
+    from scipy import stats
+    years = np.arange(2005, 2019 + 1, 1)
+    # the catch dataset is now in figures folder; use the data to compare against simulations;
+    recruit_v = np.zeros(np.shape(years))
+    catch_v = np.zeros(np.shape(years))
+
+    counter = -1
+    for y in years:
+        counter = counter + 1
+        p_plot = PlotData(key='BSSI', year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+        catch_v[counter] = p_plot.read_catch()
+        recruit_v[counter] = p_plot.get_recruits()
+
+    fig, ax1 = plt.subplots(2, 1, figsize=(12, 8))
+
+    varx = recruit_v
+    vary = catch_v
+    mask = ~np.isnan(varx) & ~np.isnan(vary)
+    res = stats.linregress(varx[mask], vary[mask])
+    print(stats.pearsonr(varx[mask], vary[mask]))
+
+    ax1[0].plot(varx, vary, 'r.', label='original data', markersize=12)
+    ax1[0].plot(varx, res.intercept + res.slope * varx, 'k', label='fitted line', linewidth=4)
+    ax1[0].grid(alpha=0.45)
+    ax1[0].set_ylabel('weight (tonnes)', fontsize=15)
+    ax1[0].set_xlabel('fraction recruited (%)', fontsize=15)
+
+
+    counter = -1
+    for y in years:
+        counter = counter + 1
+        p_plot = PlotData(key='SOIN', year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+        catch_v[counter] = p_plot.read_catch()
+        recruit_v[counter] = p_plot.get_recruits()
+
+    varx = recruit_v
+    vary = catch_v
+    mask = ~np.isnan(varx) & ~np.isnan(vary)
+    res = stats.linregress(varx[mask], vary[mask])
+    print(stats.pearsonr(varx[mask], vary[mask]))
+    ax1[1].grid(alpha=0.45)
+    ax1[1].plot(varx, vary, 'b.', label='original data', markersize=12)
+    ax1[1].plot(varx, res.intercept + res.slope * varx, 'k', label='fitted line', linewidth=4)
+    ax1[1].set_ylabel('weight (tonnes)', fontsize=15)
+    ax1[1].set_xlabel('fraction recruited (%)', fontsize=15)
+
+
+    ax1[0].xaxis.set_tick_params(labelsize=14)
+    ax1[0].yaxis.set_tick_params(labelsize=14)
+    ax1[1].xaxis.set_tick_params(labelsize=14)
+    ax1[1].yaxis.set_tick_params(labelsize=14)
+
+    p_plot.save_plot('recruit_correlation')
+    return
+
 
 def plot_recruit_stat(compile_folder, analysis_folder):
     years = np.arange(2005, 2019 + 1, 1)
@@ -834,18 +1018,20 @@ def plot_recruit_stat(compile_folder, analysis_folder):
         chl_v[counter] = p_plot.get_chl_exp()
         o2_v[counter] = p_plot.get_o2_exp()
 
+
     fig, ax1 = plt.subplots(2, 2, figsize=(26, 14))
 
-    axis1_title = 'catch'
+    axis1_title = 'weight (tonnes)'
     axis2_title = 'time (days)'
     ax2 = ax1[0, 0].twinx()
     ax2.set_ylabel(axis1_title, color='k', fontsize=15)
     ax2.plot(catch_v, 'k--', linewidth=4, alpha=0.75)
     ax1[0, 0].set_ylabel(axis2_title, color='r', fontsize=15)
-    ax1[0, 0].bar(np.arange(0, np.shape(recruit_t)[0]), recruit_t, color='r', alpha=.75)
+    ax1[0, 0].plot(np.arange(0, np.shape(recruit_t)[0]), recruit_t, color='r' , linewidth=4)
     ax1[0,0].xaxis.set_tick_params(labelsize=14)
     ax1[0,0].yaxis.set_tick_params(labelsize=14)
     ax2.yaxis.set_tick_params(labelsize=14)
+
 
 
     uniq_years = np.unique(years)
@@ -854,13 +1040,13 @@ def plot_recruit_stat(compile_folder, analysis_folder):
                 '2019', '2020'])
     plt.grid(alpha=0.45)  # nice and clean grid
 
-    axis1_title = 'catch'
+    axis1_title = 'weight (tonnes)'
     axis2_title = 'fraction recruited (%)'
     ax2 = ax1[0, 1].twinx()
     ax2.set_ylabel(axis1_title, color='k', fontsize=15)
     ax2.plot(catch_v, 'k--', linewidth=4, alpha=0.75)
     ax1[0, 1].set_ylabel(axis2_title, color='r', fontsize=15)
-    ax1[0, 1].bar(np.arange(0, np.shape(recruit_v)[0]), recruit_v, color='r', alpha=0.75)
+    ax1[0, 1].plot(np.arange(0, np.shape(recruit_v)[0]), recruit_v, color='r', linewidth=4)
     ax1[0, 1].xaxis.set_tick_params(labelsize=14)
     ax1[0, 1].yaxis.set_tick_params(labelsize=14)
     ax2.yaxis.set_tick_params(labelsize=14)
@@ -892,13 +1078,13 @@ def plot_recruit_stat(compile_folder, analysis_folder):
         chl_v[counter] = p_plot.get_chl_exp()
         o2_v[counter] = p_plot.get_o2_exp()
 
-    axis1_title = 'catch'
+    axis1_title = 'weight (tonnes)'
     axis2_title = 'time (days)'
     ax2 = ax1[1, 0].twinx()
     ax2.set_ylabel(axis1_title, color='k', fontsize=15)
     ax2.plot(catch_v, 'k--', linewidth=4, alpha=0.75)
     ax1[1, 0].set_ylabel(axis2_title, color='blue', fontsize=15)
-    ax1[1, 0].bar(np.arange(0, np.shape(recruit_t)[0]), recruit_t, color='b', alpha=0.75)
+    ax1[1, 0].plot(np.arange(0, np.shape(recruit_t)[0]), recruit_t, color='b' , linewidth=4)
     ax1[1, 0].xaxis.set_tick_params(labelsize=14)
     ax1[1, 0].yaxis.set_tick_params(labelsize=14)
     ax2.yaxis.set_tick_params(labelsize=14)
@@ -908,19 +1094,19 @@ def plot_recruit_stat(compile_folder, analysis_folder):
                 '2019', '2020'])
     plt.grid(alpha=0.45)  # nice and clean grid
 
-    axis1_title = 'catch'
+    axis1_title = 'weight (tonnes)'
     axis2_title = 'fraction recruited (%)'
     ax2 = ax1[1, 1].twinx()
     ax2.set_ylabel(axis1_title, color='k', fontsize=15)
     ax2.plot(catch_v, 'k--', linewidth=4, alpha=0.75)
     ax1[1, 1].set_ylabel(axis2_title, color='b', fontsize=15)
-    ax1[1, 1].bar(np.arange(0, np.shape(recruit_v)[0]), recruit_v, color='b', alpha=0.75)
+    ax1[1, 1].plot(np.arange(0, np.shape(recruit_v)[0]), recruit_v, color='b' , linewidth=4)
     ax1[1, 1].xaxis.set_tick_params(labelsize=14)
     ax1[1, 1].yaxis.set_tick_params(labelsize=14)
-    ax1[0, 0].set_ylim([0, 250])
-    ax1[1, 0].set_ylim([0, 250])
-    ax1[0, 1].set_ylim([0, 14])
-    ax1[1, 1].set_ylim([0, 14])
+    ax1[0, 0].set_ylim([100, 250])
+    ax1[1, 0].set_ylim([100, 250])
+    ax1[0, 1].set_ylim([0, 12])
+    ax1[1, 1].set_ylim([0, 12])
     ax2.yaxis.set_tick_params(labelsize=14)
     uniq_years = np.unique(years)
     plt.xticks(np.arange(0, np.shape(uniq_years)[0]),
