@@ -938,6 +938,32 @@ def plot_retain(compile_folder, analysis_folder):
     # plt.scatter(ret_sites[0,:],ret_sites[1,:])
     return
 
+def plot_arrivals(compile_folder, analysis_folder):
+    import datetime
+    years = np.arange(2005, 2019 + 1, 1)
+    # the catch dataset is now in figures folder; use the data to compare against simulations;
+    recruit_v = np.zeros(np.shape(years))
+    catch_v = np.zeros(np.shape(years))
+
+    counter = -1
+    for y in years:
+        counter = counter + 1
+        p_plot = PlotData(key='BSSI', year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+        filename = p_plot.compile_folder + p_plot.file_prefix + 'recruit_SG.csv'
+        r_table = pd.read_csv(filename)
+        r_table.date = pd.to_datetime(r_table.date, format="%d/%m/%Y")
+        df = r_table.sort_values(by='date')
+        dates = [datetime.datetime.strptime(ts, "%d/%m/%Y") for ts in r_table.date]
+        idx = dates.sort()
+        breakpoint()
+        dates.sort()
+        sorteddates = [datetime.datetime.strftime(ts, "%d/%m/%Y") for ts in dates]
+        sorteddates
+
+        # catch_v[counter] = p_plot.read_catch()
+        # recruit_v[counter] = p_plot.get_recruits()
+
+
 def plot_linreg(compile_folder, analysis_folder):
     from scipy import stats
     years = np.arange(2005, 2019 + 1, 1)
