@@ -10,7 +10,7 @@ compile_folder = 'A:/Cian_sinmod/opendrift/' + 'compile/'
 analysis_folder = 'A:/Cian_sinmod/opendrift/' + 'analysis/'
 
 # s2.1: results for catch data:
-#cdata = CatchData()
+cdata = CatchData()
 # catch facts
 #cdata.catch_facts()
 # figure 1:
@@ -25,11 +25,11 @@ analysis_folder = 'A:/Cian_sinmod/opendrift/' + 'analysis/'
 #plot_recruit_stat(compile_folder, analysis_folder)
 #plot_linreg(compile_folder, analysis_folder)
 # figure 2:
-plot_arrivals(compile_folder, analysis_folder)
+#plot_arrivals(compile_folder, analysis_folder)
 #plot_retain(compile_folder, analysis_folder)
 # figure 3:
-#plot_SOIN_recruit_dom_paths(compile_folder, analysis_folder)
-#plot_BSSI_recruit_dom_paths(compile_folder, analysis_folder)
+plot_SOIN_recruit_dom_paths(compile_folder, analysis_folder)
+plot_BSSI_recruit_dom_paths(compile_folder, analysis_folder)
 # figure 4:
 #plot_temp_SG(compile_folder, analysis_folder)
 #plot_temp_month_SG(compile_folder, analysis_folder)

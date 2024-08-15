@@ -455,9 +455,9 @@ class PlotData:
 
     def gen_lon_lat_extent(self):
         # SG extent;
-        self.min_lon = -43
-        self.max_lon = -33
-        self.min_lat = -58
+        self.min_lon = -45
+        self.max_lon = -32
+        self.min_lat = -61
         self.max_lat = -50
         return
 
@@ -626,12 +626,11 @@ class CatchData:
         axs[0,0].grid(alpha=0.45)
         axs[0, 0].set_ylim([0, 18000])
 
-        axs[1, 0].scatter(x_name, ap_av, c='r', linewidth=5, s=3)
-        axs[1, 0].errorbar(x_name, ap_av, yerr=std_ap, color="r", alpha=0.5)
-        axs[1, 0].scatter(x_name, so_av, c='b', linewidth=5, s=3)
-        axs[1, 0].errorbar(x_name, so_av, yerr=std_so, color="b", alpha=0.5)
-        axs[1, 0].scatter(x_name, sg_av, c='olive', linewidth=5, s=3)
-        axs[1, 0].errorbar(x_name, sg_av, yerr=std_so, color="olive", alpha=0.5)
+        axs[1, 0].plot(x_name, ap_av, 'r-o', linewidth=4, alpha=0.75)
+        #axs[1, 0].scatter(x_name, ap_av, c='r', linewidth=5, s=3)
+        #axs[1, 0].errorbar(x_name, ap_av, yerr=std_ap, color="r", alpha=0.5)
+        axs[1, 0].plot(x_name, so_av, 'b-o', linewidth=4, alpha=0.75)
+        axs[1, 0].plot(x_name, sg_av,'-o', c='olive', linewidth=4, alpha=0.75)
         axs[1, 0].set_ylabel("weight (tonnes)", fontsize=13)
         axs[1, 0].set_xlabel("month", fontsize=13)
         axs[1, 0].legend(["AP", "SO", "SG"], fontsize=13)
@@ -684,12 +683,9 @@ class CatchData:
         axs[0, 1].grid(alpha=0.45)
         axs[0, 1].set_ylim([0, 18000])
 
-        axs[1, 1].scatter(x_name, ap_av, c='r', linewidth=5, s=3)
-        axs[1, 1].errorbar(x_name, ap_av, yerr=std_ap, color="r", alpha=0.5)
-        axs[1, 1].scatter(x_name, so_av, c='b', linewidth=5, s=3)
-        axs[1, 1].errorbar(x_name, so_av, yerr=std_so, color="b", alpha=0.5)
-        axs[1, 1].scatter(x_name, sg_av, c='olive', linewidth=5, s=3)
-        axs[1, 1].errorbar(x_name, sg_av, yerr=std_so, color="olive", alpha=0.5)
+        axs[1, 1].plot(x_name, ap_av, 'r-o', linewidth=4, alpha=0.75)
+        axs[1, 1].plot(x_name, so_av, 'b-o', linewidth=4, alpha=0.75)
+        axs[1, 1].plot(x_name, sg_av, '-o', c='olive', linewidth=4, alpha=0.75)
         axs[1, 1].set_ylabel("weight (tonnes)", fontsize=13)
         axs[1, 1].set_xlabel("year", fontsize=13)
         axs[1, 1].legend(["AP", "SO", "SG"], fontsize=13)
@@ -746,8 +742,10 @@ def plot_SOIN_recruit_dom_paths(compile_folder, analysis_folder):
 
     years = np.arange(2005, 2009+1,1)
     release_n = 20
-    max_v = 6
-    l_max = 24
+    max_v = 4.84
+    l_max = max_v
+    skip_v = 0.02
+    offset = 0.15
 
     idx = -1
     key_name = 'SOIN'
@@ -761,13 +759,14 @@ def plot_SOIN_recruit_dom_paths(compile_folder, analysis_folder):
         dom_paths = dom_paths.astype(float)
         # dom_paths[dom_paths == 0] = np.nan
         dom_paths = (dom_paths / ((release_n) * 10000)) * 100
+        dom_paths[dom_paths>max_v] = max_v- offset
         #max_val = np.nanmax(dom_paths) / 50
         #n_levels = np.arange(np.nanmin(dom_paths), np.nanmax(dom_paths), max_val)
-        n_levels = np.arange(0, l_max, 0.1)
+        n_levels = np.arange(0, l_max, skip_v)
     # self.plot1 = plt.contourf(self.df['lon_bin_vals'][:], self.df['lat_bin_vals'][:], dom_paths.T, levels=n_levels, cmap=self.dom_cmap,
     # transform=ccrs.PlateCarree(), extend='both')
         d_map = axs[idy, idx].contourf(p_plot.df['lon_bin_vals'][:], p_plot.df['lat_bin_vals'][:], dom_paths.T,
-                                cmap=p_plot.dom_cmap, levels=n_levels,
+                                cmap=plt.get_cmap('jet'), levels=n_levels,
                                 transform=ccrs.PlateCarree(), vmin =0, vmax = max_v)
         axs[idy, idx].set_title(str(y+1))
 
@@ -784,17 +783,27 @@ def plot_SOIN_recruit_dom_paths(compile_folder, analysis_folder):
         dom_paths = dom_paths.astype(float)
         # dom_paths[dom_paths == 0] = np.nan
         dom_paths = (dom_paths / ((release_n) * 10000)) * 100
+        dom_paths[dom_paths > max_v] = max_v - offset
         # max_val = np.nanmax(dom_paths) / 50
         # n_levels = np.arange(np.nanmin(dom_paths), np.nanmax(dom_paths), max_val)
-        n_levels = np.arange(0, l_max, 0.1)
+        n_levels = np.arange(0, l_max, skip_v)
         # self.plot1 = plt.contourf(self.df['lon_bin_vals'][:], self.df['lat_bin_vals'][:], dom_paths.T, levels=n_levels, cmap=self.dom_cmap,
         # transform=ccrs.PlateCarree(), extend='both')
+        # im = axs[idy, idx].imshow([p_plot.df['lon_bin_vals'][:], p_plot.df['lat_bin_vals'][:], dom_paths.T],
+        #                           cmap=plt.get_cmap('jet'), vmin=0, vmax=max_v)
+        #levels = n_levels
         d_map = axs[idy, idx].contourf(p_plot.df['lon_bin_vals'][:], p_plot.df['lat_bin_vals'][:], dom_paths.T,
-                                       cmap=p_plot.dom_cmap, levels=n_levels,
-                                       transform=ccrs.PlateCarree(), vmin=0, vmax=max_v)
-        axs[idy, idx].set_title(str(y+1))
+                                        cmap=plt.get_cmap('jet'), levels = n_levels,
+                                        transform=ccrs.PlateCarree(), vmin=0, vmax=max_v)
+        axs[idy, idx].set_title(str(y + 1))
 
-    fig.colorbar(d_map, ax = axs[idy, idx], shrink=0.99, label='probability (%)')
+    cbar = fig.colorbar(d_map, ax=axs[idy, idx], shrink=0.99, extend='both')
+    cbar.ax.tick_params(labelsize=15)
+    #ticks = range(0, max_v + 1, 1)
+    #im.set_clim(0, 5)
+
+
+
 
     years = np.arange(2015, 2019 + 1, 1)
     idx = -1
@@ -808,13 +817,14 @@ def plot_SOIN_recruit_dom_paths(compile_folder, analysis_folder):
         dom_paths = dom_paths.astype(float)
         # dom_paths[dom_paths == 0] = np.nan
         dom_paths = (dom_paths / ((release_n) * 10000)) * 100
+        dom_paths[dom_paths > max_v] = max_v - offset
         # max_val = np.nanmax(dom_paths) / 50
         # n_levels = np.arange(np.nanmin(dom_paths), np.nanmax(dom_paths), max_val)
-        n_levels = np.arange(0, l_max, 0.1)
+        n_levels = np.arange(0, l_max, skip_v)
         # self.plot1 = plt.contourf(self.df['lon_bin_vals'][:], self.df['lat_bin_vals'][:], dom_paths.T, levels=n_levels, cmap=self.dom_cmap,
         # transform=ccrs.PlateCarree(), extend='both')
         d_map = axs[idy, idx].contourf(p_plot.df['lon_bin_vals'][:], p_plot.df['lat_bin_vals'][:], dom_paths.T,
-                                       cmap=p_plot.dom_cmap, levels=n_levels,
+                                       cmap=plt.get_cmap('jet'), levels=n_levels,
                                        transform=ccrs.PlateCarree(), vmin=0, vmax=max_v)
         axs[idy, idx].set_title(str(y+1))
 
@@ -830,8 +840,10 @@ def plot_BSSI_recruit_dom_paths(compile_folder, analysis_folder):
 
     years = np.arange(2005, 2009 + 1, 1)
     release_n = 20
-    max_v = 6
-    l_max = 24
+    max_v = 4.84
+    l_max = max_v
+    skip_v = 0.02
+    offset = 0.15
 
     idx = -1
     key_name = 'BSSI'
@@ -845,13 +857,14 @@ def plot_BSSI_recruit_dom_paths(compile_folder, analysis_folder):
         dom_paths = dom_paths.astype(float)
         # dom_paths[dom_paths == 0] = np.nan
         dom_paths = (dom_paths / ((release_n) * 10000)) * 100
+        dom_paths[dom_paths > max_v] = max_v - offset
         # max_val = np.nanmax(dom_paths) / 50
         # n_levels = np.arange(np.nanmin(dom_paths), np.nanmax(dom_paths), max_val)
-        n_levels = np.arange(0, l_max, 0.1)
+        n_levels = np.arange(0, l_max, skip_v)
         # self.plot1 = plt.contourf(self.df['lon_bin_vals'][:], self.df['lat_bin_vals'][:], dom_paths.T, levels=n_levels, cmap=self.dom_cmap,
         # transform=ccrs.PlateCarree(), extend='both')
         d_map = axs[idy, idx].contourf(p_plot.df['lon_bin_vals'][:], p_plot.df['lat_bin_vals'][:], dom_paths.T,
-                                       cmap=p_plot.dom_cmap, levels=n_levels,
+                                       cmap=plt.get_cmap('jet'), levels=n_levels,
                                        transform=ccrs.PlateCarree(), vmin=0, vmax=max_v)
         axs[idy, idx].set_title(str(y + 1))
 
@@ -867,17 +880,19 @@ def plot_BSSI_recruit_dom_paths(compile_folder, analysis_folder):
         dom_paths = dom_paths.astype(float)
         # dom_paths[dom_paths == 0] = np.nan
         dom_paths = (dom_paths / ((release_n) * 10000)) * 100
+        dom_paths[dom_paths > max_v] = max_v - offset
         # max_val = np.nanmax(dom_paths) / 50
         # n_levels = np.arange(np.nanmin(dom_paths), np.nanmax(dom_paths), max_val)
-        n_levels = np.arange(0, l_max, 0.1)
+        n_levels = np.arange(0, l_max, skip_v)
         # self.plot1 = plt.contourf(self.df['lon_bin_vals'][:], self.df['lat_bin_vals'][:], dom_paths.T, levels=n_levels, cmap=self.dom_cmap,
         # transform=ccrs.PlateCarree(), extend='both')
         d_map = axs[idy, idx].contourf(p_plot.df['lon_bin_vals'][:], p_plot.df['lat_bin_vals'][:], dom_paths.T,
-                                       cmap=p_plot.dom_cmap, levels=n_levels,
+                                       cmap=plt.get_cmap('jet'), levels=n_levels,
                                        transform=ccrs.PlateCarree(), vmin=0, vmax=max_v)
         axs[idy, idx].set_title(str(y + 1))
 
-    fig.colorbar(d_map, ax=axs[idy, idx], shrink=0.99, label='probability (%)')
+    cbar = fig.colorbar(d_map, ax=axs[idy, idx], shrink=0.99, extend='both')
+    cbar.ax.tick_params(labelsize=15)
 
     years = np.arange(2015, 2019 + 1, 1)
     idx = -1
@@ -891,13 +906,14 @@ def plot_BSSI_recruit_dom_paths(compile_folder, analysis_folder):
         dom_paths = dom_paths.astype(float)
         # dom_paths[dom_paths == 0] = np.nan
         dom_paths = (dom_paths / ((release_n) * 10000)) * 100
+        dom_paths[dom_paths > max_v] = max_v - offset
         # max_val = np.nanmax(dom_paths) / 50
         # n_levels = np.arange(np.nanmin(dom_paths), np.nanmax(dom_paths), max_val)
-        n_levels = np.arange(0, l_max, 0.1)
+        n_levels = np.arange(0, l_max, skip_v)
         # self.plot1 = plt.contourf(self.df['lon_bin_vals'][:], self.df['lat_bin_vals'][:], dom_paths.T, levels=n_levels, cmap=self.dom_cmap,
         # transform=ccrs.PlateCarree(), extend='both')
         d_map = axs[idy, idx].contourf(p_plot.df['lon_bin_vals'][:], p_plot.df['lat_bin_vals'][:], dom_paths.T,
-                                       cmap=p_plot.dom_cmap, levels=n_levels,
+                                       cmap=plt.get_cmap('jet'), levels=n_levels,
                                        transform=ccrs.PlateCarree(), vmin=0, vmax=max_v)
         axs[idy, idx].set_title(str(y + 1))
 
@@ -1145,6 +1161,7 @@ def plot_recruit_stat(compile_folder, analysis_folder):
     return
 
 def plot_temp_SG(compile_folder, analysis_folder):
+    from scipy import stats
     filename = compile_folder + 'CMEMS_TEMP_SGfull_2006.nc'
     nc_file = nc.Dataset(filename)
     dp = nc_file.variables['depth']
@@ -1163,7 +1180,7 @@ def plot_temp_SG(compile_folder, analysis_folder):
     lat2=-50
     id_lon = (lon[:] > lon1) & (lon[:] < lon2)
     id_lat = (lat[:] > lat1) & (lat[:] < lat2)
-    id_dp = 3
+    id_dp = 0
     month =np.zeros(times.shape[0])
     year = np.zeros(times.shape[0])
     for i in range(0, times.shape[0]):
@@ -1193,11 +1210,11 @@ def plot_temp_SG(compile_folder, analysis_folder):
 
     fig, ax1 = plt.subplots(2, 1, figsize=(26, 14))
 
-    axis1_title = 'catch'
-    axis2_title = 'temp'
+    axis1_title = 'weight (tonnes)'
+    axis2_title = 'temperature ($^\circ$C)'
     idx = 0
     ax2 = ax1[idx].twinx()
-    ax1[idx].boxplot(data_list)
+    ax1[idx].plot(np.arange(1, 16), temp, 'b', linewidth=4)
     ax2.set_ylabel(axis1_title, color='k', fontsize=15)
     ax2.plot(np.arange(1, 16), catches, 'k--', linewidth=4, alpha=0.75)
     ax1[idx].set_ylabel(axis2_title, color='b', fontsize=15)
@@ -1214,6 +1231,13 @@ def plot_temp_SG(compile_folder, analysis_folder):
                 '2019', '2020'])
     plt.grid(alpha=0.45)  # nice and clean grid
 
+    varx = temp
+    vary = catches
+    mask = ~np.isnan(varx) & ~np.isnan(vary)
+    res = stats.linregress(varx[mask], vary[mask])
+    print(stats.pearsonr(varx[mask], vary[mask]))
+
+
     counter = -1
     catches = np.zeros(4)
     temp = np.zeros(4)
@@ -1228,13 +1252,11 @@ def plot_temp_SG(compile_folder, analysis_folder):
         mask = ~np.isnan(vals)
         data_list.append(vals[mask])
 
-
-
-    axis1_title = 'catch'
-    axis2_title = 'temp'
+    axis1_title = 'weight (tonnes)'
+    axis2_title = 'temperature ($^\circ$C)'
     idx = 1
     ax2 = ax1[idx].twinx()
-    ax1[idx].boxplot(data_list)
+    ax1[idx].plot(np.arange(1, 5), temp, 'b', linewidth=4)
     ax2.set_ylabel(axis1_title, color='k', fontsize=15)
     ax2.plot(np.arange(1, 5), catches, 'k--', linewidth=4, alpha=0.75)
     ax1[idx].set_ylabel(axis2_title, color='b', fontsize=15)
@@ -1250,6 +1272,12 @@ def plot_temp_SG(compile_folder, analysis_folder):
     plt.xticks(np.arange(1, 5),
                ['Jun', 'Jul', 'Aug', 'Sep'])
     plt.grid(alpha=0.45)  # nice and clean grid
+    varx = temp
+    vary = catches
+    mask = ~np.isnan(varx) & ~np.isnan(vary)
+    res = stats.linregress(varx[mask], vary[mask])
+    print(stats.pearsonr(varx[mask], vary[mask]))
+
 
     plt_name = 'temp_by_year'
     figures_path = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/figures/'
