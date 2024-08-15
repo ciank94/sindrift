@@ -405,6 +405,12 @@ class PlotData:
             ax_name.set_extent(
                 [self.min_lon, self.max_lon, self.min_lat,
                  self.max_lat])
+        elif background == 'SG_ex':
+            lon_lim = [-39.4, -35]
+            lat_lim = [-55, -53.2]
+            ax_name.set_extent(
+                [lon_lim[0], lon_lim[1], lat_lim[0],
+                 lat_lim[1]])
         else:
             self.gen_lon_lat_extent()
             ax_name.set_extent([self.min_lon, self.max_lon, self.min_lat,
@@ -742,7 +748,7 @@ def plot_SOIN_recruit_dom_paths(compile_folder, analysis_folder):
 
     years = np.arange(2005, 2009+1,1)
     release_n = 20
-    max_v = 4.84
+    max_v = 7.84
     l_max = max_v
     skip_v = 0.02
     offset = 0.15
@@ -1068,8 +1074,9 @@ def plot_recruit_stat(compile_folder, analysis_folder):
     ax2 = ax1[0, 0].twinx()
     ax2.set_ylabel(axis1_title, color='k', fontsize=15)
     ax2.plot(catch_v, 'k--', linewidth=4, alpha=0.75)
+    ax1[0, 0].set_xlabel('year', fontsize=15)
     ax1[0, 0].set_ylabel(axis2_title, color='r', fontsize=15)
-    ax1[0, 0].plot(np.arange(0, np.shape(recruit_t)[0]), recruit_t, color='r' , linewidth=4)
+    ax1[0, 0].plot(np.arange(0, np.shape(recruit_t)[0]), recruit_t, color='r', linewidth=4)
     ax1[0,0].xaxis.set_tick_params(labelsize=14)
     ax1[0,0].yaxis.set_tick_params(labelsize=14)
     ax2.yaxis.set_tick_params(labelsize=14)
@@ -1083,11 +1090,12 @@ def plot_recruit_stat(compile_folder, analysis_folder):
     plt.grid(alpha=0.45)  # nice and clean grid
 
     axis1_title = 'weight (tonnes)'
-    axis2_title = 'fraction recruited (%)'
+    axis2_title = 'percentage recruited (%)'
     ax2 = ax1[0, 1].twinx()
     ax2.set_ylabel(axis1_title, color='k', fontsize=15)
     ax2.plot(catch_v, 'k--', linewidth=4, alpha=0.75)
     ax1[0, 1].set_ylabel(axis2_title, color='r', fontsize=15)
+    ax1[0, 1].set_xlabel('year', fontsize=15)
     ax1[0, 1].plot(np.arange(0, np.shape(recruit_v)[0]), recruit_v, color='r', linewidth=4)
     ax1[0, 1].xaxis.set_tick_params(labelsize=14)
     ax1[0, 1].yaxis.set_tick_params(labelsize=14)
@@ -1126,6 +1134,7 @@ def plot_recruit_stat(compile_folder, analysis_folder):
     ax2.set_ylabel(axis1_title, color='k', fontsize=15)
     ax2.plot(catch_v, 'k--', linewidth=4, alpha=0.75)
     ax1[1, 0].set_ylabel(axis2_title, color='blue', fontsize=15)
+    ax1[1, 0].set_xlabel('year', fontsize=15)
     ax1[1, 0].plot(np.arange(0, np.shape(recruit_t)[0]), recruit_t, color='b' , linewidth=4)
     ax1[1, 0].xaxis.set_tick_params(labelsize=14)
     ax1[1, 0].yaxis.set_tick_params(labelsize=14)
@@ -1137,16 +1146,17 @@ def plot_recruit_stat(compile_folder, analysis_folder):
     plt.grid(alpha=0.45)  # nice and clean grid
 
     axis1_title = 'weight (tonnes)'
-    axis2_title = 'fraction recruited (%)'
+    axis2_title = 'percentage recruited (%)'
     ax2 = ax1[1, 1].twinx()
     ax2.set_ylabel(axis1_title, color='k', fontsize=15)
     ax2.plot(catch_v, 'k--', linewidth=4, alpha=0.75)
     ax1[1, 1].set_ylabel(axis2_title, color='b', fontsize=15)
-    ax1[1, 1].plot(np.arange(0, np.shape(recruit_v)[0]), recruit_v, color='b' , linewidth=4)
+    ax1[1, 1].set_xlabel('year', fontsize=15)
+    ax1[1, 1].plot(np.arange(0, np.shape(recruit_v)[0]), recruit_v, color='b', linewidth=4)
     ax1[1, 1].xaxis.set_tick_params(labelsize=14)
     ax1[1, 1].yaxis.set_tick_params(labelsize=14)
-    ax1[0, 0].set_ylim([100, 250])
-    ax1[1, 0].set_ylim([100, 250])
+    ax1[0, 0].set_ylim([140, 240])
+    ax1[1, 0].set_ylim([140, 240])
     ax1[0, 1].set_ylim([0, 12])
     ax1[1, 1].set_ylim([0, 12])
     ax2.yaxis.set_tick_params(labelsize=14)
@@ -1328,6 +1338,35 @@ def plot_catch_points(compile_folder, analysis_folder):
         [-64, -34, -70, -50])
     cdata.save_plot(plt_name='fishing_points')
 
+    return
+
+def plot_SG_rec_area(compile_folder, analysis_folder):
+    figures_path = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/figures/'
+    bath_file = figures_path + 'bath.npy'
+    bath_file_lon = figures_path + 'bath_lon.npy'
+    bath_file_lat = figures_path + 'bath_lat.npy'
+    bath_contours = np.arange(0, 5750, 300)
+    bath = np.load(bath_file)
+    bath_lon = np.load(bath_file_lon)
+    bath_lat = np.load(bath_file_lat)
+    p_plot = PlotData(key='BSSI', year=2006, compile_folder=compile_folder, analysis_folder=analysis_folder)
+    fig = plt.figure(figsize=(12, 8))
+    ax_name = fig.add_subplot(projection=ccrs.PlateCarree())
+    p_plot.plot_background(background='SG_ex', ax_name=ax_name)
+    d_map = ax_name.contourf(bath_lon, bath_lat, bath, levels=bath_contours,
+                             transform=ccrs.PlateCarree(), cmap=plt.get_cmap('Blues'), vmin=0, vmax=4000)
+
+    # d_map = ax_name.imshow(bath_lon, bath_lat, bath, levels=bath_contours,
+    # transform=ccrs.PlateCarree(), cmap= plt.get_cmap('Blues'))
+
+    cbar = plt.colorbar(d_map, extend='both', pad=0.01, ax=ax_name, shrink=0.5)
+    cbar.ax.set_ylabel('depth (m)', loc='center', size=9, weight='bold')
+    cbar.ax.tick_params(labelsize=10, rotation=0)
+
+    gl = ax_name.gridlines(draw_labels=True, alpha=0.4)
+    gl.top_labels = False
+    gl.right_labels = False
+    p_plot.save_plot(plt_name='SG_area_rec')
     return
 
 

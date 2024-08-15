@@ -2,7 +2,8 @@
 from configure import FileExplorer
 from compile_releases import StoreReleases
 from plot_data import (PlotData, CatchData, plot_recruit_stat, plot_retain, plot_SOIN_recruit_dom_paths,
-                       plot_BSSI_recruit_dom_paths, plot_temp_SG, plot_catch_points, plot_linreg, plot_arrivals)
+                       plot_BSSI_recruit_dom_paths, plot_temp_SG, plot_catch_points, plot_linreg, plot_arrivals,
+                       plot_SG_rec_area)
 import matplotlib.pyplot as plt
 import numpy as np
 import netCDF4 as nc
@@ -28,11 +29,13 @@ cdata = CatchData()
 #plot_arrivals(compile_folder, analysis_folder)
 #plot_retain(compile_folder, analysis_folder)
 # figure 3:
-plot_SOIN_recruit_dom_paths(compile_folder, analysis_folder)
-plot_BSSI_recruit_dom_paths(compile_folder, analysis_folder)
+#plot_SOIN_recruit_dom_paths(compile_folder, analysis_folder)
+#plot_BSSI_recruit_dom_paths(compile_folder, analysis_folder)
 # figure 4:
 #plot_temp_SG(compile_folder, analysis_folder)
 #plot_temp_month_SG(compile_folder, analysis_folder)
+# SG area plot
+plot_SG_rec_area(compile_folder, analysis_folder)
 
 
 breakpoint()
