@@ -1012,7 +1012,7 @@ def plot_linreg(compile_folder, analysis_folder):
     ax1[0].plot(varx, res.intercept + res.slope * varx, 'k', label='fitted line', linewidth=4)
     ax1[0].grid(alpha=0.45)
     ax1[0].set_ylabel('weight (tonnes)', fontsize=15)
-    ax1[0].set_xlabel('fraction recruited (%)', fontsize=15)
+    ax1[0].set_xlabel('AP fraction recruited (%)', fontsize=15)
 
 
     counter = -1
@@ -1028,10 +1028,10 @@ def plot_linreg(compile_folder, analysis_folder):
     res = stats.linregress(varx[mask], vary[mask])
     print(stats.pearsonr(varx[mask], vary[mask]))
     ax1[1].grid(alpha=0.45)
-    ax1[1].plot(varx, vary, 'b.', label='original data', markersize=12)
+    ax1[1].plot(varx, vary, 'r.', label='original data', markersize=12)
     ax1[1].plot(varx, res.intercept + res.slope * varx, 'k', label='fitted line', linewidth=4)
     ax1[1].set_ylabel('weight (tonnes)', fontsize=15)
-    ax1[1].set_xlabel('fraction recruited (%)', fontsize=15)
+    ax1[1].set_xlabel('SO fraction recruited (%)', fontsize=15)
 
 
     ax1[0].xaxis.set_tick_params(labelsize=14)
@@ -1368,6 +1368,73 @@ def plot_SG_rec_area(compile_folder, analysis_folder):
     gl.right_labels = False
     p_plot.save_plot(plt_name='SG_area_rec')
     return
+
+
+def plot_worms(compile_folder, analysis_folder, trajectory_folder):
+    idx = -1
+    key_name = 'BSSI'
+    idy = 0
+    y = 2016
+    idx = idx + 1
+    p_plot = PlotData(key=key_name, year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+    trajectory_file = trajectory_folder + p_plot.file_prefix + 'R1_trajectory.nc'
+    nc_file = nc.Dataset(trajectory_file)
+    filename = p_plot.compile_folder + p_plot.file_prefix + 'site_recruits.npy'
+    r_table = np.load(filename)
+    idx = r_table[2,:]>0
+    lon = nc_file['lon'][idx, :]
+    lat = nc_file['lat'][idx, :]
+    lon = lon[::6,::2]
+    lat = lat[::6,::2]
+    figures_path = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/figures/'
+    bath_file = figures_path + 'bath.npy'
+    bath_file_lon = figures_path + 'bath_lon.npy'
+    bath_file_lat = figures_path + 'bath_lat.npy'
+    bath_contours = np.arange(0, 5750, 300)
+    bath = np.load(bath_file)
+    bath_lon = np.load(bath_file_lon)
+    bath_lat = np.load(bath_file_lat)
+    fig, ax_name = plt.subplots(figsize=(10, 12), nrows=2, ncols=1, subplot_kw={'projection': ccrs.PlateCarree()},
+                            layout='constrained')
+
+    p_plot.plot_background(background='AP', ax_name=ax_name[0])
+    ax_name[0].set_extent(
+        [-64, -34, -70, -50])
+    d_map = ax_name[0].contourf(bath_lon, bath_lat, bath, levels=bath_contours,
+                             transform=ccrs.PlateCarree(), cmap=plt.get_cmap('Blues'), vmin=0, vmax=4000)
+    site_recruit_cmap=plt.get_cmap('OrRd')
+    c_vals = np.arange(0, lon.shape[1], 1)*np.ones(lon.shape)
+    [ax_name[0].plot(lon[i, :], lat[i,:], color='r', linewidth=2, alpha=0.3, markersize=1) for i in range(0, lon.shape[0])]
+
+    #ax_name.scatter(lon, lat, c=c_vals,s=10, edgecolors='gray', vmin=np.nanmean(c_vals)/2,
+                              # vmax=np.nanmean(c_vals)*2, linewidth=0.2, cmap=site_recruit_cmap)
+
+
+
+    key_name = 'SOIN'
+    p_plot = PlotData(key=key_name, year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+    trajectory_file = trajectory_folder + p_plot.file_prefix + 'R1_trajectory.nc'
+    nc_file = nc.Dataset(trajectory_file)
+    filename = p_plot.compile_folder + p_plot.file_prefix + 'site_recruits.npy'
+    r_table = np.load(filename)
+    idx = r_table[2, :] > 0
+    lon = nc_file['lon'][idx, :]
+    lat = nc_file['lat'][idx, :]
+    lon = lon[::6, ::2]
+    lat = lat[::6, ::2]
+    p_plot.plot_background(background='AP', ax_name=ax_name[1])
+    ax_name[1].set_extent(
+        [-64, -34, -70, -50])
+    d_map = ax_name[1].contourf(bath_lon, bath_lat, bath, levels=bath_contours,
+                                transform=ccrs.PlateCarree(), cmap=plt.get_cmap('Blues'), vmin=0, vmax=4000)
+    site_recruit_cmap = plt.get_cmap('OrRd')
+    c_vals = np.arange(0, lon.shape[1], 1) * np.ones(lon.shape)
+    [ax_name[1].plot(lon[i, :], lat[i, :], color='r', linewidth=2, alpha=0.3, markersize=1) for i in
+     range(0, lon.shape[0])]
+
+    p_plot.save_plot(plt_name='AP_SO_worms')
+    return
+    #p_plot.plot_background(background='BSSI', ax_name=axs[idy, idx])
 
 
 
