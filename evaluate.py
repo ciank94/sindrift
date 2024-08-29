@@ -3,7 +3,7 @@ from configure import FileExplorer
 from compile_releases import StoreReleases
 from plot_data import (PlotData, CatchData, plot_recruit_stat, plot_retain, plot_SOIN_recruit_dom_paths,
                        plot_BSSI_recruit_dom_paths, plot_temp_SG, plot_catch_points, plot_linreg, plot_arrivals,
-                       plot_SG_rec_area, plot_worms)
+                       plot_SG_rec_area, plot_worms, plot_poster_dom_paths)
 import matplotlib.pyplot as plt
 import numpy as np
 import netCDF4 as nc
@@ -25,7 +25,7 @@ cdata = CatchData()
 # s2.2: results for recruitment to SG:
 # figure 1:
 #plot_recruit_stat(compile_folder, analysis_folder)
-plot_linreg(compile_folder, analysis_folder)
+#plot_linreg(compile_folder, analysis_folder)
 # figure 2:
 #plot_arrivals(compile_folder, analysis_folder)
 #plot_retain(compile_folder, analysis_folder)
@@ -39,6 +39,9 @@ plot_linreg(compile_folder, analysis_folder)
 #plot_worms(compile_folder, analysis_folder, trajectory_folder)
 # SG area plot- conceptual figure;
 #plot_SG_rec_area(compile_folder, analysis_folder)
+
+# poster plot:
+plot_poster_dom_paths(compile_folder, analysis_folder)
 
 
 breakpoint()
