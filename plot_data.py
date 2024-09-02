@@ -1350,15 +1350,16 @@ def plot_catch_points(compile_folder, analysis_folder):
     cdata = CatchData()
     lon = cdata.csv_file.longitude_haul_start
     lat = cdata.csv_file.latitude_haul_start
+    dens = cdata.csv_file.krill_greenweight_kg
     figures_path = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/figures/'
     bath_file = figures_path + 'bath.npy'
     bath_file_lon = figures_path + 'bath_lon.npy'
     bath_file_lat = figures_path + 'bath_lat.npy'
-    bath_contours = np.arange(0, 5750, 300)
+    bath_contours = np.arange(0, 8000, 500)
     bath = np.load(bath_file)
     bath_lon = np.load(bath_file_lon)
     bath_lat = np.load(bath_file_lat)
-    fig = plt.figure(figsize=(12, 8))
+    fig = plt.figure(figsize=(13, 8), layout='constrained')
     ax_name = fig.add_subplot(projection=ccrs.PlateCarree())
     land_10m = cfeature.NaturalEarthFeature('physical', 'land', '10m',
                                             edgecolor='face',
@@ -1367,24 +1368,87 @@ def plot_catch_points(compile_folder, analysis_folder):
     ax_name.coastlines(resolution='10m', linewidth=0.7)
     ax_name.contour(bath_lon, bath_lat, bath, bath_contours, colors='k', alpha=0.2, linewidths=0.7,
                     transform=ccrs.PlateCarree())
-    d_map = ax_name.contourf(bath_lon, bath_lat, bath, levels=bath_contours,
-                  transform=ccrs.PlateCarree(), cmap= plt.get_cmap('Blues'), vmin=0, vmax=4000)
+    b_map = ax_name.contourf(bath_lon, bath_lat, bath, levels=bath_contours,
+                  transform=ccrs.PlateCarree(), cmap= plt.get_cmap('Blues'), vmin=0, vmax=4000, alpha=0.8)
 
     #d_map = ax_name.imshow(bath_lon, bath_lat, bath, levels=bath_contours,
                             # transform=ccrs.PlateCarree(), cmap= plt.get_cmap('Blues'))
 
-    cbar = plt.colorbar(d_map, extend='both', pad=0.01, ax = ax_name)
-    cbar.ax.set_ylabel('depth (m)', loc='center', size=9, weight='bold')
-    cbar.ax.tick_params(labelsize=10, rotation=0)
+    front_file = pd.read_csv(figures_path + 'antarctic_circumpolar_current_fronts.csv')
+    saccf = front_file.front_name=='SACCF'
+    lon_saccf = front_file.longitude[saccf]
+    lat_saccf = front_file.latitude[saccf]
+    ax_name.plot(lon_saccf, lat_saccf, 'w--')
+
+
+    saccf = front_file.front_name == 'PF'
+    lon_saccf = front_file.longitude[saccf]
+    lat_saccf = front_file.latitude[saccf]
+    ax_name.plot(lon_saccf, lat_saccf, 'w')
+    f_size = 17
+    ax_name.annotate('SACCF', (-48.1, -56.7), bbox=dict(boxstyle="Square,pad=0.3",
+                                                        fc="white", ec="black", lw=2), fontsize=f_size)
+
+    ax_name.annotate('PF', (-53.6, -55.7), bbox=dict(boxstyle="Square,pad=0.3",
+                                                        fc="white", ec="black", lw=2), fontsize=f_size)
+
+    ax_name.annotate('AP', (-55, -60), bbox=dict(boxstyle="Square,pad=0.3",
+                                                     fc="white", ec="black", lw=2), fontsize=f_size)
+
+    ax_name.annotate('SO', (-45, -58.7), bbox=dict(boxstyle="Square,pad=0.3",
+                                                 fc="white", ec="black", lw=2), fontsize=f_size)
+
+    ax_name.annotate('SG', (-40.7, -54), bbox=dict(boxstyle="Square,pad=0.3",
+                                                 fc="white", ec="black", lw=2), fontsize=f_size)
+
+    ax_name.annotate('FI', (-60, -50.7), bbox=dict(boxstyle="Square,pad=0.3",
+                                                   fc="white", ec="black", lw=2), fontsize=f_size)
+
 
     # set extent and grid lines;
     gl = ax_name.gridlines(draw_labels=True, alpha=0.4)
     gl.top_labels = False
     gl.right_labels = False
-    ax_name.scatter(lon, lat, c='r', s=1)
+
+    shp_lat = np.shape(lat)[0]
+    min_lat = -70
+    max_lat = -47
+    min_lon = -70
+    max_lon = -31
+    bin_res = 0.8
+    lat_range = np.arange(min_lat - 10, max_lat + 6, bin_res)
+    lon_range = np.arange(min_lon - 10, max_lon + 6, bin_res)
+
+    shp_lon_range = np.shape(lon_range)[0]
+    shp_lat_range = np.shape(lat_range)[0]
+    dens_m = np.zeros([shp_lon_range, shp_lat_range])
+    n_catches = np.zeros([shp_lon_range, shp_lat_range])
+    dens_f = np.zeros([shp_lon_range, shp_lat_range])
+
+    for ij in range(0, shp_lat):
+        lat_id = np.argmin(np.sqrt((lat.iloc[ij] - lat_range[:]) ** 2))
+        lon_id = np.argmin(np.sqrt((lon.iloc[ij] - lon_range[:]) ** 2))
+        dens_m[lon_id, lat_id] = dens_m[lon_id, lat_id] + dens.iloc[ij]
+        n_catches[lon_id, lat_id] = n_catches[lon_id, lat_id] + 1
+
+    dens_f[dens_m > 0] = dens_m[dens_m > 0] / n_catches[dens_m > 0]
+    dens_f = dens_f/1000
+    dens_f[dens_f==0]=np.nan
+    d_map = ax_name.pcolormesh(lon_range, lat_range, dens_f.T, cmap=plt.get_cmap('OrRd'), transform=ccrs.PlateCarree(), vmin=0, vmax=40)
+
+    ax_name.tick_params(axis='both', which='major', labelsize=10)
+    ax_name.tick_params(axis='both', which='minor', labelsize=8)
+
+    cbar = plt.colorbar(d_map, pad=0.01, ax=ax_name, shrink=0.99)
+    cbar.ax.set_ylabel('weight (tonnes)', loc='center', size=9, weight='bold')
+    cbar.ax.tick_params(labelsize=10, rotation=0)
+
+    cbar = plt.colorbar(b_map, extend='both', pad=0.01, ax=ax_name, shrink=0.99)
+    cbar.ax.set_ylabel('depth (m)', loc='center', size=9, weight='bold')
+    cbar.ax.tick_params(labelsize=10, rotation=0)
 
     ax_name.set_extent(
-        [-64, -34, -70, -50])
+        [-64, -33, -72, -49])
     cdata.save_plot(plt_name='fishing_points')
 
     return

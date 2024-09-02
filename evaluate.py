@@ -20,7 +20,7 @@ cdata = CatchData()
 # figure 2:
 #cdata.plot_lat_lon()
 # figure 3:
-#plot_catch_points(compile_folder, analysis_folder)
+plot_catch_points(compile_folder, analysis_folder)
 
 # s2.2: results for recruitment to SG:
 # figure 1:
@@ -41,9 +41,7 @@ cdata = CatchData()
 #plot_SG_rec_area(compile_folder, analysis_folder)
 
 # poster plot:
-plot_poster_dom_paths(compile_folder, analysis_folder)
-
-
+#plot_poster_dom_paths(compile_folder, analysis_folder)
 breakpoint()
 
 #temperature
