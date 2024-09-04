@@ -563,14 +563,14 @@ class CatchData:
         axs[2, 2].set_xlim([0, 350])
         axs[2, 3].set_xlim([0, 4000])
 
-        axs[0, 0].set_ylabel('Catch events', fontsize=15)
-        axs[1, 0].set_ylabel('Catch events', fontsize=15)
-        axs[2, 0].set_ylabel('Catch events', fontsize=15)
+        axs[0, 0].set_ylabel('frequency', fontsize=15)
+        axs[1, 0].set_ylabel('frequency', fontsize=15)
+        axs[2, 0].set_ylabel('frequency', fontsize=15)
 
-        axs[2, 0].set_xlabel('Longitude', fontsize=15)
-        axs[2, 1].set_xlabel('Latitude', fontsize=15)
-        axs[2, 2].set_xlabel('Gear depth (m)', fontsize=15)
-        axs[2, 3].set_xlabel('Bottom depth (m)', fontsize=15)
+        axs[2, 0].set_xlabel('longitude', fontsize=15)
+        axs[2, 1].set_xlabel('latitude', fontsize=15)
+        axs[2, 2].set_xlabel('gear depth (m)', fontsize=15)
+        axs[2, 3].set_xlabel('bottom depth (m)', fontsize=15)
 
         axs[0, 0].grid(alpha=0.45)  # nice and clean grid
         axs[0, 1].grid(alpha=0.45)  # nice and clean grid

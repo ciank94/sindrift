@@ -18,9 +18,9 @@ cdata = CatchData()
 # figure 1:
 #cdata.plot_fishing_season()
 # figure 2:
-#cdata.plot_lat_lon()
+cdata.plot_lat_lon()
 # figure 3:
-plot_catch_points(compile_folder, analysis_folder)
+#plot_catch_points(compile_folder, analysis_folder)
 
 # s2.2: results for recruitment to SG:
 # figure 1:
