@@ -1484,21 +1484,17 @@ def plot_SG_rec_area(compile_folder, analysis_folder):
 
 
 def plot_worms(compile_folder, analysis_folder, trajectory_folder):
-    idx = -1
     key_name = 'BSSI'
-    idy = 0
-    y = 2016
-    idx = idx + 1
-    p_plot = PlotData(key=key_name, year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
-    trajectory_file = trajectory_folder + p_plot.file_prefix + 'R1_trajectory.nc'
-    nc_file = nc.Dataset(trajectory_file)
-    filename = p_plot.compile_folder + p_plot.file_prefix + 'site_recruits.npy'
-    r_table = np.load(filename)
-    idx = r_table[2,:]>0
-    lon = nc_file['lon'][idx, :]
-    lat = nc_file['lat'][idx, :]
-    lon = lon[::6,::2]
-    lat = lat[::6,::2]
+    min_lat = -70
+    max_lat = -47
+    min_lon = -70
+    max_lon = -31
+    bin_res = 1
+    lat_range = np.arange(min_lat - 10, max_lat + 6, bin_res)
+    lon_range = np.arange(min_lon - 10, max_lon + 6, bin_res)
+    shp_lon_range = np.shape(lon_range)[0]
+    shp_lat_range = np.shape(lat_range)[0]
+    dens_f = np.zeros([shp_lon_range, shp_lat_range])
     figures_path = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/figures/'
     bath_file = figures_path + 'bath.npy'
     bath_file_lon = figures_path + 'bath_lon.npy'
@@ -1507,17 +1503,50 @@ def plot_worms(compile_folder, analysis_folder, trajectory_folder):
     bath = np.load(bath_file)
     bath_lon = np.load(bath_file_lon)
     bath_lat = np.load(bath_file_lat)
-    fig, ax_name = plt.subplots(figsize=(10, 12), nrows=2, ncols=1, subplot_kw={'projection': ccrs.PlateCarree()},
-                            layout='constrained')
+    for y in range(2005, 2020):
+        p_plot = PlotData(key=key_name, year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+        filename = p_plot.compile_folder + p_plot.file_prefix + 'site_recruits.npy'
+        r_table = np.load(filename)
+        lat = r_table[1, :]
+        lon = r_table[0, :]
+        dens_m = np.zeros([shp_lon_range, shp_lat_range])
+        #
 
+        for ij in range(0, lat.shape[0]):
+            lat_id = np.argmin(np.sqrt((lat[ij] - lat_range[:]) ** 2))
+            lon_id = np.argmin(np.sqrt((lon[ij] - lon_range[:]) ** 2))
+            dens_m[lon_id, lat_id] = dens_m[lon_id, lat_id] + r_table[2, ij]
+
+        dens_f = dens_f + dens_m
+
+    fig, ax_name = plt.subplots(figsize=(10, 12), nrows=2, ncols=1, subplot_kw={'projection': ccrs.PlateCarree()},
+                                    layout='constrained')
     p_plot.plot_background(background='AP', ax_name=ax_name[0])
+    #ax_name[0].contourf(bath_lon, bath_lat, bath, levels=bath_contours,
+     #                   transform=ccrs.PlateCarree(), cmap=plt.get_cmap('Blues'), vmin=0, vmax=4000)
     ax_name[0].set_extent(
-        [-64, -34, -70, -50])
-    d_map = ax_name[0].contourf(bath_lon, bath_lat, bath, levels=bath_contours,
-                             transform=ccrs.PlateCarree(), cmap=plt.get_cmap('Blues'), vmin=0, vmax=4000)
-    site_recruit_cmap=plt.get_cmap('OrRd')
-    c_vals = np.arange(0, lon.shape[1], 1)*np.ones(lon.shape)
-    [ax_name[0].plot(lon[i, :], lat[i,:], color='r', linewidth=2, alpha=0.3, markersize=1) for i in range(0, lon.shape[0])]
+            [-64, -34, -70, -50])
+    dens_f[dens_f == 0] = np.nan
+    dens_f = (dens_f/np.nansum(dens_f))*100
+
+    trajectory_file = trajectory_folder + p_plot.file_prefix + 'R1_trajectory.nc'
+    nc_file = nc.Dataset(trajectory_file)
+
+    idx = r_table[2,:]>0
+    lon = nc_file['lon'][idx, :]
+    lat = nc_file['lat'][idx, :]
+    lon = lon[::2,::2]
+    lat = lat[::2,::2]
+    [ax_name[0].plot(lon[i, :], lat[i,:], color='r', linewidth=2, alpha=0.01, markersize=0.1) for i in range(0, lon.shape[0])]
+    d_map = ax_name[0].pcolormesh(lon_range, lat_range, dens_f.T, cmap=plt.get_cmap('Reds'), transform=ccrs.PlateCarree(), vmin=0, vmax=7)
+
+    cbar = plt.colorbar(d_map, pad=0.01, ax=ax_name[0], shrink=0.8)
+    cbar.ax.set_ylabel('probability (%)', loc='center', size=9, weight='bold')
+    cbar.ax.tick_params(labelsize=10, rotation=0)
+    nc_file.close()
+
+    #filename = compile_folder + p_plot.file_prefix + 'recruit_SG.csv'
+    #r_table = pd.read_csv(filename)
 
     #ax_name.scatter(lon, lat, c=c_vals,s=10, edgecolors='gray', vmin=np.nanmean(c_vals)/2,
                               # vmax=np.nanmean(c_vals)*2, linewidth=0.2, cmap=site_recruit_cmap)
@@ -1525,7 +1554,31 @@ def plot_worms(compile_folder, analysis_folder, trajectory_folder):
 
 
     key_name = 'SOIN'
-    p_plot = PlotData(key=key_name, year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+    dens_f = np.zeros([shp_lon_range, shp_lat_range])
+    for y in range(2005, 2020):
+        p_plot = PlotData(key=key_name, year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+        filename = p_plot.compile_folder + p_plot.file_prefix + 'site_recruits.npy'
+        r_table = np.load(filename)
+        lat = r_table[1, :]
+        lon = r_table[0, :]
+        dens_m = np.zeros([shp_lon_range, shp_lat_range])
+        #
+
+        for ij in range(0, lat.shape[0]):
+            lat_id = np.argmin(np.sqrt((lat[ij] - lat_range[:]) ** 2))
+            lon_id = np.argmin(np.sqrt((lon[ij] - lon_range[:]) ** 2))
+            dens_m[lon_id, lat_id] = dens_m[lon_id, lat_id] + r_table[2, ij]
+
+        dens_f = dens_f + dens_m
+
+    p_plot.plot_background(background='AP', ax_name=ax_name[1])
+    # ax_name[0].contourf(bath_lon, bath_lat, bath, levels=bath_contours,
+    #                   transform=ccrs.PlateCarree(), cmap=plt.get_cmap('Blues'), vmin=0, vmax=4000)
+    ax_name[1].set_extent(
+        [-64, -34, -70, -50])
+    dens_f[dens_f == 0] = np.nan
+    dens_f = (dens_f / np.nansum(dens_f)) * 100
+
     trajectory_file = trajectory_folder + p_plot.file_prefix + 'R1_trajectory.nc'
     nc_file = nc.Dataset(trajectory_file)
     filename = p_plot.compile_folder + p_plot.file_prefix + 'site_recruits.npy'
@@ -1533,17 +1586,17 @@ def plot_worms(compile_folder, analysis_folder, trajectory_folder):
     idx = r_table[2, :] > 0
     lon = nc_file['lon'][idx, :]
     lat = nc_file['lat'][idx, :]
-    lon = lon[::6, ::2]
-    lat = lat[::6, ::2]
-    p_plot.plot_background(background='AP', ax_name=ax_name[1])
-    ax_name[1].set_extent(
-        [-64, -34, -70, -50])
-    d_map = ax_name[1].contourf(bath_lon, bath_lat, bath, levels=bath_contours,
-                                transform=ccrs.PlateCarree(), cmap=plt.get_cmap('Blues'), vmin=0, vmax=4000)
-    site_recruit_cmap = plt.get_cmap('OrRd')
-    c_vals = np.arange(0, lon.shape[1], 1) * np.ones(lon.shape)
-    [ax_name[1].plot(lon[i, :], lat[i, :], color='r', linewidth=2, alpha=0.3, markersize=1) for i in
+    lon = lon[::2, ::2]
+    lat = lat[::2, ::2]
+    [ax_name[1].plot(lon[i, :], lat[i, :], color='r', linewidth=2, alpha=0.01, markersize=0.1) for i in
      range(0, lon.shape[0])]
+    d_map = ax_name[1].pcolormesh(lon_range, lat_range, dens_f.T, cmap=plt.get_cmap('Reds'),
+                                  transform=ccrs.PlateCarree(), vmin=0, vmax=14)
+
+    cbar = plt.colorbar(d_map, pad=0.01, ax=ax_name[1], shrink=0.8)
+    cbar.ax.set_ylabel('probability (%)', loc='center', size=9, weight='bold')
+    cbar.ax.tick_params(labelsize=10, rotation=0)
+
 
     p_plot.save_plot(plt_name='AP_SO_worms')
     return
