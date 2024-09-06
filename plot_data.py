@@ -752,7 +752,7 @@ def plot_poster_dom_paths(compile_folder, analysis_folder):
     skip_v = 0.02
     offset = 0.15
 
-    y = 2008
+    y = 2012
     years = np.arange(y, y + 1, 1)
     key_name = 'BSSI'
     p_plot = PlotData(key=key_name, year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
@@ -785,6 +785,49 @@ def plot_poster_dom_paths(compile_folder, analysis_folder):
     p_plot.save_plot(plt_name='poster_dom')
     return
 
+def plot_recruit_dom_paths(compile_folder, analysis_folder):
+    fig, axs = plt.subplots(figsize=(12, 8), nrows=1, ncols=1, subplot_kw={'projection': ccrs.PlateCarree()}, layout='constrained')
+
+
+    release_n = 1
+    max_v = 2
+    l_max = max_v
+    skip_v = 0.02
+    offset = 0.15
+
+    y = 2012
+    years = np.arange(y, y + 1, 1)
+    key_name = 'BSSI'
+    p_plot = PlotData(key=key_name, year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+    p_plot.plot_background(background='BSSI', ax_name=axs)
+
+    axs.set_extent(
+        [-42, -32, -57, -51])
+
+    #filename = compile_folder + p_plot.file_prefix + 'dom_paths.npy'
+    filename = compile_folder + p_plot.file_prefix + 'recruit_dom_paths.npy'
+    dom_paths = np.load(filename)
+    dom_paths = dom_paths.astype(float)
+    # dom_paths[dom_paths == 0] = np.nan
+    dom_paths = (dom_paths / ((release_n) * 10000)) * 100
+    dom_paths[dom_paths > max_v] = max_v - offset
+    # max_val = np.nanmax(dom_paths) / 50
+    # n_levels = np.arange(np.nanmin(dom_paths), np.nanmax(dom_paths), max_val)
+    n_levels = np.arange(0, l_max, skip_v)
+    # self.plot1 = plt.contourf(self.df['lon_bin_vals'][:], self.df['lat_bin_vals'][:], dom_paths.T, levels=n_levels, cmap=self.dom_cmap,
+    # transform=ccrs.PlateCarree(), extend='both') levels=n_levels,
+    d_map = axs.pcolormesh(p_plot.df['lon_bin_vals'][:], p_plot.df['lat_bin_vals'][:], dom_paths.T,
+                                   cmap=plt.get_cmap('jet'),
+                                   transform=ccrs.PlateCarree(), vmin=0, vmax=max_v)
+    axs.set_title(str(y))
+    # d_map.axes.xaxis.set_tick_params(labelsize=50)
+    # d_map.axes.yaxis.set_tick_params(labelsize=50)
+
+    cbar = fig.colorbar(d_map, ax=axs, shrink=0.5, extend='both')
+    cbar.ax.tick_params(labelsize=15)
+
+    p_plot.save_plot(plt_name='recruit_dom_paths')
+    return
 
 
 

@@ -65,6 +65,7 @@ class StoreReleases:
         # initialise for 1D data
         self.site_recruits = np.zeros([self.shp_p])
         self.dom_paths = np.zeros(np.shape(self.analysis_vardict['dom_paths']))
+        self.recruit_dom_paths = np.zeros(np.shape(self.analysis_vardict['recruit_dom_paths']))
         return
 
     def update_environment(self, counter):
@@ -87,8 +88,10 @@ class StoreReleases:
 
     def update_dom_paths(self, counter):
         self.dom_paths = self.dom_paths + self.analysis_vardict['dom_paths'][:]
+        self.recruit_dom_paths = self.recruit_dom_paths + self.analysis_vardict['recruit_dom_paths'][:]
         if counter + 1 == self.shp_r:
             np.save(self.save_path + 'dom_paths.npy', np.array(self.dom_paths))
+            np.save(self.save_path + 'recruit_dom_paths.npy', np.array(self.recruit_dom_paths))
         return
 
     def update_recruits(self, counter):

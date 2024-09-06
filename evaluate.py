@@ -3,13 +3,17 @@ from configure import FileExplorer
 from compile_releases import StoreReleases
 from plot_data import (PlotData, CatchData, plot_recruit_stat, plot_retain, plot_SOIN_recruit_dom_paths,
                        plot_BSSI_recruit_dom_paths, plot_temp_SG, plot_catch_points, plot_linreg, plot_arrivals,
-                       plot_SG_rec_area, plot_worms, plot_poster_dom_paths)
+                       plot_SG_rec_area, plot_worms, plot_poster_dom_paths, plot_recruit_dom_paths)
 import matplotlib.pyplot as plt
 import numpy as np
 import netCDF4 as nc
-compile_folder = 'A:/Cian_sinmod/opendrift/' + 'compile/'
-analysis_folder = 'A:/Cian_sinmod/opendrift/' + 'analysis/'
-trajectory_folder = 'A:/Cian_sinmod/opendrift/' + 'trajectory/'
+folder = 'A:/Cian_sinmod/opendrift/'
+folder = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/'
+compile_folder = folder + 'compile/'
+analysis_folder = folder + 'analysis/'
+trajectory_folder = folder + 'trajectory/'
+
+
 
 # s2.1: results for catch data:
 cdata = CatchData()
@@ -36,10 +40,11 @@ cdata = CatchData()
 #plot_temp_SG(compile_folder, analysis_folder)
 #plot_temp_month_SG(compile_folder, analysis_folder)
 # figure 5: worm plots:
-plot_worms(compile_folder, analysis_folder, trajectory_folder)
+#plot_worms(compile_folder, analysis_folder, trajectory_folder)
 # SG area plot- conceptual figure;
 #plot_SG_rec_area(compile_folder, analysis_folder)
 
 # poster plot:
 #plot_poster_dom_paths(compile_folder, analysis_folder)
+plot_recruit_dom_paths(compile_folder, analysis_folder)
 breakpoint()

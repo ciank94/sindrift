@@ -46,6 +46,7 @@ class PostProcess:
     def initialize_variables(self):
         # initialize variables to be stored
         self.dom_paths = np.zeros([np.shape(self.lon_bin_vals)[0], np.shape(self.lat_bin_vals)[0]])
+        self.recruit_dom_paths = np.zeros([np.shape(self.lon_bin_vals)[0], np.shape(self.lat_bin_vals)[0]])
         self.transit_hours = np.zeros(self.shp_p)
         self.visit_index = np.zeros(self.shp_p)
         self.CG_lon = np.zeros([self.shp_t])
@@ -70,10 +71,18 @@ class PostProcess:
                         self.dom_paths[self.id_lon[p_i, idx_p], self.id_lat[p_i, idx_p]] + 1)
                 # analyse retention/ recruitment in the following function
                 self.recruit_SG_north(self.lon[p_i, :], self.lat[p_i, :])
+                if self.visit_index[self.p_i] > 0:
+                    idx_v = self.visit_index[self.p_i].astype(int)
+                    range_v = range(idx_v-100, idx_v)
+                    self.recruit_dom_paths[self.id_lon[p_i, range_v], self.id_lat[p_i, range_v]] = (
+                            self.recruit_dom_paths[self.id_lon[p_i, range_v], self.id_lat[p_i, range_v]] +1)
 
+            self.analysis_df.variables['recruit_dom_paths'][:] = self.recruit_dom_paths
             self.analysis_df.variables['dom_paths'][:] = self.dom_paths
             self.analysis_df.variables['recruit_SG_north'][:, 0] = self.transit_hours
             self.analysis_df.variables['recruit_SG_north'][:, 1] = self.visit_index
+            self.analysis_df['time'][:] = self.times[:]
+            self.analysis_df['time'].units = self.times.units
 
         if self.analysis_df.bounds == 'SGret':
             for p_i in range(0, self.shp_p, self.p_stride):
@@ -111,8 +120,6 @@ class PostProcess:
         self.analysis_df.variables['temp_exp'][:] = self.temp_exp
         self.analysis_df.variables['lat_init'][:] = self.lat[:, 0]
         self.analysis_df.variables['lon_init'][:] = self.lon[:, 0]
-        self.analysis_df['time'][:] = self.times[:]
-        self.analysis_df['time'].units = self.times.units
 
         # close files:
         self.bio_states.close()
@@ -227,6 +234,8 @@ class PostProcess:
 
         if self.analysis_df.bounds == 'NEMO':
             variable_key_dict = {'dom_paths': {'datatype': 'i4', 'dimensions': ('n_lon_bins', 'n_lat_bins'),
+                                               'description': 'unique particle visits into SG'},
+                                 'recruit_dom_paths':{'datatype': 'i4', 'dimensions': ('n_lon_bins', 'n_lat_bins'),
                                                'description': 'unique particle visits'},
                                  'recruit_SG_north': {'datatype': 'i4', 'dimensions': ('trajectory', 'transit_info'),
                                                       'description': 'transit hours to polygon'},
