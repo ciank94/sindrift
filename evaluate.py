@@ -3,12 +3,12 @@ from configure import FileExplorer
 from compile_releases import StoreReleases
 from plot_data import (PlotData, CatchData, plot_recruit_stat, plot_retain, plot_SOIN_recruit_dom_paths,
                        plot_BSSI_recruit_dom_paths, plot_temp_SG, plot_catch_points, plot_linreg, plot_arrivals,
-                       plot_SG_rec_area, plot_worms, plot_poster_dom_paths, plot_recruit_dom_paths)
+                       plot_SG_rec_area, plot_worms, plot_poster_dom_paths, plot_recruit_dom_paths, plot_ant_sub)
 import matplotlib.pyplot as plt
 import numpy as np
 import netCDF4 as nc
 folder = 'A:/Cian_sinmod/opendrift/'
-folder = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/'
+#folder = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/'
 compile_folder = folder + 'compile/'
 analysis_folder = folder + 'analysis/'
 trajectory_folder = folder + 'trajectory/'
@@ -20,11 +20,17 @@ cdata = CatchData()
 # catch facts
 #cdata.catch_facts()
 # figure 1:
-#cdata.plot_fishing_season()
+cdata.plot_fishing_season()
+breakpoint()
 # figure 2:
 #cdata.plot_lat_lon()
 # figure 3:
-#plot_catch_points(compile_folder, analysis_folder)
+
+## first figure in paper that shows the position of fronts relative to catch data ##
+plot_ant_sub()
+plot_catch_points(compile_folder, analysis_folder)
+
+
 
 # s2.2: results for recruitment to SG:
 # figure 1:
@@ -34,8 +40,8 @@ cdata = CatchData()
 #plot_arrivals(compile_folder, analysis_folder)
 #plot_retain(compile_folder, analysis_folder)
 # figure 3:
-#plot_SOIN_recruit_dom_paths(compile_folder, analysis_folder)
-#plot_BSSI_recruit_dom_paths(compile_folder, analysis_folder)
+plot_SOIN_recruit_dom_paths(compile_folder, analysis_folder)
+plot_BSSI_recruit_dom_paths(compile_folder, analysis_folder)
 # figure 4:
 #plot_temp_SG(compile_folder, analysis_folder)
 #plot_temp_month_SG(compile_folder, analysis_folder)
@@ -46,5 +52,5 @@ cdata = CatchData()
 
 # poster plot:
 #plot_poster_dom_paths(compile_folder, analysis_folder)
-plot_recruit_dom_paths(compile_folder, analysis_folder)
-breakpoint()
+#plot_recruit_dom_paths(compile_folder, analysis_folder)
+
