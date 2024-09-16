@@ -3,7 +3,8 @@ from configure import FileExplorer
 from compile_releases import StoreReleases
 from plot_data import (PlotData, CatchData, plot_recruit_stat, plot_retain, plot_SOIN_recruit_dom_paths,
                        plot_BSSI_recruit_dom_paths, plot_temp_SG, plot_catch_points, plot_linreg, plot_arrivals,
-                       plot_SG_rec_area, plot_worms, plot_poster_dom_paths, plot_recruit_dom_paths, plot_ant_sub)
+                       plot_SG_rec_area, plot_worms, plot_poster_dom_paths, plot_recruit_dom_paths, plot_ant_sub,
+                       plot_transit_distributions)
 import matplotlib.pyplot as plt
 import numpy as np
 import netCDF4 as nc
@@ -16,12 +17,18 @@ trajectory_folder = folder + 'trajectory/'
 
 
 # s2.1: results for catch data:
-cdata = CatchData()
+
 # catch facts
 #cdata.catch_facts()
-# figure 1:
-cdata.plot_fishing_season()
+
+# plot transit distributions:
+#plot_transit_distributions(compile_folder, analysis_folder)
 breakpoint()
+
+# figure 2:
+cdata = CatchData()
+cdata.plot_fishing_season()
+
 # figure 2:
 #cdata.plot_lat_lon()
 # figure 3:

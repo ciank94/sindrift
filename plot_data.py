@@ -13,6 +13,7 @@ from datetime import datetime
 from netCDF4 import num2date
 from mpl_toolkits.basemap import Basemap
 import matplotlib.image as mpimg
+from matplotlib import colors
 from PIL import Image
 from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 class PlotData:
@@ -1558,6 +1559,139 @@ def plot_catch_points(compile_folder, analysis_folder):
 
     cdata.save_plot(plt_name='fishing_points')
 
+    return
+
+def plot_transit_distributions(compile_folder, analysis_folder):
+    fig, axs = plt.subplots(4, 2, tight_layout=True)
+    fig.set_size_inches(24, 11, forward=True)
+    for i in range(0,4):
+        for j in range(0,2):
+            axs[i, j].set_axisbelow(True)
+            axs[i, j].grid(alpha=0.45)
+    y_list = np.arange(2005, 2019+1, 1)
+    recruit_v = np.zeros(y_list.shape[0])
+    recruit_t = np.zeros(y_list.shape[0])
+    store_vals = np.zeros([20, y_list.shape[0]])
+    store_num = np.zeros([20, y_list.shape[0]])
+    counter = -1
+    for y in y_list:
+        counter = counter + 1
+        p_plot = PlotData(key='BSSI', year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+        filename = compile_folder + p_plot.file_prefix + 'recruit_SG.csv'
+        r_table = pd.read_csv(filename)
+        store_vals[:, counter] = r_table.recruit_time/24
+        store_num[:, counter] = (r_table.recruit_number/10000) * 100
+        recruit_v[counter] = p_plot.get_recruits()
+        recruit_t[counter] = p_plot.get_recruit_times()
+
+
+    A = np.reshape(store_vals, [store_vals.shape[0]*store_vals.shape[1], 1])
+    N, bins, patches = axs[0,0].hist(A, bins=20, color='skyblue', edgecolor='black')
+    fracs = N / N.max()
+    norm = colors.Normalize(fracs.min(), fracs.max())
+    # Now, we'll loop through our objects and set the color of each accordingly
+    for thisfrac, thispatch in zip(fracs, patches):
+        color = plt.cm.Blues(norm(thisfrac))
+        thispatch.set_facecolor(color)
+    axs[0,0].set_xlabel('time (days)', fontsize=18)
+    axs[0,0].set_ylabel('frequency', fontsize=18)
+    axs[0,0].set_title('AP', fontsize=18)
+    axs[0,0].set_xlim([120, 250])
+
+
+    A = np.reshape(store_num, [store_vals.shape[0] * store_vals.shape[1], 1])
+    N, bins, patches = axs[1, 0].hist(A, bins=20, color='skyblue', edgecolor='black')
+    fracs = N / N.max()
+    norm = colors.Normalize(fracs.min(), fracs.max())
+    # Now, we'll loop through our objects and set the color of each accordingly
+    for thisfrac, thispatch in zip(fracs, patches):
+        color = plt.cm.Blues(norm(thisfrac))
+        thispatch.set_facecolor(color)
+    axs[1, 0].set_xlabel('recruited (%)', fontsize=18)
+    axs[1, 0].set_ylabel('frequency', fontsize=18)
+    axs[1, 0].set_xlim([0, 15])
+
+    x_name = ['2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017',
+              '2018', '2019', '2020']
+    cmap = plt.get_cmap('Blues')
+    c_vals = (recruit_t / recruit_t.max())**1.5
+    color_vals = cmap(c_vals)
+    axs[2, 0].bar(x_name, recruit_t, color=color_vals, alpha=0.8)
+    axs[2, 0].set_ylim([120, 240])
+    axs[2, 0].set_xlabel('year', fontsize=18)
+    axs[2, 0].set_ylabel('time (days)', fontsize=18)
+
+    c_vals = recruit_v / recruit_v.max()
+    color_vals = cmap(c_vals)
+    axs[3, 0].bar(x_name, recruit_v, color=color_vals, alpha=0.8)
+    axs[3, 0].set_ylim([0, 14])
+    axs[3, 0].set_xlabel('year', fontsize=18)
+    axs[3, 0].set_ylabel('recruited (%)', fontsize=18)
+
+
+    store_vals = np.zeros([20, y_list.shape[0]])
+    store_num = np.zeros([20, y_list.shape[0]])
+    recruit_v = np.zeros(y_list.shape[0])
+    recruit_t = np.zeros(y_list.shape[0])
+    counter = -1
+    for y in y_list:
+        counter = counter + 1
+        p_plot = PlotData(key='SOIN', year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+        filename = compile_folder + p_plot.file_prefix + 'recruit_SG.csv'
+        r_table = pd.read_csv(filename)
+        store_vals[:, counter] = r_table.recruit_time / 24
+        store_num[:, counter] = (r_table.recruit_number/10000) * 100
+        recruit_v[counter] = p_plot.get_recruits()
+        recruit_t[counter] = p_plot.get_recruit_times()
+
+    A = np.reshape(store_vals, [store_vals.shape[0] * store_vals.shape[1], 1])
+    N, bins, patches = axs[0, 1].hist(A, bins=20, color='skyblue', edgecolor='black')
+    fracs = N / N.max()
+    norm = colors.Normalize(fracs.min(), fracs.max())
+    # Now, we'll loop through our objects and set the color of each accordingly
+    for thisfrac, thispatch in zip(fracs, patches):
+        color = plt.cm.Blues(norm(thisfrac))
+        thispatch.set_facecolor(color)
+    axs[0, 1].set_xlabel('time (days)', fontsize=18)
+    axs[0, 1].set_ylabel('frequency', fontsize=18)
+    axs[0, 1].set_title('SO', fontsize=18)
+    axs[0, 1].set_xlim([120, 250])
+
+    A = np.reshape(store_num, [store_vals.shape[0] * store_vals.shape[1], 1])
+    N, bins, patches = axs[1, 1].hist(A, bins=20, color='skyblue', edgecolor='black')
+    fracs = N / N.max()
+    norm = colors.Normalize(fracs.min(), fracs.max())
+    # Now, we'll loop through our objects and set the color of each accordingly
+    for thisfrac, thispatch in zip(fracs, patches):
+        color = plt.cm.Blues(norm(thisfrac))
+        thispatch.set_facecolor(color)
+    axs[1, 1].set_xlabel('recruited (%)', fontsize=18)
+    axs[1, 1].set_ylabel('frequency', fontsize=18)
+    axs[1, 1].set_xlim([0,15])
+
+    for i in range(0,4):
+        for j in range(0,2):
+            axs[i, j].tick_params(axis="x", labelsize=16)
+            axs[i, j].tick_params(axis="y", labelsize=16)
+
+
+    x_name = ['2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017',
+              '2018', '2019', '2020']
+    cmap = plt.get_cmap('Blues')
+    c_vals = (recruit_t / recruit_t.max())**1.5
+    color_vals = cmap(c_vals)
+    axs[2, 1].bar(x_name, recruit_t, color=color_vals, alpha=0.8)
+    axs[2, 1].set_ylim([120, 240])
+    axs[2, 1].set_xlabel('year', fontsize=18)
+    axs[2, 1].set_ylabel('time (days)', fontsize=18)
+
+    c_vals = recruit_v / recruit_v.max()
+    color_vals = cmap(c_vals)
+    axs[3, 1].bar(x_name, recruit_v, color=color_vals, alpha=0.8)
+    axs[3, 1].set_ylim([0, 14])
+    axs[3, 1].set_xlabel('year', fontsize=18)
+    axs[3, 1].set_ylabel('recruited (%)', fontsize=18)
+    p_plot.save_plot(plt_name='transit_distributions')
     return
 def plot_ant_sub():
     cdata = CatchData()
