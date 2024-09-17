@@ -17,17 +17,22 @@ trajectory_folder = folder + 'trajectory/'
 
 
 # s2.1: results for catch data:
+plot_linreg(compile_folder, analysis_folder)
+breakpoint()
 
 # catch facts
 #cdata.catch_facts()
 
 # plot transit distributions:
 #plot_transit_distributions(compile_folder, analysis_folder)
-breakpoint()
+
 
 # figure 2:
-cdata = CatchData()
-cdata.plot_fishing_season()
+#cdata = CatchData()
+#cdata.plot_fishing_season()
+
+plot_worms(compile_folder, analysis_folder, trajectory_folder)
+
 
 # figure 2:
 #cdata.plot_lat_lon()

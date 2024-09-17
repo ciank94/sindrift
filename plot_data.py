@@ -603,9 +603,9 @@ class CatchData:
         for i in range(1, 13):
             c = c + 1
             ap_c[c] = np.sum(self.month == i)
-            ap_av[c] = np.nanmean(self.df.krill_greenweight_kg[self.month==i]) / 1000
+            ap_av[c] = np.nanmean(self.df.krill_greenweight_kg[self.month == i]) / 1000
             ap_sum[c] = np.nansum(self.df.krill_greenweight_kg[self.month == i]) / (1000*1000)
-            std_ap[c] = np.nanstd(self.df.krill_greenweight_kg[self.month==i]) / 1000
+            std_ap[c] = np.nanstd(self.df.krill_greenweight_kg[self.month == i]) / 1000
 
         self.get_area(482)
         so_c = np.zeros(12)
@@ -634,6 +634,11 @@ class CatchData:
             std_sg[c] = np.nanstd(self.df.krill_greenweight_kg[self.month == i]) / 1000
 
         fig, axs = plt.subplots(2, 2, figsize=(20, 8))
+        for i in range(0, 2):
+            for j in range(0, 2):
+                axs[i, j].set_axisbelow(True)
+                axs[i, j].grid(alpha=0.45)
+
         x_name = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
         axs[0,0].bar(x_name, ap_sum, color='red', alpha=0.75)
         axs[0,0].bar(x_name, so_sum, bottom=ap_sum, color='blue', alpha=0.75)
@@ -641,7 +646,6 @@ class CatchData:
         axs[0,0].set_ylabel("weight (x 1000 tonnes)", fontsize=13)
         axs[0,0].set_xlabel("month", fontsize=13)
         axs[0,0].legend(["AP", "SO", "SG"], fontsize=13)
-        axs[0,0].grid(alpha=0.45)
         axs[0, 0].set_ylim([0, 400])
 
         axs[1, 0].plot(x_name, ap_av, 'r-o', linewidth=4, alpha=0.75)
@@ -652,7 +656,6 @@ class CatchData:
         axs[1, 0].set_ylabel("weight (tonnes)", fontsize=13)
         axs[1, 0].set_xlabel("month", fontsize=13)
         axs[1, 0].legend(["AP", "SO", "SG"], fontsize=13)
-        axs[1, 0].grid(alpha=0.45)
         axs[1, 0].set_ylim([0, 50])
 
 
@@ -704,7 +707,6 @@ class CatchData:
         axs[0, 1].set_ylabel("weight (x 1000 tonnes)", fontsize=13)
         axs[0, 1].set_xlabel("year", fontsize=13)
         axs[0, 1].legend(["AP", "SO", "SG"], fontsize=13)
-        axs[0, 1].grid(alpha=0.45)
         axs[0, 1].set_ylim([0, 350])
 
         axs[1, 1].plot(x_name, ap_av, 'r-o', linewidth=4, alpha=0.75)
@@ -713,7 +715,6 @@ class CatchData:
         axs[1, 1].set_ylabel("weight (tonnes)", fontsize=13)
         axs[1, 1].set_xlabel("year", fontsize=13)
         axs[1, 1].legend(["AP", "SO", "SG"], fontsize=13)
-        axs[1, 1].grid(alpha=0.45)
         axs[1, 1].set_ylim([0, 50])
 
         plt.tight_layout()
@@ -1133,7 +1134,8 @@ def plot_linreg(compile_folder, analysis_folder):
         catch_v[counter] = p_plot.read_catch()
         recruit_v[counter] = p_plot.get_recruits()
 
-    fig, ax1 = plt.subplots(2, 1, figsize=(12, 8))
+    fig, ax1 = plt.subplots(1, 2)
+    fig.set_size_inches(24, 8, forward=True)
 
     varx = recruit_v
     vary = catch_v
@@ -1141,11 +1143,15 @@ def plot_linreg(compile_folder, analysis_folder):
     res = stats.linregress(varx[mask], vary[mask])
     print(stats.pearsonr(varx[mask], vary[mask]))
 
+
     ax1[0].plot(varx, vary, 'r.', label='original data', markersize=12)
     ax1[0].plot(varx, res.intercept + res.slope * varx, 'k', label='fitted line', linewidth=4)
     ax1[0].grid(alpha=0.45)
     ax1[0].set_ylabel('weight (tonnes)', fontsize=15)
-    ax1[0].set_xlabel('AP fraction recruited (%)', fontsize=15)
+    ax1[0].set_xlabel('recruited (%)', fontsize=15)
+    ax1[0].set_title('AP', fontsize=16)
+    #ax1[0].annotate('R = ' + str(np.round(res.rvalue, 2)), (7, 14))
+
 
 
     counter = -1
@@ -1164,13 +1170,15 @@ def plot_linreg(compile_folder, analysis_folder):
     ax1[1].plot(varx, vary, 'r.', label='original data', markersize=12)
     ax1[1].plot(varx, res.intercept + res.slope * varx, 'k', label='fitted line', linewidth=4)
     ax1[1].set_ylabel('weight (tonnes)', fontsize=15)
-    ax1[1].set_xlabel('SO fraction recruited (%)', fontsize=15)
+    ax1[1].set_xlabel('recruited (%)', fontsize=15)
+    ax1[1].set_title('SO', fontsize=16)
 
 
     ax1[0].xaxis.set_tick_params(labelsize=14)
     ax1[0].yaxis.set_tick_params(labelsize=14)
     ax1[1].xaxis.set_tick_params(labelsize=14)
     ax1[1].yaxis.set_tick_params(labelsize=14)
+    #ax1[1].annotate('R = ' + str(np.round(res.rvalue, 2)), (7, 14))
 
     p_plot.save_plot('recruit_correlation')
     return
@@ -1759,27 +1767,37 @@ def plot_worms(compile_folder, analysis_folder, trajectory_folder):
     max_lat = -47
     min_lon = -70
     max_lon = -31
-    bin_res = 1
+    bin_res = 0.8
     lat_range = np.arange(min_lat - 10, max_lat + 6, bin_res)
     lon_range = np.arange(min_lon - 10, max_lon + 6, bin_res)
     shp_lon_range = np.shape(lon_range)[0]
     shp_lat_range = np.shape(lat_range)[0]
     dens_f = np.zeros([shp_lon_range, shp_lat_range])
+
+
     figures_path = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/figures/'
     bath_file = figures_path + 'bath.npy'
     bath_file_lon = figures_path + 'bath_lon.npy'
     bath_file_lat = figures_path + 'bath_lat.npy'
-    bath_contours = np.arange(0, 5750, 300)
+    bath_contours = np.arange(0, 8000, 500)
     bath = np.load(bath_file)
     bath_lon = np.load(bath_file_lon)
     bath_lat = np.load(bath_file_lat)
     for y in range(2005, 2020):
         p_plot = PlotData(key=key_name, year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+        if y == 2005:
+            lon_bin_vals = p_plot.df['lon_bin_vals'][:]
+            lat_bin_vals = p_plot.df['lat_bin_vals'][:]
+            dens_dom = np.zeros([lon_bin_vals.shape[0], lat_bin_vals.shape[0]])
+
         filename = p_plot.compile_folder + p_plot.file_prefix + 'site_recruits.npy'
+        filename2 = p_plot.compile_folder + p_plot.file_prefix + 'dom_paths.npy'
+        dom_file = np.load(filename2)
         r_table = np.load(filename)
         lat = r_table[1, :]
         lon = r_table[0, :]
         dens_m = np.zeros([shp_lon_range, shp_lat_range])
+
         #
 
         for ij in range(0, lat.shape[0]):
@@ -1788,13 +1806,16 @@ def plot_worms(compile_folder, analysis_folder, trajectory_folder):
             dens_m[lon_id, lat_id] = dens_m[lon_id, lat_id] + r_table[2, ij]
 
         dens_f = dens_f + dens_m
+        dens_dom = dens_dom + dom_file
 
-    fig, ax_name = plt.subplots(figsize=(10, 12), nrows=2, ncols=1, subplot_kw={'projection': ccrs.PlateCarree()},
+    fig, ax_name = plt.subplots(figsize=(20, 12), nrows=2, ncols=2, subplot_kw={'projection': ccrs.PlateCarree()},
                                     layout='constrained')
-    p_plot.plot_background(background='AP', ax_name=ax_name[0])
+    p_plot.plot_background(background='AP', ax_name=ax_name[0,0])
+    b_map = ax_name[0,0].contourf(bath_lon, bath_lat, bath, levels=bath_contours,
+                             transform=ccrs.PlateCarree(), cmap=plt.get_cmap('Blues'), vmin=0, vmax=4000, alpha=0.8)
     #ax_name[0].contourf(bath_lon, bath_lat, bath, levels=bath_contours,
      #                   transform=ccrs.PlateCarree(), cmap=plt.get_cmap('Blues'), vmin=0, vmax=4000)
-    ax_name[0].set_extent(
+    ax_name[0,0].set_extent(
             [-64, -34, -70, -50])
     dens_f[dens_f == 0] = np.nan
     dens_f = (dens_f/np.nansum(dens_f))*100
@@ -1807,12 +1828,36 @@ def plot_worms(compile_folder, analysis_folder, trajectory_folder):
     lat = nc_file['lat'][idx, :]
     lon = lon[::2,::2]
     lat = lat[::2,::2]
-    [ax_name[0].plot(lon[i, :], lat[i,:], color='r', linewidth=2, alpha=0.01, markersize=0.1) for i in range(0, lon.shape[0])]
-    d_map = ax_name[0].pcolormesh(lon_range, lat_range, dens_f.T, cmap=plt.get_cmap('Reds'), transform=ccrs.PlateCarree(), vmin=0, vmax=7)
+    #[ax_name[0].plot(lon[i, :], lat[i,:], color='r', linewidth=2, alpha=0.01, markersize=0.1) for i in range(0, lon.shape[0])]
+    d_map = ax_name[0,0].pcolormesh(lon_range, lat_range, dens_f.T, cmap=plt.get_cmap('Reds'), transform=ccrs.PlateCarree(), vmin=0, vmax=5)
 
-    cbar = plt.colorbar(d_map, pad=0.01, ax=ax_name[0], shrink=0.8)
+    cbar = plt.colorbar(d_map, pad=0.01, ax=ax_name[0,0], shrink=0.8)
     cbar.ax.set_ylabel('probability (%)', loc='center', size=9, weight='bold')
     cbar.ax.tick_params(labelsize=10, rotation=0)
+
+    cbar = plt.colorbar(b_map, pad=0.01, ax=ax_name[0,0], shrink=0.8)
+    cbar.ax.set_ylabel('depth (m)', loc='center', size=9, weight='bold')
+    cbar.ax.tick_params(labelsize=10, rotation=0)
+
+
+    # plot second one
+
+    p_plot.plot_background(background='AP', ax_name=ax_name[1,0])
+    ax_name[1, 0].set_extent(
+        [-64, -34, -70, -50])
+    dens_dom[dens_dom == 0] = np.nan
+    dens_dom = (dens_dom /(15*10000*20)) * 100
+
+    # [ax_name[0].plot(lon[i, :], lat[i,:], color='r', linewidth=2, alpha=0.01, markersize=0.1) for i in range(0, lon.shape[0])]
+    d_map = ax_name[1, 0].pcolormesh(lon_bin_vals, lat_bin_vals, dens_dom.T, cmap=plt.get_cmap('jet'),
+                                     transform=ccrs.PlateCarree(), vmax=5)
+
+    cbar = plt.colorbar(d_map, pad=0.01, ax=ax_name[1, 0], shrink=0.8)
+    cbar.ax.set_ylabel('probability (%)', loc='center', size=9, weight='bold')
+    cbar.ax.tick_params(labelsize=10, rotation=0)
+
+
+
     nc_file.close()
 
     #filename = compile_folder + p_plot.file_prefix + 'recruit_SG.csv'
@@ -1821,13 +1866,20 @@ def plot_worms(compile_folder, analysis_folder, trajectory_folder):
     #ax_name.scatter(lon, lat, c=c_vals,s=10, edgecolors='gray', vmin=np.nanmean(c_vals)/2,
                               # vmax=np.nanmean(c_vals)*2, linewidth=0.2, cmap=site_recruit_cmap)
 
-
-
+    ax_name[0, 0].set_title('AP', fontsize=16)
+    ax_name[0, 1].set_title('SO', fontsize=16)
     key_name = 'SOIN'
     dens_f = np.zeros([shp_lon_range, shp_lat_range])
     for y in range(2005, 2020):
         p_plot = PlotData(key=key_name, year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+        if y == 2005:
+            lon_bin_vals = p_plot.df['lon_bin_vals'][:]
+            lat_bin_vals = p_plot.df['lat_bin_vals'][:]
+            dens_dom = np.zeros([lon_bin_vals.shape[0], lat_bin_vals.shape[0]])
+
         filename = p_plot.compile_folder + p_plot.file_prefix + 'site_recruits.npy'
+        filename2 = p_plot.compile_folder + p_plot.file_prefix + 'dom_paths.npy'
+        dom_file = np.load(filename2)
         r_table = np.load(filename)
         lat = r_table[1, :]
         lon = r_table[0, :]
@@ -1840,30 +1892,52 @@ def plot_worms(compile_folder, analysis_folder, trajectory_folder):
             dens_m[lon_id, lat_id] = dens_m[lon_id, lat_id] + r_table[2, ij]
 
         dens_f = dens_f + dens_m
+        dens_dom = dens_dom + dom_file
 
-    p_plot.plot_background(background='AP', ax_name=ax_name[1])
+    p_plot.plot_background(background='AP', ax_name=ax_name[0, 1])
+    b_map = ax_name[0, 1].contourf(bath_lon, bath_lat, bath, levels=bath_contours,
+                                   transform=ccrs.PlateCarree(), cmap=plt.get_cmap('Blues'), vmin=0, vmax=4000,
+                                   alpha=0.8)
     # ax_name[0].contourf(bath_lon, bath_lat, bath, levels=bath_contours,
     #                   transform=ccrs.PlateCarree(), cmap=plt.get_cmap('Blues'), vmin=0, vmax=4000)
-    ax_name[1].set_extent(
+    ax_name[0, 1].set_extent(
         [-64, -34, -70, -50])
     dens_f[dens_f == 0] = np.nan
     dens_f = (dens_f / np.nansum(dens_f)) * 100
 
     trajectory_file = trajectory_folder + p_plot.file_prefix + 'R1_trajectory.nc'
     nc_file = nc.Dataset(trajectory_file)
-    filename = p_plot.compile_folder + p_plot.file_prefix + 'site_recruits.npy'
-    r_table = np.load(filename)
+
     idx = r_table[2, :] > 0
     lon = nc_file['lon'][idx, :]
     lat = nc_file['lat'][idx, :]
     lon = lon[::2, ::2]
     lat = lat[::2, ::2]
-    [ax_name[1].plot(lon[i, :], lat[i, :], color='r', linewidth=2, alpha=0.01, markersize=0.1) for i in
-     range(0, lon.shape[0])]
-    d_map = ax_name[1].pcolormesh(lon_range, lat_range, dens_f.T, cmap=plt.get_cmap('Reds'),
-                                  transform=ccrs.PlateCarree(), vmin=0, vmax=14)
+    # [ax_name[0].plot(lon[i, :], lat[i,:], color='r', linewidth=2, alpha=0.01, markersize=0.1) for i in range(0, lon.shape[0])]
+    d_map = ax_name[0, 1].pcolormesh(lon_range, lat_range, dens_f.T, cmap=plt.get_cmap('Reds'),
+                                     transform=ccrs.PlateCarree(), vmin=0, vmax=10)
 
-    cbar = plt.colorbar(d_map, pad=0.01, ax=ax_name[1], shrink=0.8)
+    cbar = plt.colorbar(d_map, pad=0.01, ax=ax_name[0, 1], shrink=0.8)
+    cbar.ax.set_ylabel('probability (%)', loc='center', size=9, weight='bold')
+    cbar.ax.tick_params(labelsize=10, rotation=0)
+
+    cbar = plt.colorbar(b_map, pad=0.01, ax=ax_name[0, 1], shrink=0.8)
+    cbar.ax.set_ylabel('depth (m)', loc='center', size=9, weight='bold')
+    cbar.ax.tick_params(labelsize=10, rotation=0)
+
+    # plot second one
+
+    p_plot.plot_background(background='AP', ax_name=ax_name[1, 1])
+    ax_name[1, 1].set_extent(
+        [-64, -34, -70, -50])
+    dens_dom[dens_dom == 0] = np.nan
+    dens_dom = (dens_dom / (15 * 10000 * 20)) * 100
+
+    # [ax_name[0].plot(lon[i, :], lat[i,:], color='r', linewidth=2, alpha=0.01, markersize=0.1) for i in range(0, lon.shape[0])]
+    d_map = ax_name[1, 1].pcolormesh(lon_bin_vals, lat_bin_vals, dens_dom.T, cmap=plt.get_cmap('jet'),
+                                     transform=ccrs.PlateCarree(), vmax=5)
+
+    cbar = plt.colorbar(d_map, pad=0.01, ax=ax_name[1, 1], shrink=0.8)
     cbar.ax.set_ylabel('probability (%)', loc='center', size=9, weight='bold')
     cbar.ax.tick_params(labelsize=10, rotation=0)
 
