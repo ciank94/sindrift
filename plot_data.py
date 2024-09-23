@@ -1943,6 +1943,8 @@ def plot_worms(compile_folder, analysis_folder, trajectory_folder):
         dens_f = dens_f + dens_m
         dens_dom = dens_dom + dom_file
 
+
+
     fig, ax_name = plt.subplots(figsize=(20, 12), nrows=2, ncols=2, subplot_kw={'projection': ccrs.PlateCarree()},
                                     layout='constrained')
     p_plot.plot_background(background='AP', ax_name=ax_name[0,0])
@@ -1984,8 +1986,8 @@ def plot_worms(compile_folder, analysis_folder, trajectory_folder):
     dens_dom = (dens_dom /(15*10000*20)) * 100
 
     # [ax_name[0].plot(lon[i, :], lat[i,:], color='r', linewidth=2, alpha=0.01, markersize=0.1) for i in range(0, lon.shape[0])]
-    d_map = ax_name[1, 0].pcolormesh(lon_bin_vals, lat_bin_vals, dens_dom.T, cmap=plt.get_cmap('jet'),
-                                     transform=ccrs.PlateCarree(), vmax=5)
+    d_map = ax_name[1, 0].pcolormesh(lon_bin_vals, lat_bin_vals, dens_dom.T, cmap=plt.get_cmap('viridis'),
+                                     transform=ccrs.PlateCarree(), vmin=0, vmax=5)
 
     cbar = plt.colorbar(d_map, pad=0.01, ax=ax_name[1, 0], shrink=0.8)
     cbar.ax.set_ylabel('probability (%)', loc='center', size=9, weight='bold')
@@ -2069,12 +2071,31 @@ def plot_worms(compile_folder, analysis_folder, trajectory_folder):
     dens_dom = (dens_dom / (15 * 10000 * 20)) * 100
 
     # [ax_name[0].plot(lon[i, :], lat[i,:], color='r', linewidth=2, alpha=0.01, markersize=0.1) for i in range(0, lon.shape[0])]
-    d_map = ax_name[1, 1].pcolormesh(lon_bin_vals, lat_bin_vals, dens_dom.T, cmap=plt.get_cmap('jet'),
+    d_map = ax_name[1, 1].pcolormesh(lon_bin_vals, lat_bin_vals, dens_dom.T, cmap=plt.get_cmap('viridis'),
                                      transform=ccrs.PlateCarree(), vmax=5)
 
     cbar = plt.colorbar(d_map, pad=0.01, ax=ax_name[1, 1], shrink=0.8)
     cbar.ax.set_ylabel('probability (%)', loc='center', size=9, weight='bold')
     cbar.ax.tick_params(labelsize=10, rotation=0)
+
+    front_file = pd.read_csv(figures_path + 'antarctic_circumpolar_current_fronts.csv')
+    saccf = front_file.front_name == 'SACCF'
+    lon_saccf = front_file.longitude[saccf]
+    lat_saccf = front_file.latitude[saccf]
+    pf = front_file.front_name == 'PF'
+    lon_pf = front_file.longitude[pf]
+    lat_pf = front_file.latitude[pf]
+
+    f_size = 17
+    for i in range(0,2):
+        for j in range(0,2):
+            ax_name[i,j].plot(lon_saccf, lat_saccf, 'w--')
+            ax_name[i,j].plot(lon_pf, lat_pf, 'w')
+            ax_name[i,j].annotate('SACCF', (-48.1, -56.7), bbox=dict(boxstyle="Square,pad=0.3",
+                                                        fc="white", ec="black", lw=2), fontsize=f_size)
+
+            ax_name[i,j].annotate('PF', (-49, -54.5), bbox=dict(boxstyle="Square,pad=0.3",
+                                                   fc="white", ec="black", lw=2), fontsize=f_size)
 
 
     p_plot.save_plot(plt_name='AP_SO_worms')

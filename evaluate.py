@@ -17,8 +17,11 @@ trajectory_folder = folder + 'trajectory/'
 
 
 # s2.1: results for catch data:
-plot_linreg(compile_folder, analysis_folder)
+plot_worms(compile_folder, analysis_folder, trajectory_folder)
 breakpoint()
+
+plot_linreg(compile_folder, analysis_folder)
+
 
 # catch facts
 #cdata.catch_facts()
@@ -31,7 +34,7 @@ breakpoint()
 #cdata = CatchData()
 #cdata.plot_fishing_season()
 
-plot_worms(compile_folder, analysis_folder, trajectory_folder)
+
 
 
 # figure 2:
