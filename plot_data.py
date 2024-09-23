@@ -56,6 +56,39 @@ class PlotData:
         return avg_catch
 
 
+    def read_prev_catch(self):
+        catch_file = self.figures_path + 'C1_680.csv'
+        self.time_file = self.figures_path + 'time.npy'
+
+        csv_file = pd.read_csv(catch_file, sep=',')
+
+
+        # SG avg. catch
+        self.area_rule = csv_file.asd_code == 483  # key code for area
+        self.get_time(csv_file)
+        self.df = csv_file[self.area_rule]
+        id_c = self.year_c == self.year_n + 1
+        avg_catch = np.nanmean(self.df.krill_greenweight_kg[id_c]/1000)
+
+        # AP avg. catch
+        self.area_rule = csv_file.asd_code == 481  # key code for area
+        self.get_time(csv_file)
+        self.df = csv_file[self.area_rule]
+        id_c = self.year_c == self.year_n + 1
+        id_c2 = (self.month == 1) | (self.month == 2)|(self.month == 3) | (self.month == 4)| (self.month == 5)
+        AP_avg_catch = np.nanmean(self.df.krill_greenweight_kg[(id_c) & (id_c2)] / 1000)
+
+        # SO avg. catch
+        self.area_rule = csv_file.asd_code == 482  # key code for area
+        self.get_time(csv_file)
+        self.df = csv_file[self.area_rule]
+        id_c = self.year_c == self.year_n + 1
+        id_c2 = (self.month == 1) | (self.month == 2) | (self.month == 3) | (self.month == 4) | (self.month == 5)
+        SO_avg_catch = np.nanmean(self.df.krill_greenweight_kg[(id_c)&(id_c2)] / 1000)
+
+        return AP_avg_catch, SO_avg_catch, avg_catch
+
+
 
     def get_time(self, csv_file):
         if not os.path.exists(self.time_file):  # if file doesn't exist
@@ -1126,16 +1159,31 @@ def plot_linreg(compile_folder, analysis_folder):
     # the catch dataset is now in figures folder; use the data to compare against simulations;
     recruit_v = np.zeros(np.shape(years))
     catch_v = np.zeros(np.shape(years))
+    catch_v_ap = np.zeros(np.shape(years))
+    catch_v_so = np.zeros(np.shape(years))
+    lat_mid = np.zeros(np.shape(years))
+    lon_mid = np.zeros(np.shape(years))
 
     counter = -1
     for y in years:
         counter = counter + 1
         p_plot = PlotData(key='BSSI', year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+        filename = p_plot.compile_folder + p_plot.file_prefix + 'site_recruits.npy'
+        r_table = np.load(filename)
+        lat_mid[counter] = np.sum(r_table[2,:]*r_table[1, :])/np.nansum(r_table[2,:])
+        lon_mid[counter] = np.nansum(r_table[2,:]*r_table[0, :])/np.nansum(r_table[2,:])
         catch_v[counter] = p_plot.read_catch()
+        catch_v_ap[counter], catch_v_so[counter], catch_v[counter] = p_plot.read_prev_catch()
         recruit_v[counter] = p_plot.get_recruits()
 
-    fig, ax1 = plt.subplots(1, 2)
-    fig.set_size_inches(24, 8, forward=True)
+    fig, ax1 = plt.subplots(4, 2,tight_layout=True, layout ='constrained')
+    fig.set_size_inches(24,11,forward=True)
+    m_size = 65
+    f_size = 18
+    l_width = 3
+    c_mapt = 'Blues'
+    #fig.tight_layout()
+
 
     varx = recruit_v
     vary = catch_v
@@ -1143,22 +1191,65 @@ def plot_linreg(compile_folder, analysis_folder):
     res = stats.linregress(varx[mask], vary[mask])
     print(stats.pearsonr(varx[mask], vary[mask]))
 
+    c_valss=np.arange(2006,2021)
 
-    ax1[0].plot(varx, vary, 'r.', label='original data', markersize=12)
-    ax1[0].plot(varx, res.intercept + res.slope * varx, 'k', label='fitted line', linewidth=4)
-    ax1[0].grid(alpha=0.45)
-    ax1[0].set_ylabel('weight (tonnes)', fontsize=15)
-    ax1[0].set_xlabel('recruited (%)', fontsize=15)
-    ax1[0].set_title('AP', fontsize=16)
-    #ax1[0].annotate('R = ' + str(np.round(res.rvalue, 2)), (7, 14))
+    d_map = ax1[0,0].scatter(varx, vary, c=c_valss,s=m_size, cmap=c_mapt, edgecolors='k')
+    ax1[0,0].plot(varx, res.intercept + res.slope * varx, 'k-', label='fitted line', linewidth=l_width)
+    ax1[0,0].grid(alpha=0.45)
+    ax1[0,0].set_ylabel('weight (tonnes)', fontsize=f_size)
+    ax1[0,0].set_title('AP', fontsize=f_size)
 
 
+    #fig.colorbar(d_map, , shrink=0.6)
+    for i in range(0,4):
+        cbar = plt.colorbar(d_map, pad=0.01,ax=ax1[i, 0],shrink=0.99)
+        cbar.ax.set_ylabel('year', loc='center', size=16, weight='bold')
+        cbar.ax.tick_params(labelsize=16, rotation=0)
+
+
+    varx = lat_mid
+    vary = catch_v
+    mask = ~np.isnan(varx) & ~np.isnan(vary)
+    res = stats.linregress(varx[mask], vary[mask])
+    print(stats.pearsonr(varx[mask], vary[mask]))
+
+    ax1[1,0].scatter(varx, vary, c=c_valss,s=m_size, cmap=c_mapt, edgecolors='k')
+    ax1[1,0].plot(varx, res.intercept + res.slope * varx, 'k', label='fitted line', linewidth=l_width)
+    ax1[1,0].grid(alpha=0.45)
+    ax1[1,0].set_ylabel('weight (tonnes)', fontsize=f_size)
+
+
+    varx = lon_mid
+    vary = catch_v
+    mask = ~np.isnan(varx) & ~np.isnan(vary)
+    res = stats.linregress(varx[mask], vary[mask])
+    print(stats.pearsonr(varx[mask], vary[mask]))
+
+    ax1[2,0].scatter(varx, vary, c=c_valss,s=m_size, cmap=c_mapt, edgecolors='k')
+    ax1[2,0].plot(varx, res.intercept + res.slope * varx, 'k', label='fitted line', linewidth=l_width)
+    ax1[2,0].grid(alpha=0.45)
+    ax1[2,0].set_ylabel('weight (tonnes)', fontsize=f_size)
+
+
+    varx = catch_v_ap
+    vary = catch_v
+    mask = ~np.isnan(varx) & ~np.isnan(vary)
+    res = stats.linregress(varx[mask], vary[mask])
+    print(stats.pearsonr(varx[mask], vary[mask]))
+
+    ax1[3,0].scatter(varx, vary, c=c_valss,s=m_size, cmap=c_mapt, edgecolors='k')
+    ax1[3,0].plot(varx, res.intercept + res.slope * varx, 'k', label='fitted line', linewidth=l_width)
+    ax1[3,0].grid(alpha=0.45)
+    ax1[3,0].set_ylabel('weight (tonnes)', fontsize=f_size)
 
     counter = -1
     for y in years:
         counter = counter + 1
         p_plot = PlotData(key='SOIN', year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
-        catch_v[counter] = p_plot.read_catch()
+        filename = p_plot.compile_folder + p_plot.file_prefix + 'site_recruits.npy'
+        r_table = np.load(filename)
+        lat_mid[counter] = np.sum(r_table[2, :] * r_table[1, :]) / np.nansum(r_table[2, :])
+        lon_mid[counter] = np.nansum(r_table[2, :] * r_table[0, :]) / np.nansum(r_table[2, :])
         recruit_v[counter] = p_plot.get_recruits()
 
     varx = recruit_v
@@ -1166,19 +1257,63 @@ def plot_linreg(compile_folder, analysis_folder):
     mask = ~np.isnan(varx) & ~np.isnan(vary)
     res = stats.linregress(varx[mask], vary[mask])
     print(stats.pearsonr(varx[mask], vary[mask]))
-    ax1[1].grid(alpha=0.45)
-    ax1[1].plot(varx, vary, 'r.', label='original data', markersize=12)
-    ax1[1].plot(varx, res.intercept + res.slope * varx, 'k', label='fitted line', linewidth=4)
-    ax1[1].set_ylabel('weight (tonnes)', fontsize=15)
-    ax1[1].set_xlabel('recruited (%)', fontsize=15)
-    ax1[1].set_title('SO', fontsize=16)
 
+    c_valss = np.arange(2006, 2021)
 
-    ax1[0].xaxis.set_tick_params(labelsize=14)
-    ax1[0].yaxis.set_tick_params(labelsize=14)
-    ax1[1].xaxis.set_tick_params(labelsize=14)
-    ax1[1].yaxis.set_tick_params(labelsize=14)
-    #ax1[1].annotate('R = ' + str(np.round(res.rvalue, 2)), (7, 14))
+    ax1[0, 1].scatter(varx, vary, c=c_valss, s=m_size, cmap=c_mapt, edgecolors='k')
+    ax1[0, 1].plot(varx, res.intercept + res.slope * varx, 'k-', label='fitted line', linewidth=l_width)
+    ax1[0, 1].grid(alpha=0.45)
+    ax1[0, 1].set_ylabel('weight (tonnes)', fontsize=f_size)
+    ax1[0, 1].set_title('SO', fontsize=f_size)
+
+    varx = lat_mid
+    vary = catch_v
+    mask = ~np.isnan(varx) & ~np.isnan(vary)
+    res = stats.linregress(varx[mask], vary[mask])
+    print(stats.pearsonr(varx[mask], vary[mask]))
+
+    ax1[1, 1].scatter(varx, vary, c=c_valss, s=m_size, cmap=c_mapt, edgecolors='k')
+    ax1[1, 1].plot(varx, res.intercept + res.slope * varx, 'k', label='fitted line', linewidth=l_width)
+    ax1[1, 1].grid(alpha=0.45)
+    ax1[1, 1].set_ylabel('weight (tonnes)', fontsize=f_size)
+
+    varx = lon_mid
+    vary = catch_v
+    mask = ~np.isnan(varx) & ~np.isnan(vary)
+    res = stats.linregress(varx[mask], vary[mask])
+    print(stats.pearsonr(varx[mask], vary[mask]))
+
+    ax1[2, 1].scatter(varx, vary, c=c_valss, s=m_size, cmap=c_mapt, edgecolors='k')
+    ax1[2, 1].plot(varx, res.intercept + res.slope * varx, 'k', label='fitted line', linewidth=l_width)
+    ax1[2, 1].grid(alpha=0.45)
+    ax1[2, 1].set_ylabel('weight (tonnes)', fontsize=f_size)
+
+    varx = catch_v_so
+    vary = catch_v
+    mask = ~np.isnan(varx) & ~np.isnan(vary)
+    res = stats.linregress(varx[mask], vary[mask])
+    print(stats.pearsonr(varx[mask], vary[mask]))
+
+    ax1[3, 1].scatter(varx, vary, c=c_valss, s=m_size, cmap=c_mapt, edgecolors='k')
+    ax1[3, 1].plot(varx, res.intercept + res.slope * varx, 'k', label='fitted line', linewidth=l_width)
+    ax1[3, 1].grid(alpha=0.45)
+    ax1[3, 1].set_ylabel('weight (tonnes)', fontsize=f_size)
+
+    ax1[0, 0].set_xlabel('recruited (%)', fontsize=f_size)
+    ax1[1, 0].set_xlabel('latitude ($^\circ$)', fontsize=f_size)
+    ax1[2, 0].set_xlabel('longitude ($^\circ$)', fontsize=f_size)
+    ax1[3, 0].set_xlabel('weight (tonnes)', fontsize=f_size)
+
+    ax1[0, 1].set_xlabel('recruited (%)', fontsize=f_size)
+    ax1[1, 1].set_xlabel('latitude ($^\circ$)', fontsize=f_size)
+    ax1[2, 1].set_xlabel('longitude ($^\circ$)', fontsize=f_size)
+    ax1[3, 1].set_xlabel('weight (tonnes)', fontsize=f_size)
+
+    for i in range(0, 4):
+        for j in range(0, 2):
+            ax1[i, j].tick_params(axis="x", labelsize=16)
+            ax1[i, j].tick_params(axis="y", labelsize=16)
+
 
     p_plot.save_plot('recruit_correlation')
     return

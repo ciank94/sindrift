@@ -13,7 +13,7 @@ if node_name == 'local':
         fpath.mounted_paths()
     else:
         fpath.local_phys_states()
-year_list = [2012]
+year_list = [2016]
 for y in year_list:
     fpath.search_path(year=y, release_start=1, release_end=1)  # select files which should be analysed
 

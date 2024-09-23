@@ -102,6 +102,7 @@ class StoreReleases:
         release_id = counter + 0
         recruit_t = self.analysis_vardict['recruit_SG_north'][:, 0]
         recruit_index = self.analysis_vardict['recruit_SG_north'][:, 1]
+        breakpoint()
         site_vals = recruit_t > 0
         self.site_recruits = self.site_recruits + site_vals * 1
         id1 = np.where(recruit_t > 0)
