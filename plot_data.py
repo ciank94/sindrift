@@ -1976,6 +1976,25 @@ def plot_worms(compile_folder, analysis_folder, trajectory_folder):
     cbar.ax.set_ylabel('depth (m)', loc='center', size=9, weight='bold')
     cbar.ax.tick_params(labelsize=10, rotation=0)
 
+    impath = figures_path + 'antarctic_sub.png'
+
+    # Define the position and size parameters
+    image_xaxis = 0.0001
+    image_yaxis = 0.8247
+    image_width = 0.15
+    image_height = 0.14  # Same as width since our logo is a square
+
+    # Define the position for the image axes
+    ax_image = fig.add_axes([image_xaxis,
+                             image_yaxis,
+                             image_width,
+                             image_height])
+
+    # Display the image
+    image = mpimg.imread(impath)
+    ax_image.imshow(image)
+    ax_image.axis('off')  # Remove axis of the image
+
 
     # plot second one
 
@@ -2096,6 +2115,8 @@ def plot_worms(compile_folder, analysis_folder, trajectory_folder):
 
             ax_name[i,j].annotate('PF', (-49, -54.5), bbox=dict(boxstyle="Square,pad=0.3",
                                                    fc="white", ec="black", lw=2), fontsize=f_size)
+
+
 
 
     p_plot.save_plot(plt_name='AP_SO_worms')
