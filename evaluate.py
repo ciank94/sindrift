@@ -4,7 +4,7 @@ from compile_releases import StoreReleases
 from plot_data import (PlotData, CatchData, plot_recruit_stat, plot_retain, plot_SOIN_recruit_dom_paths,
                        plot_BSSI_recruit_dom_paths, plot_temp_SG, plot_catch_points, plot_linreg, plot_arrivals,
                        plot_SG_rec_area, plot_worms, plot_poster_dom_paths, plot_recruit_dom_paths, plot_ant_sub,
-                       plot_transit_distributions)
+                       plot_transit_distributions, plot_particles)
 import matplotlib.pyplot as plt
 import numpy as np
 import netCDF4 as nc
@@ -13,14 +13,19 @@ folder = 'A:/Cian_sinmod/opendrift/'
 compile_folder = folder + 'compile/'
 analysis_folder = folder + 'analysis/'
 trajectory_folder = folder + 'trajectory/'
+phys_folder = folder + 'phys_states/'
+
+# plot 1: show particles backtracked from SG for one year;
+#plot_particles(compile_folder, analysis_folder, trajectory_folder, phys_folder)
 
 
 
 # s2.1: results for catch data:
-plot_worms(compile_folder, analysis_folder, trajectory_folder)
-breakpoint()
+#plot_worms(compile_folder, analysis_folder, trajectory_folder)
+
 
 plot_linreg(compile_folder, analysis_folder)
+breakpoint()
 
 
 # catch facts

@@ -1,3 +1,4 @@
+import cmocean
 import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -1207,7 +1208,7 @@ def plot_linreg(compile_folder, analysis_folder):
         cbar.ax.tick_params(labelsize=16, rotation=0)
 
 
-    varx = lat_mid
+    varx = lat_mid*-1
     vary = catch_v
     mask = ~np.isnan(varx) & ~np.isnan(vary)
     res = stats.linregress(varx[mask], vary[mask])
@@ -1219,7 +1220,7 @@ def plot_linreg(compile_folder, analysis_folder):
     ax1[1,0].set_ylabel('weight (tonnes)', fontsize=f_size)
 
 
-    varx = lon_mid
+    varx = lon_mid*-1
     vary = catch_v
     mask = ~np.isnan(varx) & ~np.isnan(vary)
     res = stats.linregress(varx[mask], vary[mask])
@@ -1266,7 +1267,7 @@ def plot_linreg(compile_folder, analysis_folder):
     ax1[0, 1].set_ylabel('weight (tonnes)', fontsize=f_size)
     ax1[0, 1].set_title('SO', fontsize=f_size)
 
-    varx = lat_mid
+    varx = lat_mid*-1
     vary = catch_v
     mask = ~np.isnan(varx) & ~np.isnan(vary)
     res = stats.linregress(varx[mask], vary[mask])
@@ -1277,7 +1278,7 @@ def plot_linreg(compile_folder, analysis_folder):
     ax1[1, 1].grid(alpha=0.45)
     ax1[1, 1].set_ylabel('weight (tonnes)', fontsize=f_size)
 
-    varx = lon_mid
+    varx = lon_mid*-1
     vary = catch_v
     mask = ~np.isnan(varx) & ~np.isnan(vary)
     res = stats.linregress(varx[mask], vary[mask])
@@ -1300,13 +1301,13 @@ def plot_linreg(compile_folder, analysis_folder):
     ax1[3, 1].set_ylabel('weight (tonnes)', fontsize=f_size)
 
     ax1[0, 0].set_xlabel('recruited (%)', fontsize=f_size)
-    ax1[1, 0].set_xlabel('latitude ($^\circ$)', fontsize=f_size)
-    ax1[2, 0].set_xlabel('longitude ($^\circ$)', fontsize=f_size)
+    ax1[1, 0].set_xlabel('latitude ($^{\circ}$S)', fontsize=f_size)
+    ax1[2, 0].set_xlabel('longitude ($^{\circ}$W)', fontsize=f_size)
     ax1[3, 0].set_xlabel('weight (tonnes)', fontsize=f_size)
 
     ax1[0, 1].set_xlabel('recruited (%)', fontsize=f_size)
-    ax1[1, 1].set_xlabel('latitude ($^\circ$)', fontsize=f_size)
-    ax1[2, 1].set_xlabel('longitude ($^\circ$)', fontsize=f_size)
+    ax1[1, 1].set_xlabel('latitude ($^{\circ}$S)', fontsize=f_size)
+    ax1[2, 1].set_xlabel('longitude ($^{\circ}$W)', fontsize=f_size)
     ax1[3, 1].set_xlabel('weight (tonnes)', fontsize=f_size)
 
     for i in range(0, 4):
@@ -1894,6 +1895,167 @@ def plot_SG_rec_area(compile_folder, analysis_folder):
     gl.right_labels = False
     p_plot.save_plot(plt_name='SG_area_rec')
     return
+
+def plot_particles(compile_folder, analysis_folder, trajectory_folder, phys_folder):
+    p_size = 1.75
+    f_size = 18
+       #dates_phys = num2date(phys_file['time'], phys_file['time'].units)
+    #dates_phys[280]
+    fig, ax_name = plt.subplots(figsize=(20, 12), nrows=2, ncols=2, subplot_kw={'projection': ccrs.PlateCarree()}
+                                , layout='constrained')
+
+    key_name = 'BSSI'
+    for y in range(2019, 2020):
+        p_plot = PlotData(key=key_name, year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+        filename = p_plot.compile_folder + p_plot.file_prefix + 'site_recruits.npy'
+        r_table = np.load(filename)
+
+        trajectory_file = trajectory_folder + p_plot.file_prefix + 'R10_trajectory.nc'
+        nc_file = nc.Dataset(trajectory_file)
+
+        #dates_v = num2date(nc_file['time'], nc_file['time'].units)
+
+        idx = r_table[2, :] > 0
+        lon_0 = nc_file['lon'][idx, 20]
+        lat_0 = nc_file['lat'][idx, 20]
+
+        lon_1 = nc_file['lon'][idx, 600]
+        lat_1 = nc_file['lat'][idx, 600]
+
+        lon_2 = nc_file['lon'][idx, 1200]
+        lat_2 = nc_file['lat'][idx, 1200]
+
+        lon_3 = nc_file['lon'][idx, 1800]
+        lat_3 = nc_file['lat'][idx, 1800]
+        max_v = 0.6
+        for i in range(0, 2):
+            for j in range(0,2):
+                p_plot.plot_background(background='AP', ax_name=ax_name[i, j])
+                ax_name[i, j].set_extent([-64, -34, -70, -50])
+        phys_states = phys_folder + 'CMEMS_GLPHYS_D_full_2019.nc'
+        phys_file = nc.Dataset(phys_states)
+        uu0 = np.array(phys_file['uo'][280, 0, :, :])
+        vv0 = np.array(phys_file['vo'][280, 0, :, :])
+        uu0[uu0 < -3000] = np.nan
+        vv0[vv0 < -3000] = np.nan
+        sk = 4
+        mag_uv0 = np.sqrt(np.square(uu0) + np.square(vv0))
+        ax_name[0, 0].pcolormesh(phys_file['longitude'], phys_file['latitude'], mag_uv0, cmap=plt.get_cmap('Greens'),
+                                       vmin=0, vmax=max_v)
+        ax_name[0, 0].quiver(phys_file['longitude'][::sk], phys_file['latitude'][::sk], uu0[::sk, ::sk], vv0[::sk, ::sk],
+                             edgecolors='k', alpha=0.25, linewidths=0.05)
+
+        ax_name[0, 0].scatter(lon_0, lat_0, s=p_size, c='r')
+        ax_name[0, 0].set_title('Oct 2019', fontsize=f_size)
+
+        figures_path = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/figures/'
+
+        impath = figures_path + 'antarctic_sub.png'
+
+        # Define the position and size parameters
+        image_xaxis = 0.052
+        image_yaxis = 0.833
+        image_width = 0.15
+        image_height = 0.14  # Same as width since our logo is a square
+
+        # Define the position for the image axes
+        ax_image = fig.add_axes([image_xaxis,
+                                 image_yaxis,
+                                 image_width,
+                                 image_height])
+
+        # Display the image
+        image = mpimg.imread(impath)
+        ax_image.imshow(image)
+        ax_image.axis('off')  # Remove axis of the image
+
+        phys_file.close()
+
+        phys_states = phys_folder + 'CMEMS_GLPHYS_D_full_2020.nc'
+        phys_file = nc.Dataset(phys_states)
+
+        uu0 = np.array(phys_file['uo'][20, 0, :, :])
+        vv0 = np.array(phys_file['vo'][20, 0, :, :])
+        uu0[uu0 < -3000] = np.nan
+        vv0[vv0 < -3000] = np.nan
+        mag_uv0 = np.sqrt(np.square(uu0) + np.square(vv0))
+        ax_name[0, 1].pcolormesh(phys_file['longitude'], phys_file['latitude'], mag_uv0, cmap=plt.get_cmap('Greens'),
+                                       vmin=0, vmax=max_v)
+        ax_name[0, 1].quiver(phys_file['longitude'][::sk], phys_file['latitude'][::sk], uu0[::sk, ::sk],
+                             vv0[::sk, ::sk],
+                             edgecolors='k', alpha=0.25, linewidths=0.05)
+
+        ax_name[0, 1].scatter(lon_1, lat_1, s=p_size, c='r')
+        ax_name[0, 1].set_title('Jan 2020', fontsize=f_size)
+
+        uu0 = np.array(phys_file['uo'][100, 0, :, :])
+        vv0 = np.array(phys_file['vo'][100, 0, :, :])
+        uu0[uu0 < -3000] = np.nan
+        vv0[vv0 < -3000] = np.nan
+        mag_uv0 = np.sqrt(np.square(uu0) + np.square(vv0))
+        ax_name[1, 0].pcolormesh(phys_file['longitude'], phys_file['latitude'], mag_uv0, cmap=plt.get_cmap('Greens'),
+                                       vmin=0, vmax=max_v)
+        ax_name[1, 0].quiver(phys_file['longitude'][::sk], phys_file['latitude'][::sk], uu0[::sk, ::sk],
+                             vv0[::sk, ::sk],
+                             edgecolors='k', alpha=0.25, linewidths=0.05)
+
+        ax_name[1, 0].scatter(lon_2, lat_2, s=p_size, c='r')
+        ax_name[1, 0].set_title('Apr 2020', fontsize=f_size)
+
+        uu0 = np.array(phys_file['uo'][190, 0, :, :])
+        vv0 = np.array(phys_file['vo'][190, 0, :, :])
+        uu0[uu0 < -3000] = np.nan
+        vv0[vv0 < -3000] = np.nan
+        mag_uv0 = np.sqrt(np.square(uu0) + np.square(vv0))
+        d_map=ax_name[1, 1].pcolormesh(phys_file['longitude'], phys_file['latitude'], mag_uv0, cmap=plt.get_cmap('Greens'),
+                                       vmin=0, vmax=max_v)
+        ax_name[1, 1].quiver(phys_file['longitude'][::sk], phys_file['latitude'][::sk], uu0[::sk, ::sk],
+                             vv0[::sk, ::sk],
+                             edgecolors='k', alpha=0.25, linewidths=0.05)
+
+        ax_name[1, 1].scatter(lon_3, lat_3, s=p_size, c='r')
+        ax_name[1, 1].set_title('Jul 2020', fontsize=f_size)
+
+        cbar = plt.colorbar(d_map, pad=0.01, ax=ax_name[0, 0], shrink=0.8)
+        cbar.ax.set_ylabel('m s $^{-1}$', loc='center', size=9, weight='bold')
+        cbar.ax.tick_params(labelsize=10, rotation=0)
+
+        cbar = plt.colorbar(d_map, pad=0.01, ax=ax_name[1, 0], shrink=0.8)
+        cbar.ax.set_ylabel('m s $^{-1}$', loc='center', size=9, weight='bold')
+        cbar.ax.tick_params(labelsize=10, rotation=0)
+
+        key_name = 'SOIN'
+        for y in range(2019, 2020):
+            p_plot = PlotData(key=key_name, year=y, compile_folder=compile_folder, analysis_folder=analysis_folder)
+            filename = p_plot.compile_folder + p_plot.file_prefix + 'site_recruits.npy'
+            r_table = np.load(filename)
+
+            trajectory_file = trajectory_folder + p_plot.file_prefix + 'R10_trajectory.nc'
+            nc_file = nc.Dataset(trajectory_file)
+
+            # dates_v = num2date(nc_file['time'], nc_file['time'].units)
+
+            idx = r_table[2, :] > 0
+            lon_0 = nc_file['lon'][idx, 20]
+            lat_0 = nc_file['lat'][idx, 20]
+
+            lon_1 = nc_file['lon'][idx, 600]
+            lat_1 = nc_file['lat'][idx, 600]
+
+            lon_2 = nc_file['lon'][idx, 1200]
+            lat_2 = nc_file['lat'][idx, 1200]
+
+            lon_3 = nc_file['lon'][idx, 1800]
+            lat_3 = nc_file['lat'][idx, 1800]
+
+        ax_name[0, 0].scatter(lon_0, lat_0, s=p_size, c='b')
+        ax_name[0, 1].scatter(lon_1, lat_1, s=p_size, c='b')
+        ax_name[1, 0].scatter(lon_2, lat_2, s=p_size, c='b')
+        ax_name[1, 1].scatter(lon_3, lat_3, s=p_size, c='b')
+
+        p_plot.save_plot(plt_name='particle_backtrack')
+        nc_file.close()
+        return
 
 
 def plot_worms(compile_folder, analysis_folder, trajectory_folder):
