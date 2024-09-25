@@ -752,6 +752,14 @@ class CatchData:
         axs[1, 1].set_ylim([0, 50])
 
         plt.tight_layout()
+        axs[0, 0].annotate("a)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                          fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+        axs[0, 1].annotate("b)", xy=(0.13, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                          fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+        axs[1, 0].annotate("c)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                          fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+        axs[1, 1].annotate("d)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                          fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
         self.save_plot(plt_name='fishing_season')
         return
 
@@ -1315,6 +1323,23 @@ def plot_linreg(compile_folder, analysis_folder):
             ax1[i, j].tick_params(axis="x", labelsize=16)
             ax1[i, j].tick_params(axis="y", labelsize=16)
 
+    ax1[0, 0].annotate("a)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                       fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+    ax1[0, 1].annotate("b)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                       fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+    ax1[1, 0].annotate("c)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                       fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+    ax1[1, 1].annotate("d)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                       fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+    ax1[2, 0].annotate("e)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                       fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+    ax1[2, 1].annotate("f)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                       fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+    ax1[3, 0].annotate("g)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                       fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+    ax1[3, 1].annotate("h)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                       fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+
 
     p_plot.save_plot('recruit_correlation')
     return
@@ -1835,6 +1860,24 @@ def plot_transit_distributions(compile_folder, analysis_folder):
     axs[3, 1].set_ylim([0, 14])
     axs[3, 1].set_xlabel('year', fontsize=18)
     axs[3, 1].set_ylabel('recruited (%)', fontsize=18)
+
+    axs[0, 0].annotate("a)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                           fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+    axs[0, 1].annotate("b)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                           fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+    axs[1, 0].annotate("c)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                           fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+    axs[1, 1].annotate("d)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                           fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+    axs[2, 0].annotate("e)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                           fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+    axs[2, 1].annotate("f)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                           fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+    axs[3, 0].annotate("g)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                       fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+    axs[3, 1].annotate("h)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                       fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+
     p_plot.save_plot(plt_name='transit_distributions')
     return
 def plot_ant_sub():
@@ -1894,6 +1937,95 @@ def plot_SG_rec_area(compile_folder, analysis_folder):
     gl.top_labels = False
     gl.right_labels = False
     p_plot.save_plot(plt_name='SG_area_rec')
+    return
+
+def plot_seasonal_rec(compile_folder):
+    import matplotlib.dates as mdates
+    figures_path = 'C:/Users/ciank/PycharmProjects/sinmod/sindrift/figures/'
+
+
+    recruit_number = np.zeros([20,15])
+    recruit_time = np.zeros([20, 15])
+    recruit_number2 = np.zeros([20, 15])
+    recruit_time2 = np.zeros([20, 15])
+    counter = -1
+    for y in range(2005, 2020):
+        counter+=1
+        year = str(y)
+        key = 'BSSI'
+        file_prefix = key + '_' + year + '_'
+        filename = compile_folder + file_prefix + 'recruit_SG.csv'
+        r_table = pd.read_csv(filename)
+        r_table.date = pd.to_datetime(r_table.date, format="%d/%m/%Y")
+        df = r_table.sort_values(by='date')
+        recruit_time[:, counter] = df.recruit_time[:]
+        recruit_number[:, counter] = df.recruit_number[:]
+
+        key2 = 'SOIN'
+        file_prefix = key2 + '_' + year + '_'
+        filename = compile_folder + file_prefix + 'recruit_SG.csv'
+        r_table = pd.read_csv(filename)
+        r_table.date = pd.to_datetime(r_table.date, format="%d/%m/%Y")
+        df = r_table.sort_values(by='date')
+        recruit_time2[:, counter] = df.recruit_time[:]
+        recruit_number2[:, counter] = df.recruit_number[:]
+
+    fig, ax = plt.subplots(figsize=(24, 8), nrows=2, ncols=2, layout='constrained')
+    y = (np.mean(recruit_number, 1)/10000)*100
+    ax[0,0].plot(df.date, y, 'r')
+    ci = (np.std(recruit_number, 1)/10000)*100
+    ax[0,0].xaxis.set_major_formatter(mdates.DateFormatter('%d/%m'))
+    ax[0,0].fill_between(df.date, (y - ci), (y + ci), color='r', alpha=.1)
+
+    y = np.mean(recruit_time/24, 1)
+    ax[1, 0].plot(df.date, y, 'r')
+    ci = np.std(recruit_time/24, 1)
+    ax[1, 0].xaxis.set_major_formatter(mdates.DateFormatter('%d/%m'))
+    ax[1, 0].fill_between(df.date, (y - ci), (y + ci), color='r', alpha=.1)
+
+    y = (np.mean(recruit_number2, 1) / 10000) * 100
+    ax[0, 1].plot(df.date, y, 'r')
+    ci = (np.std(recruit_number2, 1) / 10000) * 100
+    ax[0, 1].xaxis.set_major_formatter(mdates.DateFormatter('%d/%m'))
+    ax[0, 1].fill_between(df.date, (y - ci), (y + ci), color='r', alpha=.1)
+
+    y = np.mean(recruit_time2 / 24, 1)
+    ax[1, 1].plot(df.date, y, 'r')
+    ci = np.std(recruit_time2 / 24, 1)
+    ax[1, 1].xaxis.set_major_formatter(mdates.DateFormatter('%d/%m'))
+    ax[1, 1].fill_between(df.date, (y - ci), (y + ci), color='r', alpha=.1)
+
+    ax[0,0].set_title('AP', fontsize=20)
+    ax[0,1].set_title('SO', fontsize=20)
+    for i in range(0,2):
+        for j in range(0,2):
+            ax[i,j].grid(alpha=0.45)
+            ax[0, j].set_ylabel('recruited (%)', fontsize=16)
+            ax[1, j].set_ylabel('time (days)', fontsize=16)
+            ax[0, j].set_ylim([1,12])
+            ax[1, j].set_ylim([150,230])
+            ax[i, j].set_xlabel('release date (dd/mm)', fontsize=16)
+            ax[i, j].xaxis.set_tick_params(labelsize=14)
+            ax[i, j].yaxis.set_tick_params(labelsize=14)
+
+    ax[0, 0].annotate("a)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                      fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+    ax[0, 1].annotate("b)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                      fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+    ax[1, 0].annotate("c)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                      fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+    ax[1, 1].annotate("d)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                      fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+
+
+    save_plot(figures_path=figures_path, plt_name='seasonal_recruit')
+    return
+
+def save_plot(figures_path, plt_name):
+    savefile = figures_path + plt_name + '.png'
+    print('Saving file: ' + savefile)
+    plt.savefig(savefile, dpi=400)
+    plt.close()
     return
 
 def plot_particles(compile_folder, analysis_folder, trajectory_folder, phys_folder):
@@ -2052,6 +2184,16 @@ def plot_particles(compile_folder, analysis_folder, trajectory_folder, phys_fold
         ax_name[0, 1].scatter(lon_1, lat_1, s=p_size, c='b')
         ax_name[1, 0].scatter(lon_2, lat_2, s=p_size, c='b')
         ax_name[1, 1].scatter(lon_3, lat_3, s=p_size, c='b')
+
+        ax_name[0, 0].annotate("a)", xy=(0.279, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                           fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+        ax_name[0, 1].annotate("b)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                           fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+        ax_name[1, 0].annotate("c)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                           fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+        ax_name[1, 1].annotate("d)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                           fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+
 
         p_plot.save_plot(plt_name='particle_backtrack')
         nc_file.close()
@@ -2278,7 +2420,14 @@ def plot_worms(compile_folder, analysis_folder, trajectory_folder):
             ax_name[i,j].annotate('PF', (-49, -54.5), bbox=dict(boxstyle="Square,pad=0.3",
                                                    fc="white", ec="black", lw=2), fontsize=f_size)
 
-
+    ax_name[0, 0].annotate("a)", xy=(0.279, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                           fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+    ax_name[0, 1].annotate("b)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                           fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+    ax_name[1, 0].annotate("c)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                           fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
+    ax_name[1, 1].annotate("d)", xy=(0.03, 0.935), xycoords="axes fraction", fontsize=20, verticalalignment='top',
+                           fontfamily='serif', bbox=dict(facecolor='0.99', edgecolor='k', pad=3.0))
 
 
     p_plot.save_plot(plt_name='AP_SO_worms')
