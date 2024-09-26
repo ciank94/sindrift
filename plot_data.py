@@ -525,15 +525,31 @@ class CatchData:
         return
 
     def catch_facts(self):
+        self.get_area(481)
+        np.sum((self.month == 4) | (self.month == 5) | (self.month == 6) | (self.month == 3)) / np.sum(self.month > 0)
+        print('min_catch_AP:  ' + str(np.nanmin(self.df.krill_greenweight_kg)/1000))
+        print('mean_catch_AP:  ' + str(np.nanmean(self.df.krill_greenweight_kg) / 1000))
+        print('max_catch_AP:  ' + str(np.nanmax(self.df.krill_greenweight_kg)/1000))
+        print('std_catch_AP:  ' + str(np.nanstd(self.df.krill_greenweight_kg) / 1000))
+        print('CV_catch_AP:  ' + str((np.nanstd(self.df.krill_greenweight_kg) / 1000)/(np.nanmean(self.df.krill_greenweight_kg) / 1000)))
+
         self.get_area(482)
-        np.nanmean(self.df.krill_greenweight_kg)/1000
+        print('min_catch_SO:  ' + str(np.nanmin(self.df.krill_greenweight_kg) / 1000))
+        print('mean_catch_SO:  ' + str(np.nanmean(self.df.krill_greenweight_kg) / 1000))
+        print('max_catch_SO:  ' + str(np.nanmax(self.df.krill_greenweight_kg) / 1000))
+        print('std_catch_SO:  ' + str(np.nanstd(self.df.krill_greenweight_kg) / 1000))
+        print('CV_catch_SO:  ' + str((np.nanstd(self.df.krill_greenweight_kg) / 1000) / (np.nanmean(self.df.krill_greenweight_kg) / 1000)))
 
         np.sum((self.month == 12) | (self.month == 1)| (self.month == 2)| (self.month == 3)) / np.sum(self.month>0)
 
-        self.get_area(481)
-        np.sum((self.month == 4) | (self.month == 5) | (self.month == 6) | (self.month == 3)) / np.sum(self.month > 0)
 
         self.get_area(483)
+        print('min_catch_SG:  ' + str(np.nanmin(self.df.krill_greenweight_kg) / 1000))
+        print('mean_catch_SG:  ' + str(np.nanmean(self.df.krill_greenweight_kg) / 1000))
+        print('max_catch_SG:  ' + str(np.nanmax(self.df.krill_greenweight_kg) / 1000))
+        print('std_catch_SG:  ' + str(np.nanstd(self.df.krill_greenweight_kg) / 1000))
+        print('CV_catch_SG:  ' + str(
+            (np.nanstd(self.df.krill_greenweight_kg) / 1000) / (np.nanmean(self.df.krill_greenweight_kg) / 1000)))
         np.sum((self.year_c == 2019))
         breakpoint()
 
@@ -667,6 +683,7 @@ class CatchData:
             sg_sum[c] = np.nansum(self.df.krill_greenweight_kg[self.month == i]) / (1000*1000)
             std_sg[c] = np.nanstd(self.df.krill_greenweight_kg[self.month == i]) / 1000
 
+
         fig, axs = plt.subplots(2, 2, figsize=(20, 8))
         for i in range(0, 2):
             for j in range(0, 2):
@@ -706,6 +723,7 @@ class CatchData:
             ap_sum[c] = np.nansum(self.df.krill_greenweight_kg[self.year_c == i]) / (1000 * 1000)
             std_ap[c] = np.nanstd(self.df.krill_greenweight_kg[self.year_c == i]) / 1000
 
+
         self.get_area(482)
         so_c = np.zeros(18)
         so_av = np.zeros(18)
@@ -719,6 +737,8 @@ class CatchData:
             so_sum[c] = np.nansum(self.df.krill_greenweight_kg[self.year_c == i]) / (1000 * 1000)
             std_so[c] = np.nanstd(self.df.krill_greenweight_kg[self.year_c == i]) / 1000
 
+        np.nanstd(so_av) / np.nanmean(so_av)
+
         self.get_area(483)
         sg_c = np.zeros(18)
         sg_av = np.zeros(18)
@@ -731,6 +751,10 @@ class CatchData:
             sg_av[c] = np.nanmean(self.df.krill_greenweight_kg[self.year_c == i]) / 1000
             sg_sum[c] = np.nansum(self.df.krill_greenweight_kg[self.year_c == i]) / (1000 * 1000)
             std_sg[c] = np.nanstd(self.df.krill_greenweight_kg[self.year_c == i]) / 1000
+
+        np.nanstd(sg_av)/np.nanmean(sg_av)
+
+        breakpoint()
 
         x_name = ['2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017',
                   '2018', '2019', '2020', '2021', '2022', '2023']
