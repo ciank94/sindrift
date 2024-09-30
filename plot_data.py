@@ -1222,6 +1222,7 @@ def plot_linreg(compile_folder, analysis_folder):
     vary = catch_v
     mask = ~np.isnan(varx) & ~np.isnan(vary)
     res = stats.linregress(varx[mask], vary[mask])
+    print('pearson correlations for recruit ap vs. catch sg = ')
     print(stats.pearsonr(varx[mask], vary[mask]))
 
     c_valss=np.arange(2006,2021)
@@ -1244,6 +1245,7 @@ def plot_linreg(compile_folder, analysis_folder):
     vary = catch_v
     mask = ~np.isnan(varx) & ~np.isnan(vary)
     res = stats.linregress(varx[mask], vary[mask])
+    print('pearson correlations for lat ap vs. catch sg = ')
     print(stats.pearsonr(varx[mask], vary[mask]))
 
     ax1[1,0].scatter(varx, vary, c=c_valss,s=m_size, cmap=c_mapt, edgecolors='k')
@@ -1256,6 +1258,7 @@ def plot_linreg(compile_folder, analysis_folder):
     vary = catch_v
     mask = ~np.isnan(varx) & ~np.isnan(vary)
     res = stats.linregress(varx[mask], vary[mask])
+    print('pearson correlations for lon ap vs. catch sg = ')
     print(stats.pearsonr(varx[mask], vary[mask]))
 
     ax1[2,0].scatter(varx, vary, c=c_valss,s=m_size, cmap=c_mapt, edgecolors='k')
@@ -1268,6 +1271,7 @@ def plot_linreg(compile_folder, analysis_folder):
     vary = catch_v
     mask = ~np.isnan(varx) & ~np.isnan(vary)
     res = stats.linregress(varx[mask], vary[mask])
+    print('pearson correlations for catch ap vs. catch sg = ')
     print(stats.pearsonr(varx[mask], vary[mask]))
 
     ax1[3,0].scatter(varx, vary, c=c_valss,s=m_size, cmap=c_mapt, edgecolors='k')
@@ -1289,6 +1293,7 @@ def plot_linreg(compile_folder, analysis_folder):
     vary = catch_v
     mask = ~np.isnan(varx) & ~np.isnan(vary)
     res = stats.linregress(varx[mask], vary[mask])
+    print('pearson correlations for recruit SO vs. catch sg = ')
     print(stats.pearsonr(varx[mask], vary[mask]))
 
     c_valss = np.arange(2006, 2021)
@@ -1303,6 +1308,7 @@ def plot_linreg(compile_folder, analysis_folder):
     vary = catch_v
     mask = ~np.isnan(varx) & ~np.isnan(vary)
     res = stats.linregress(varx[mask], vary[mask])
+    print('pearson correlations for lat SO vs. catch sg = ')
     print(stats.pearsonr(varx[mask], vary[mask]))
 
     ax1[1, 1].scatter(varx, vary, c=c_valss, s=m_size, cmap=c_mapt, edgecolors='k')
@@ -1314,6 +1320,7 @@ def plot_linreg(compile_folder, analysis_folder):
     vary = catch_v
     mask = ~np.isnan(varx) & ~np.isnan(vary)
     res = stats.linregress(varx[mask], vary[mask])
+    print('pearson correlations for lon SO vs. catch sg = ')
     print(stats.pearsonr(varx[mask], vary[mask]))
 
     ax1[2, 1].scatter(varx, vary, c=c_valss, s=m_size, cmap=c_mapt, edgecolors='k')
@@ -1325,6 +1332,7 @@ def plot_linreg(compile_folder, analysis_folder):
     vary = catch_v
     mask = ~np.isnan(varx) & ~np.isnan(vary)
     res = stats.linregress(varx[mask], vary[mask])
+    print('pearson correlations for catch SO vs. catch sg = ')
     print(stats.pearsonr(varx[mask], vary[mask]))
 
     ax1[3, 1].scatter(varx, vary, c=c_valss, s=m_size, cmap=c_mapt, edgecolors='k')

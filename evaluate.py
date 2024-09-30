@@ -18,8 +18,8 @@ phys_folder = folder + 'phys_states/'
 #plot_catch_points(compile_folder, analysis_folder)
 
 # figure 2:
-cdata = CatchData()
-cdata.catch_facts()
+#cdata = CatchData()
+#cdata.catch_facts()
 #cdata.plot_fishing_season()
 
 # figure 3: show particles backtracked from SG for one year;
@@ -35,5 +35,5 @@ cdata.catch_facts()
 #plot_transit_distributions(compile_folder, analysis_folder)
 
 # figure 7:
-#plot_linreg(compile_folder, analysis_folder)
+plot_linreg(compile_folder, analysis_folder)
 
