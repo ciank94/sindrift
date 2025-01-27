@@ -532,8 +532,8 @@ class PlotData:
         gl = ax_name.gridlines(draw_labels=True, alpha=0.4)
         gl.top_labels = False
         gl.right_labels = False
-        gl.xlabel_style = {'size': 16.5, 'color': 'black'}
-        gl.ylabel_style = {'size': 16.5, 'color': 'black'}
+        gl.xlabel_style = {'size': 20, 'color': 'black'}
+        gl.ylabel_style = {'size': 20, 'color': 'black'}
         # self.ax.set_extent(
         # [self.min_lon, self.max_lon, self.min_lat, self.max_lat])
         if background == "BSSI":
@@ -876,6 +876,10 @@ class CatchData:
             for j in range(0, 2):
                 axs[i, j].set_axisbelow(True)
                 axs[i, j].grid(alpha=0.45)
+                axs[i, j].tick_params(axis='both', which='major', labelsize=18)
+                axs[i, j].tick_params(axis='both', which='minor', labelsize=18)
+
+
 
         x_name = [
             "Jan",
@@ -894,9 +898,9 @@ class CatchData:
         axs[0, 0].bar(x_name, ap_sum, color="red", alpha=0.75)
         axs[0, 0].bar(x_name, so_sum, bottom=ap_sum, color="blue", alpha=0.75)
         axs[0, 0].bar(x_name, sg_sum, bottom=ap_sum + so_sum, color="olive", alpha=0.75)
-        axs[0, 0].set_ylabel("weight (x 1000 tonnes)", fontsize=13)
-        axs[0, 0].set_xlabel("month", fontsize=13)
-        axs[0, 0].legend(["AP", "SO", "SG"], fontsize=13)
+        axs[0, 0].set_ylabel("weight (x 1000 tonnes)", fontsize=18)
+        axs[0, 0].set_xlabel("month", fontsize=18)
+        axs[0, 0].legend(["AP", "SO", "SG"], fontsize=18)
         axs[0, 0].set_ylim([0, 400])
 
         axs[1, 0].plot(x_name, ap_av, "r-o", linewidth=4, alpha=0.75)
@@ -904,9 +908,9 @@ class CatchData:
         # axs[1, 0].errorbar(x_name, ap_av, yerr=std_ap, color="r", alpha=0.5)
         axs[1, 0].plot(x_name, so_av, "b-o", linewidth=4, alpha=0.75)
         axs[1, 0].plot(x_name, sg_av, "-o", c="olive", linewidth=4, alpha=0.75)
-        axs[1, 0].set_ylabel("weight (tonnes)", fontsize=13)
-        axs[1, 0].set_xlabel("month", fontsize=13)
-        axs[1, 0].legend(["AP", "SO", "SG"], fontsize=13)
+        axs[1, 0].set_ylabel("weight (tonnes)", fontsize=18)
+        axs[1, 0].set_xlabel("month", fontsize=18)
+        axs[1, 0].legend(["AP", "SO", "SG"], fontsize=18)
         axs[1, 0].set_ylim([0, 50])
 
         self.get_area(481)
@@ -958,7 +962,6 @@ class CatchData:
 
         np.nanstd(sg_av) / np.nanmean(sg_av)
 
-        breakpoint()
 
         x_name = [
             "2006",
@@ -984,17 +987,17 @@ class CatchData:
         axs[0, 1].bar(x_name, ap_sum, color="red", alpha=0.75)
         axs[0, 1].bar(x_name, so_sum, bottom=ap_sum, color="blue", alpha=0.75)
         axs[0, 1].bar(x_name, sg_sum, bottom=ap_sum + so_sum, color="olive", alpha=0.75)
-        axs[0, 1].set_ylabel("weight (x 1000 tonnes)", fontsize=13)
-        axs[0, 1].set_xlabel("year", fontsize=13)
-        axs[0, 1].legend(["AP", "SO", "SG"], fontsize=13)
+        axs[0, 1].set_ylabel("weight (x 1000 tonnes)", fontsize=18)
+        axs[0, 1].set_xlabel("year", fontsize=18)
+        axs[0, 1].legend(["AP", "SO", "SG"], fontsize=18)
         axs[0, 1].set_ylim([0, 350])
 
         axs[1, 1].plot(x_name, ap_av, "r-o", linewidth=4, alpha=0.75)
         axs[1, 1].plot(x_name, so_av, "b-o", linewidth=4, alpha=0.75)
         axs[1, 1].plot(x_name, sg_av, "-o", c="olive", linewidth=4, alpha=0.75)
-        axs[1, 1].set_ylabel("weight (tonnes)", fontsize=13)
-        axs[1, 1].set_xlabel("year", fontsize=13)
-        axs[1, 1].legend(["AP", "SO", "SG"], fontsize=13)
+        axs[1, 1].set_ylabel("weight (tonnes)", fontsize=18)
+        axs[1, 1].set_xlabel("year", fontsize=18)
+        axs[1, 1].legend(["AP", "SO", "SG"], fontsize=18)
         axs[1, 1].set_ylim([0, 50])
 
         plt.tight_layout()
@@ -1009,11 +1012,12 @@ class CatchData:
         )
         axs[0, 1].annotate(
             "b)",
-            xy=(0.13, 0.935),
+            xy=(0.16, 0.935),
             xycoords="axes fraction",
             fontsize=20,
             verticalalignment="top",
             fontfamily="serif",
+            zorder=100,
             bbox=dict(facecolor="0.99", edgecolor="k", pad=3.0),
         )
         axs[1, 0].annotate(
@@ -1034,6 +1038,10 @@ class CatchData:
             fontfamily="serif",
             bbox=dict(facecolor="0.99", edgecolor="k", pad=3.0),
         )
+        xticks_01 = axs[0, 1].get_xticks()
+        xticks_11 = axs[1, 1].get_xticks()
+        axs[0, 1].set_xticks(xticks_01[::2])
+        axs[1, 1].set_xticks(xticks_11[::2])
         self.save_plot(plt_name="fishing_season")
         return
 
@@ -2329,8 +2337,8 @@ def plot_catch_points(compile_folder, analysis_folder):
     gl = ax_name.gridlines(draw_labels=True, alpha=0.4)
     gl.top_labels = False
     gl.right_labels = False
-    gl.xlabel_style = {'size': 16.5, 'color': 'black'}
-    gl.ylabel_style = {'size': 16.5, 'color': 'black'}
+    gl.xlabel_style = {'size': 20, 'color': 'black'}
+    gl.ylabel_style = {'size': 20, 'color': 'black'}
 
     shp_lat = np.shape(lat)[0]
     min_lat = -70
@@ -2382,8 +2390,8 @@ def plot_catch_points(compile_folder, analysis_folder):
     impath = figures_path + "antarctic_sub.png"
 
     # Define the position and size parameters
-    image_xaxis = 0.0375
-    image_yaxis = 0.685
+    image_xaxis = 0.045
+    image_yaxis = 0.6856
     image_width = 0.28
     image_height = 0.30  # Same as width since our logo is a square
 
@@ -2848,8 +2856,8 @@ def save_plot(figures_path, plt_name):
 
 
 def plot_particles(compile_folder, analysis_folder, trajectory_folder, phys_folder):
-    p_size = 2.5
-    f_size = 18
+    p_size = 8
+    f_size = 20
     # dates_phys = num2date(phys_file['time'], phys_file['time'].units)
     # dates_phys[280]
     fig, ax_name = plt.subplots(
@@ -2899,13 +2907,13 @@ def plot_particles(compile_folder, analysis_folder, trajectory_folder, phys_fold
         vv0 = np.array(phys_file["vo"][280, 0, :, :])
         uu0[uu0 < -3000] = np.nan
         vv0[vv0 < -3000] = np.nan
-        sk = 4
+        sk = 5
         mag_uv0 = np.sqrt(np.square(uu0) + np.square(vv0))
         ax_name[0, 0].pcolormesh(
             phys_file["longitude"],
             phys_file["latitude"],
             mag_uv0,
-            cmap=plt.get_cmap("viridis"),
+            cmap=cmocean.cm.speed,
             vmin=0,
             vmax=max_v,
         )
@@ -2919,7 +2927,7 @@ def plot_particles(compile_folder, analysis_folder, trajectory_folder, phys_fold
             linewidths=0.1,
         )
 
-        ax_name[0, 0].scatter(lon_0, lat_0, s=p_size, c="r")
+        ax_name[0, 0].scatter(lon_0, lat_0, s=p_size, marker='x', c="r")
         ax_name[0, 0].set_title("Oct 2019", fontsize=f_size)
 
         figures_path = "C:/Users/ciank/PycharmProjects/sinmod/sindrift/figures/"
@@ -2927,8 +2935,8 @@ def plot_particles(compile_folder, analysis_folder, trajectory_folder, phys_fold
         impath = figures_path + "antarctic_sub.png"
 
         # Define the position and size parameters
-        image_xaxis = 0.052
-        image_yaxis = 0.833
+        image_xaxis = 0.046
+        image_yaxis = 0.826
         image_width = 0.15
         image_height = 0.14  # Same as width since our logo is a square
 
@@ -2954,7 +2962,7 @@ def plot_particles(compile_folder, analysis_folder, trajectory_folder, phys_fold
             phys_file["longitude"],
             phys_file["latitude"],
             mag_uv0,
-            cmap=plt.get_cmap("viridis"),
+            cmap=cmocean.cm.speed,
             vmin=0,
             vmax=max_v,
         )
@@ -2968,7 +2976,7 @@ def plot_particles(compile_folder, analysis_folder, trajectory_folder, phys_fold
             linewidths=0.1,
         )
 
-        ax_name[0, 1].scatter(lon_1, lat_1, s=p_size, c="r")
+        ax_name[0, 1].scatter(lon_1, lat_1, s=p_size, marker='x', c="r")
         ax_name[0, 1].set_title("Jan 2020", fontsize=f_size)
 
         uu0 = np.array(phys_file["uo"][100, 0, :, :])
@@ -2980,7 +2988,7 @@ def plot_particles(compile_folder, analysis_folder, trajectory_folder, phys_fold
             phys_file["longitude"],
             phys_file["latitude"],
             mag_uv0,
-            cmap=plt.get_cmap("viridis"),
+            cmap=cmocean.cm.speed,
             vmin=0,
             vmax=max_v,
         )
@@ -2994,7 +3002,7 @@ def plot_particles(compile_folder, analysis_folder, trajectory_folder, phys_fold
             linewidths=0.1,
         )
 
-        ax_name[1, 0].scatter(lon_2, lat_2, s=p_size, c="r")
+        ax_name[1, 0].scatter(lon_2, lat_2, s=p_size, marker='x', c="r")
         ax_name[1, 0].set_title("Apr 2020", fontsize=f_size)
 
         uu0 = np.array(phys_file["uo"][190, 0, :, :])
@@ -3006,7 +3014,7 @@ def plot_particles(compile_folder, analysis_folder, trajectory_folder, phys_fold
             phys_file["longitude"],
             phys_file["latitude"],
             mag_uv0,
-            cmap=plt.get_cmap("viridis"),
+            cmap=cmocean.cm.speed,
             vmin=0,
             vmax=max_v,
         )
@@ -3020,16 +3028,16 @@ def plot_particles(compile_folder, analysis_folder, trajectory_folder, phys_fold
             linewidths=0.1,
         )
 
-        ax_name[1, 1].scatter(lon_3, lat_3, s=p_size, c="r")
+        ax_name[1, 1].scatter(lon_3, lat_3, s=p_size, marker='x', c="r")
         ax_name[1, 1].set_title("Jul 2020", fontsize=f_size)
 
         cbar = plt.colorbar(d_map, pad=0.01, ax=ax_name[0, 0], shrink=0.8)
-        cbar.ax.set_ylabel("m s $^{-1}$", loc="center", size=14, weight="bold")
-        cbar.ax.tick_params(labelsize=14, rotation=0)
+        cbar.ax.set_ylabel("m s $^{-1}$", loc="center", size=20, weight="bold")
+        cbar.ax.tick_params(labelsize=20, rotation=0)
 
         cbar = plt.colorbar(d_map, pad=0.01, ax=ax_name[1, 0], shrink=0.8)
-        cbar.ax.set_ylabel("m s $^{-1}$", loc="center", size=14, weight="bold")
-        cbar.ax.tick_params(labelsize=14, rotation=0)
+        cbar.ax.set_ylabel("m s $^{-1}$", loc="center", size=20, weight="bold")
+        cbar.ax.tick_params(labelsize=20, rotation=0)
 
         key_name = "SOIN"
         for y in range(2019, 2020):
@@ -3062,10 +3070,10 @@ def plot_particles(compile_folder, analysis_folder, trajectory_folder, phys_fold
             lon_3 = nc_file["lon"][idx, 1800]
             lat_3 = nc_file["lat"][idx, 1800]
 
-        ax_name[0, 0].scatter(lon_0, lat_0, s=p_size, c="w")
-        ax_name[0, 1].scatter(lon_1, lat_1, s=p_size, c="w")
-        ax_name[1, 0].scatter(lon_2, lat_2, s=p_size, c="w")
-        ax_name[1, 1].scatter(lon_3, lat_3, s=p_size, c="w")
+        ax_name[0, 0].scatter(lon_0, lat_0, s=p_size, marker='o', c="k")
+        ax_name[0, 1].scatter(lon_1, lat_1, s=p_size, marker='o', c="k")
+        ax_name[1, 0].scatter(lon_2, lat_2, s=p_size, marker='o', c="k")
+        ax_name[1, 1].scatter(lon_3, lat_3, s=p_size, marker='o', c="k")
 
         ax_name[0, 0].annotate(
             "a)",
@@ -3203,7 +3211,7 @@ def plot_worms(compile_folder, analysis_folder, trajectory_folder):
         vmin=0,
         vmax=5,
     )
-    f2_size=14
+    f2_size=20
     cbar = plt.colorbar(d_map, pad=0.01, ax=ax_name[0, 0], shrink=0.8)
     cbar.ax.set_ylabel("probability (%)", loc="center", size=f2_size, weight="bold")
     cbar.ax.tick_params(labelsize=f2_size, rotation=0)
@@ -3215,8 +3223,8 @@ def plot_worms(compile_folder, analysis_folder, trajectory_folder):
     impath = figures_path + "antarctic_sub.png"
 
     # Define the position and size parameters
-    image_xaxis = 0.012
-    image_yaxis = 0.813
+    image_xaxis = 0.018
+    image_yaxis = 0.79
     image_width = 0.15
     image_height = 0.14  # Same as width since our logo is a square
 
@@ -3258,8 +3266,8 @@ def plot_worms(compile_folder, analysis_folder, trajectory_folder):
     # ax_name.scatter(lon, lat, c=c_vals,s=10, edgecolors='gray', vmin=np.nanmean(c_vals)/2,
     # vmax=np.nanmean(c_vals)*2, linewidth=0.2, cmap=site_recruit_cmap)
 
-    ax_name[0, 0].set_title("AP", fontsize=16)
-    ax_name[0, 1].set_title("SO", fontsize=16)
+    ax_name[0, 0].set_title("AP", fontsize=20)
+    ax_name[0, 1].set_title("SO", fontsize=20)
     key_name = "SOIN"
     dens_f = np.zeros([shp_lon_range, shp_lat_range])
     for y in range(2005, 2020):
@@ -3328,11 +3336,11 @@ def plot_worms(compile_folder, analysis_folder, trajectory_folder):
         vmax=10,
     )
 
-    cbar = plt.colorbar(d_map, pad=0.01, ax=ax_name[0, 1], shrink=0.8)
+    cbar = plt.colorbar(d_map, pad=0.01, ax=ax_name[0, 1], shrink=0.7)
     cbar.ax.set_ylabel("probability (%)", loc="center", size=f2_size, weight="bold")
     cbar.ax.tick_params(labelsize=f2_size, rotation=0)
 
-    cbar = plt.colorbar(b_map, pad=0.01, ax=ax_name[0, 1], shrink=0.8)
+    cbar = plt.colorbar(b_map, pad=0.01, ax=ax_name[0, 1], shrink=0.7)
     cbar.ax.set_ylabel("depth (m)", loc="center", size=f2_size, weight="bold")
     cbar.ax.tick_params(labelsize=f2_size, rotation=0)
 
@@ -3368,7 +3376,10 @@ def plot_worms(compile_folder, analysis_folder, trajectory_folder):
     f_size = 17
     for i in range(0, 2):
         for j in range(0, 2):
-            ax_name[i, j].plot(lon_saccf, lat_saccf, "w--")
+            if i == 1:
+                ax_name[i, j].plot(lon_saccf, lat_saccf, "b--")
+            else:
+                ax_name[i, j].plot(lon_saccf, lat_saccf, "w--")
             ax_name[i, j].plot(lon_pf, lat_pf, "w")
             ax_name[i, j].annotate(
                 "SACCF",
