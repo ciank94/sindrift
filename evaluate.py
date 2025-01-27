@@ -42,13 +42,13 @@ phys_folder = folder + "phys_states/"
 #cdata.plot_fishing_season()
 
 # figure 3: show particles backtracked from SG for one year;
-#plot_particles(compile_folder, analysis_folder, trajectory_folder, phys_folder)
+# plot_particles(compile_folder, analysis_folder, trajectory_folder, phys_folder)
 
 # figure 4:
-#plot_worms(compile_folder, analysis_folder, trajectory_folder)
+# plot_worms(compile_folder, analysis_folder, trajectory_folder)
 
 # figure 5:
-#plot_seasonal_rec(compile_folder)
+plot_seasonal_rec(compile_folder)
 
 # figure 6:
 # plot_transit_distributions(compile_folder, analysis_folder)

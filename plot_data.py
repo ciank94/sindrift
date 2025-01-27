@@ -2798,13 +2798,13 @@ def plot_seasonal_rec(compile_folder):
     for i in range(0, 2):
         for j in range(0, 2):
             ax[i, j].grid(alpha=0.45)
-            ax[0, j].set_ylabel("recruited (%)", fontsize=16)
-            ax[1, j].set_ylabel("time (days)", fontsize=16)
+            ax[0, j].set_ylabel("recruited (%)", fontsize=20)
+            ax[1, j].set_ylabel("time (days)", fontsize=20)
             ax[0, j].set_ylim([1, 12])
             ax[1, j].set_ylim([150, 230])
-            ax[i, j].set_xlabel("release date (dd/mm)", fontsize=16)
-            ax[i, j].xaxis.set_tick_params(labelsize=14)
-            ax[i, j].yaxis.set_tick_params(labelsize=14)
+            ax[i, j].set_xlabel("release date (dd/mm)", fontsize=20)
+            ax[i, j].xaxis.set_tick_params(labelsize=20)
+            ax[i, j].yaxis.set_tick_params(labelsize=20)
 
     ax[0, 0].annotate(
         "a)",
