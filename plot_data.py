@@ -2,6 +2,7 @@ import cmocean
 import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.pyplot import tight_layout
 
 # from matplotlib.patches import Polygon
 from shapely.geometry import box, Polygon, MultiPolygon
@@ -1606,9 +1607,9 @@ def plot_linreg(compile_folder, analysis_folder):
         recruit_v[counter] = p_plot.get_recruits()
 
     fig, ax1 = plt.subplots(4, 2, tight_layout=True, layout="constrained")
-    fig.set_size_inches(24, 11, forward=True)
-    m_size = 65
-    f_size = 18
+    fig.set_size_inches(22, 12, forward=True)
+    m_size = 150
+    f_size = 20
     l_width = 3
     c_mapt = "Blues"
     # fig.tight_layout()
@@ -1639,8 +1640,8 @@ def plot_linreg(compile_folder, analysis_folder):
     # fig.colorbar(d_map, , shrink=0.6)
     for i in range(0, 4):
         cbar = plt.colorbar(d_map, pad=0.01, ax=ax1[i, 0], shrink=0.99)
-        cbar.ax.set_ylabel("year", loc="center", size=16, weight="bold")
-        cbar.ax.tick_params(labelsize=16, rotation=0)
+        cbar.ax.set_ylabel("year", loc="center", size=20, weight="bold")
+        cbar.ax.tick_params(labelsize=20, rotation=0)
 
     varx = lat_mid * -1
     vary = catch_v
@@ -1802,8 +1803,8 @@ def plot_linreg(compile_folder, analysis_folder):
 
     for i in range(0, 4):
         for j in range(0, 2):
-            ax1[i, j].tick_params(axis="x", labelsize=16)
-            ax1[i, j].tick_params(axis="y", labelsize=16)
+            ax1[i, j].tick_params(axis="x", labelsize=20)
+            ax1[i, j].tick_params(axis="y", labelsize=20)
 
     ax1[0, 0].annotate(
         "a)",
@@ -2252,7 +2253,7 @@ def plot_catch_points(compile_folder, analysis_folder):
     bath = np.load(bath_file)
     bath_lon = np.load(bath_file_lon)
     bath_lat = np.load(bath_file_lat)
-    fig = plt.figure(figsize=(13.5, 8), layout="constrained")
+    fig = plt.figure(figsize=(20, 12), layout="constrained")
     ax_name = fig.add_subplot(projection=ccrs.PlateCarree())
     land_10m = cfeature.NaturalEarthFeature(
         "physical", "land", "10m", edgecolor="face", facecolor="lightgrey"
@@ -2376,7 +2377,7 @@ def plot_catch_points(compile_folder, analysis_folder):
 
     ax_name.tick_params(axis="both", which="major", labelsize=10)
     ax_name.tick_params(axis="both", which="minor", labelsize=8)
-    f2_size= 14
+    f2_size= 20
     cbar = plt.colorbar(d_map, pad=0.01, ax=ax_name, shrink=0.99)
     cbar.ax.set_ylabel("weight (x 1000 tonnes)", loc="center", size=f2_size, weight="bold")
     cbar.ax.tick_params(labelsize=f2_size, rotation=0)
@@ -2390,7 +2391,7 @@ def plot_catch_points(compile_folder, analysis_folder):
     impath = figures_path + "antarctic_sub.png"
 
     # Define the position and size parameters
-    image_xaxis = 0.045
+    image_xaxis = 0.035
     image_yaxis = 0.6856
     image_width = 0.28
     image_height = 0.30  # Same as width since our logo is a square
@@ -2410,7 +2411,9 @@ def plot_catch_points(compile_folder, analysis_folder):
 
 def plot_transit_distributions(compile_folder, analysis_folder):
     fig, axs = plt.subplots(4, 2, tight_layout=True)
-    fig.set_size_inches(24, 11, forward=True)
+    fig.set_size_inches(24, 12, forward=True)  # Larger figure size
+    #plt.tight_layout(pad=3.0)  # Add extra padding between subplots
+    #plt.figure(figsize=(12, 8))  # Increase width and height of the figure
     for i in range(0, 4):
         for j in range(0, 2):
             axs[i, j].set_axisbelow(True)
@@ -2437,28 +2440,28 @@ def plot_transit_distributions(compile_folder, analysis_folder):
         recruit_t[counter] = p_plot.get_recruit_times()
 
     A = np.reshape(store_vals, [store_vals.shape[0] * store_vals.shape[1], 1])
-    N, bins, patches = axs[0, 0].hist(A, bins=20, color="skyblue", edgecolor="black")
+    N, bins, patches = axs[0, 0].hist(A, bins=10, color="skyblue", edgecolor="black")
     fracs = N / N.max()
     norm = colors.Normalize(fracs.min(), fracs.max())
     # Now, we'll loop through our objects and set the color of each accordingly
-    for thisfrac, thispatch in zip(fracs, patches):
-        color = plt.cm.Blues(norm(thisfrac))
-        thispatch.set_facecolor(color)
-    axs[0, 0].set_xlabel("time (days)", fontsize=18)
-    axs[0, 0].set_ylabel("frequency", fontsize=18)
-    axs[0, 0].set_title("AP", fontsize=18)
+    #for thisfrac, thispatch in zip(fracs, patches):
+    #    color = plt.cm.Blues(norm(thisfrac))
+    #    thispatch.set_facecolor(color)
+    axs[0, 0].set_xlabel("time (days)", fontsize=20)
+    axs[0, 0].set_ylabel("frequency", fontsize=20)
+    axs[0, 0].set_title("AP", fontsize=20)
     axs[0, 0].set_xlim([120, 250])
 
     A = np.reshape(store_num, [store_vals.shape[0] * store_vals.shape[1], 1])
-    N, bins, patches = axs[1, 0].hist(A, bins=20, color="skyblue", edgecolor="black")
+    N, bins, patches = axs[1, 0].hist(A, bins=15, color="skyblue", edgecolor="black")
     fracs = N / N.max()
     norm = colors.Normalize(fracs.min(), fracs.max())
     # Now, we'll loop through our objects and set the color of each accordingly
-    for thisfrac, thispatch in zip(fracs, patches):
-        color = plt.cm.Blues(norm(thisfrac))
-        thispatch.set_facecolor(color)
-    axs[1, 0].set_xlabel("recruited (%)", fontsize=18)
-    axs[1, 0].set_ylabel("frequency", fontsize=18)
+    #for thisfrac, thispatch in zip(fracs, patches):
+    #    color = plt.cm.Blues(norm(thisfrac))
+    #    thispatch.set_facecolor(color)
+    axs[1, 0].set_xlabel("recruited (%)", fontsize=20)
+    axs[1, 0].set_ylabel("frequency", fontsize=20)
     axs[1, 0].set_xlim([0, 15])
 
     x_name = [
@@ -2481,17 +2484,17 @@ def plot_transit_distributions(compile_folder, analysis_folder):
     cmap = plt.get_cmap("Blues")
     c_vals = (recruit_t / recruit_t.max()) ** 1.5
     color_vals = cmap(c_vals)
-    axs[2, 0].bar(x_name, recruit_t, color=color_vals, alpha=0.8)
+    axs[2, 0].bar(x_name, recruit_t, color="skyblue", edgecolor="black")
     axs[2, 0].set_ylim([120, 240])
-    axs[2, 0].set_xlabel("year", fontsize=18)
-    axs[2, 0].set_ylabel("time (days)", fontsize=18)
+    axs[2, 0].set_xlabel("year", fontsize=20)
+    axs[2, 0].set_ylabel("time (days)", fontsize=20)
 
     c_vals = recruit_v / recruit_v.max()
     color_vals = cmap(c_vals)
-    axs[3, 0].bar(x_name, recruit_v, color=color_vals, alpha=0.8)
+    axs[3, 0].bar(x_name, recruit_v, color="skyblue", edgecolor="black")
     axs[3, 0].set_ylim([0, 14])
-    axs[3, 0].set_xlabel("year", fontsize=18)
-    axs[3, 0].set_ylabel("recruited (%)", fontsize=18)
+    axs[3, 0].set_xlabel("year", fontsize=20)
+    axs[3, 0].set_ylabel("recruited (%)", fontsize=20)
 
     store_vals = np.zeros([20, y_list.shape[0]])
     store_num = np.zeros([20, y_list.shape[0]])
@@ -2518,12 +2521,12 @@ def plot_transit_distributions(compile_folder, analysis_folder):
     fracs = N / N.max()
     norm = colors.Normalize(fracs.min(), fracs.max())
     # Now, we'll loop through our objects and set the color of each accordingly
-    for thisfrac, thispatch in zip(fracs, patches):
-        color = plt.cm.Blues(norm(thisfrac))
-        thispatch.set_facecolor(color)
-    axs[0, 1].set_xlabel("time (days)", fontsize=18)
-    axs[0, 1].set_ylabel("frequency", fontsize=18)
-    axs[0, 1].set_title("SO", fontsize=18)
+    #for thisfrac, thispatch in zip(fracs, patches):
+    #    color = plt.cm.Blues(norm(thisfrac))
+    #    thispatch.set_facecolor(color)
+    axs[0, 1].set_xlabel("time (days)", fontsize=20)
+    axs[0, 1].set_ylabel("frequency", fontsize=20)
+    axs[0, 1].set_title("SO", fontsize=20)
     axs[0, 1].set_xlim([120, 250])
 
     A = np.reshape(store_num, [store_vals.shape[0] * store_vals.shape[1], 1])
@@ -2531,17 +2534,17 @@ def plot_transit_distributions(compile_folder, analysis_folder):
     fracs = N / N.max()
     norm = colors.Normalize(fracs.min(), fracs.max())
     # Now, we'll loop through our objects and set the color of each accordingly
-    for thisfrac, thispatch in zip(fracs, patches):
-        color = plt.cm.Blues(norm(thisfrac))
-        thispatch.set_facecolor(color)
-    axs[1, 1].set_xlabel("recruited (%)", fontsize=18)
-    axs[1, 1].set_ylabel("frequency", fontsize=18)
+    #for thisfrac, thispatch in zip(fracs, patches):
+    #    color = plt.cm.Blues(norm(thisfrac))
+    #    thispatch.set_facecolor(color)
+    axs[1, 1].set_xlabel("recruited (%)", fontsize=20)
+    axs[1, 1].set_ylabel("frequency", fontsize=20)
     axs[1, 1].set_xlim([0, 15])
 
     for i in range(0, 4):
         for j in range(0, 2):
-            axs[i, j].tick_params(axis="x", labelsize=16)
-            axs[i, j].tick_params(axis="y", labelsize=16)
+            axs[i, j].tick_params(axis="x", labelsize=20)
+            axs[i, j].tick_params(axis="y", labelsize=20)
 
     x_name = [
         "2006",
@@ -2563,17 +2566,17 @@ def plot_transit_distributions(compile_folder, analysis_folder):
     cmap = plt.get_cmap("Blues")
     c_vals = (recruit_t / recruit_t.max()) ** 1.5
     color_vals = cmap(c_vals)
-    axs[2, 1].bar(x_name, recruit_t, color=color_vals, alpha=0.8)
+    axs[2, 1].bar(x_name, recruit_t, color="skyblue", edgecolor="black")
     axs[2, 1].set_ylim([120, 240])
-    axs[2, 1].set_xlabel("year", fontsize=18)
-    axs[2, 1].set_ylabel("time (days)", fontsize=18)
+    axs[2, 1].set_xlabel("year", fontsize=20)
+    axs[2, 1].set_ylabel("time (days)", fontsize=20)
 
     c_vals = recruit_v / recruit_v.max()
     color_vals = cmap(c_vals)
-    axs[3, 1].bar(x_name, recruit_v, color=color_vals, alpha=0.8)
+    axs[3, 1].bar(x_name, recruit_v, color="skyblue", edgecolor="black")
     axs[3, 1].set_ylim([0, 14])
-    axs[3, 1].set_xlabel("year", fontsize=18)
-    axs[3, 1].set_ylabel("recruited (%)", fontsize=18)
+    axs[3, 1].set_xlabel("year", fontsize=20)
+    axs[3, 1].set_ylabel("recruited (%)", fontsize=20)
 
     axs[0, 0].annotate(
         "a)",
@@ -2647,7 +2650,12 @@ def plot_transit_distributions(compile_folder, analysis_folder):
         fontfamily="serif",
         bbox=dict(facecolor="0.99", edgecolor="k", pad=3.0),
     )
-
+    xticks_01 = axs[2, 1].get_xticks()
+    #xticks_11 = axs[1, 1].get_xticks()
+    axs[2, 0].set_xticks(xticks_01[::2])
+    axs[2, 1].set_xticks(xticks_01[::2])
+    axs[3, 0].set_xticks(xticks_01[::2])
+    axs[3, 1].set_xticks(xticks_01[::2])
     p_plot.save_plot(plt_name="transit_distributions")
     return
 
@@ -3216,15 +3224,15 @@ def plot_worms(compile_folder, analysis_folder, trajectory_folder):
     cbar.ax.set_ylabel("probability (%)", loc="center", size=f2_size, weight="bold")
     cbar.ax.tick_params(labelsize=f2_size, rotation=0)
 
-    cbar = plt.colorbar(b_map, pad=0.01, ax=ax_name[0, 0], shrink=0.8)
-    cbar.ax.set_ylabel("depth (m)", loc="center", size=f2_size, weight="bold")
-    cbar.ax.tick_params(labelsize=f2_size, rotation=0)
+    #cbar = plt.colorbar(b_map, pad=0.01, ax=ax_name[0, 0], shrink=0.8)
+    #cbar.ax.set_ylabel("depth (m)", loc="center", size=f2_size, weight="bold")
+    #cbar.ax.tick_params(labelsize=f2_size, rotation=0)
 
     impath = figures_path + "antarctic_sub.png"
 
     # Define the position and size parameters
     image_xaxis = 0.018
-    image_yaxis = 0.79
+    image_yaxis = 0.832
     image_width = 0.15
     image_height = 0.14  # Same as width since our logo is a square
 
@@ -3340,9 +3348,9 @@ def plot_worms(compile_folder, analysis_folder, trajectory_folder):
     cbar.ax.set_ylabel("probability (%)", loc="center", size=f2_size, weight="bold")
     cbar.ax.tick_params(labelsize=f2_size, rotation=0)
 
-    cbar = plt.colorbar(b_map, pad=0.01, ax=ax_name[0, 1], shrink=0.7)
-    cbar.ax.set_ylabel("depth (m)", loc="center", size=f2_size, weight="bold")
-    cbar.ax.tick_params(labelsize=f2_size, rotation=0)
+    #cbar = plt.colorbar(b_map, pad=0.01, ax=ax_name[0, 1], shrink=0.7)
+    #cbar.ax.set_ylabel("depth (m)", loc="center", size=f2_size, weight="bold")
+    #cbar.ax.tick_params(labelsize=f2_size, rotation=0)
 
     # plot second one
 
