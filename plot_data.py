@@ -1619,7 +1619,19 @@ def plot_linreg(compile_folder, analysis_folder):
     mask = ~np.isnan(varx) & ~np.isnan(vary)
     res = stats.linregress(varx[mask], vary[mask])
     print("pearson correlations for recruit ap vs. catch sg = ")
-    print(stats.pearsonr(varx[mask], vary[mask]))
+    # Extract parameters
+    slope = res.slope
+    intercept = res.intercept
+    r_value = res.rvalue
+    p_value = res.pvalue
+    std_err = res.stderr
+
+    print("Slope (β1):", slope)
+    print("Intercept (β0):", intercept)
+    print("R-value:", r_value)
+    print("R² (explained variance):", r_value ** 2)
+    print("P-value:", p_value)
+    print("Standard error:", std_err)
 
     c_valss = np.arange(2006, 2021)
 
@@ -1648,7 +1660,19 @@ def plot_linreg(compile_folder, analysis_folder):
     mask = ~np.isnan(varx) & ~np.isnan(vary)
     res = stats.linregress(varx[mask], vary[mask])
     print("pearson correlations for lat ap vs. catch sg = ")
-    print(stats.pearsonr(varx[mask], vary[mask]))
+    # Extract parameters
+    slope = res.slope
+    intercept = res.intercept
+    r_value = res.rvalue
+    p_value = res.pvalue
+    std_err = res.stderr
+
+    print("Slope (β1):", slope)
+    print("Intercept (β0):", intercept)
+    print("R-value:", r_value)
+    print("R² (explained variance):", r_value ** 2)
+    print("P-value:", p_value)
+    print("Standard error:", std_err)
 
     ax1[1, 0].scatter(varx, vary, c=c_valss, s=m_size, cmap=c_mapt, edgecolors="k")
     ax1[1, 0].plot(
@@ -1666,7 +1690,19 @@ def plot_linreg(compile_folder, analysis_folder):
     mask = ~np.isnan(varx) & ~np.isnan(vary)
     res = stats.linregress(varx[mask], vary[mask])
     print("pearson correlations for lon ap vs. catch sg = ")
-    print(stats.pearsonr(varx[mask], vary[mask]))
+    # Extract parameters
+    slope = res.slope
+    intercept = res.intercept
+    r_value = res.rvalue
+    p_value = res.pvalue
+    std_err = res.stderr
+
+    print("Slope (β1):", slope)
+    print("Intercept (β0):", intercept)
+    print("R-value:", r_value)
+    print("R² (explained variance):", r_value ** 2)
+    print("P-value:", p_value)
+    print("Standard error:", std_err)
 
     ax1[2, 0].scatter(varx, vary, c=c_valss, s=m_size, cmap=c_mapt, edgecolors="k")
     ax1[2, 0].plot(
@@ -1684,7 +1720,19 @@ def plot_linreg(compile_folder, analysis_folder):
     mask = ~np.isnan(varx) & ~np.isnan(vary)
     res = stats.linregress(varx[mask], vary[mask])
     print("pearson correlations for catch ap vs. catch sg = ")
-    print(stats.pearsonr(varx[mask], vary[mask]))
+    # Extract parameters
+    slope = res.slope
+    intercept = res.intercept
+    r_value = res.rvalue
+    p_value = res.pvalue
+    std_err = res.stderr
+
+    print("Slope (β1):", slope)
+    print("Intercept (β0):", intercept)
+    print("R-value:", r_value)
+    print("R² (explained variance):", r_value ** 2)
+    print("P-value:", p_value)
+    print("Standard error:", std_err)
 
     ax1[3, 0].scatter(varx, vary, c=c_valss, s=m_size, cmap=c_mapt, edgecolors="k")
     ax1[3, 0].plot(
@@ -1721,7 +1769,19 @@ def plot_linreg(compile_folder, analysis_folder):
     mask = ~np.isnan(varx) & ~np.isnan(vary)
     res = stats.linregress(varx[mask], vary[mask])
     print("pearson correlations for recruit SO vs. catch sg = ")
-    print(stats.pearsonr(varx[mask], vary[mask]))
+    # Extract parameters
+    slope = res.slope
+    intercept = res.intercept
+    r_value = res.rvalue
+    p_value = res.pvalue
+    std_err = res.stderr
+
+    print("Slope (β1):", slope)
+    print("Intercept (β0):", intercept)
+    print("R-value:", r_value)
+    print("R² (explained variance):", r_value ** 2)
+    print("P-value:", p_value)
+    print("Standard error:", std_err)
 
     c_valss = np.arange(2006, 2021)
 
@@ -1742,7 +1802,19 @@ def plot_linreg(compile_folder, analysis_folder):
     mask = ~np.isnan(varx) & ~np.isnan(vary)
     res = stats.linregress(varx[mask], vary[mask])
     print("pearson correlations for lat SO vs. catch sg = ")
-    print(stats.pearsonr(varx[mask], vary[mask]))
+    # Extract parameters
+    slope = res.slope
+    intercept = res.intercept
+    r_value = res.rvalue
+    p_value = res.pvalue
+    std_err = res.stderr
+
+    print("Slope (β1):", slope)
+    print("Intercept (β0):", intercept)
+    print("R-value:", r_value)
+    print("R² (explained variance):", r_value ** 2)
+    print("P-value:", p_value)
+    print("Standard error:", std_err)
 
     ax1[1, 1].scatter(varx, vary, c=c_valss, s=m_size, cmap=c_mapt, edgecolors="k")
     ax1[1, 1].plot(
@@ -1760,7 +1832,19 @@ def plot_linreg(compile_folder, analysis_folder):
     mask = ~np.isnan(varx) & ~np.isnan(vary)
     res = stats.linregress(varx[mask], vary[mask])
     print("pearson correlations for lon SO vs. catch sg = ")
-    print(stats.pearsonr(varx[mask], vary[mask]))
+    # Extract parameters
+    slope = res.slope
+    intercept = res.intercept
+    r_value = res.rvalue
+    p_value = res.pvalue
+    std_err = res.stderr
+
+    print("Slope (β1):", slope)
+    print("Intercept (β0):", intercept)
+    print("R-value:", r_value)
+    print("R² (explained variance):", r_value ** 2)
+    print("P-value:", p_value)
+    print("Standard error:", std_err)
 
     ax1[2, 1].scatter(varx, vary, c=c_valss, s=m_size, cmap=c_mapt, edgecolors="k")
     ax1[2, 1].plot(
@@ -1778,7 +1862,19 @@ def plot_linreg(compile_folder, analysis_folder):
     mask = ~np.isnan(varx) & ~np.isnan(vary)
     res = stats.linregress(varx[mask], vary[mask])
     print("pearson correlations for catch SO vs. catch sg = ")
-    print(stats.pearsonr(varx[mask], vary[mask]))
+    # Extract parameters
+    slope = res.slope
+    intercept = res.intercept
+    r_value = res.rvalue
+    p_value = res.pvalue
+    std_err = res.stderr
+
+    print("Slope (β1):", slope)
+    print("Intercept (β0):", intercept)
+    print("R-value:", r_value)
+    print("R² (explained variance):", r_value ** 2)
+    print("P-value:", p_value)
+    print("Standard error:", std_err)
 
     ax1[3, 1].scatter(varx, vary, c=c_valss, s=m_size, cmap=c_mapt, edgecolors="k")
     ax1[3, 1].plot(

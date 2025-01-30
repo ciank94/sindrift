@@ -45,7 +45,7 @@ phys_folder = folder + "phys_states/"
 # plot_particles(compile_folder, analysis_folder, trajectory_folder, phys_folder)
 
 # figure 4:
-plot_worms(compile_folder, analysis_folder, trajectory_folder)
+# plot_worms(compile_folder, analysis_folder, trajectory_folder)
 
 # figure 5:
 #plot_seasonal_rec(compile_folder)
@@ -54,4 +54,4 @@ plot_worms(compile_folder, analysis_folder, trajectory_folder)
 #plot_transit_distributions(compile_folder, analysis_folder)
 
 # figure 7:
-#plot_linreg(compile_folder, analysis_folder)
+plot_linreg(compile_folder, analysis_folder)
