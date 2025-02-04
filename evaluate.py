@@ -54,4 +54,4 @@ phys_folder = folder + "phys_states/"
 #plot_transit_distributions(compile_folder, analysis_folder)
 
 # figure 7:
-plot_linreg(compile_folder, analysis_folder)
+# plot_linreg(compile_folder, analysis_folder)
