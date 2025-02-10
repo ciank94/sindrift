@@ -585,9 +585,11 @@ class PlotData:
         return
 
     def save_plot(self, plt_name):
-        savefile = self.figures_path + plt_name + ".png"
+        #savefile = self.figures_path + plt_name + ".png"
+        savefile = self.figures_path + plt_name + ".tiff"
         print("Saving file: " + savefile)
-        plt.savefig(savefile, dpi=400)
+        #plt.savefig(savefile, dpi=400)
+        plt.savefig(savefile, format = "tiff")
         plt.close()
         return
 
@@ -1043,7 +1045,7 @@ class CatchData:
         xticks_11 = axs[1, 1].get_xticks()
         axs[0, 1].set_xticks(xticks_01[::2])
         axs[1, 1].set_xticks(xticks_11[::2])
-        self.save_plot(plt_name="fishing_season")
+        self.save_plot(plt_name="figure_2")
         return
 
     def get_area(self, asd_code):
@@ -1079,9 +1081,10 @@ class CatchData:
         return
 
     def save_plot(self, plt_name):
-        savefile = self.figures_path + plt_name + ".png"
+        #savefile = self.figures_path + plt_name + ".png"
+        savefile = self.figures_path + plt_name + ".tiff"
         print("Saving file: " + savefile)
-        plt.savefig(savefile, dpi=600)
+        plt.savefig(savefile, format = "tiff")
         plt.close()
         return
 
@@ -1975,7 +1978,7 @@ def plot_linreg(compile_folder, analysis_folder):
         bbox=dict(facecolor="0.99", edgecolor="k", pad=3.0),
     )
 
-    p_plot.save_plot("recruit_correlation")
+    p_plot.save_plot("figure_7")
     return
 
 
@@ -2500,7 +2503,7 @@ def plot_catch_points(compile_folder, analysis_folder):
     ax_image.imshow(image)
     ax_image.axis("off")  # Remove axis of the image
 
-    cdata.save_plot(plt_name="fishing_points")
+    cdata.save_plot(plt_name="figure_1")
 
     return
 
@@ -2752,7 +2755,7 @@ def plot_transit_distributions(compile_folder, analysis_folder):
     axs[2, 1].set_xticks(xticks_01[::2])
     axs[3, 0].set_xticks(xticks_01[::2])
     axs[3, 1].set_xticks(xticks_01[::2])
-    p_plot.save_plot(plt_name="transit_distributions")
+    p_plot.save_plot(plt_name="figure_6")
     return
 
 
@@ -2947,14 +2950,16 @@ def plot_seasonal_rec(compile_folder):
         bbox=dict(facecolor="0.99", edgecolor="k", pad=3.0),
     )
 
-    save_plot(figures_path=figures_path, plt_name="seasonal_recruit")
+    save_plot(figures_path=figures_path, plt_name="figure_5")
     return
 
 
 def save_plot(figures_path, plt_name):
-    savefile = figures_path + plt_name + ".png"
+    #savefile = figures_path + plt_name + ".png"
+    savefile = figures_path + plt_name + ".tiff"
     print("Saving file: " + savefile)
-    plt.savefig(savefile, dpi=400)
+    #plt.savefig(savefile, dpi=400)
+    plt.savefig(savefile, format = 'tiff')
     plt.close()
     return
 
@@ -3216,7 +3221,7 @@ def plot_particles(compile_folder, analysis_folder, trajectory_folder, phys_fold
             bbox=dict(facecolor="0.99", edgecolor="k", pad=3.0),
         )
 
-        p_plot.save_plot(plt_name="particle_backtrack")
+        p_plot.save_plot(plt_name="figure_3")
         nc_file.close()
         return
 
@@ -3536,6 +3541,6 @@ def plot_worms(compile_folder, analysis_folder, trajectory_folder):
         bbox=dict(facecolor="0.99", edgecolor="k", pad=3.0),
     )
 
-    p_plot.save_plot(plt_name="AP_SO_worms")
+    p_plot.save_plot(plt_name="figure_4")
     return
     # p_plot.plot_background(background='BSSI', ax_name=axs[idy, idx])
